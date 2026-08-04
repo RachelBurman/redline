@@ -13,9 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
+import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as ApiV1DocumentsRouteImport } from './routes/api/v1/documents'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
 import { Route as ApiV1WorkspaceRouteImport } from './routes/api/v1/workspace'
+import { Route as AppDocumentsDocumentIdRouteImport } from './routes/app/documents/$documentId'
 import { Route as ApiV1AuthSplatRouteImport } from './routes/api/v1/auth/$'
+import { Route as ApiV1DocumentsDocumentIdRouteImport } from './routes/api/v1/documents/$documentId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -37,6 +41,16 @@ const SignUpRoute = SignUpRouteImport.update({
   path: '/sign-up',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const ApiV1DocumentsRoute = ApiV1DocumentsRouteImport.update({
+  id: '/api/v1/documents',
+  path: '/api/v1/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1HealthRoute = ApiV1HealthRouteImport.update({
   id: '/api/v1/health',
   path: '/api/v1/health',
@@ -47,39 +61,61 @@ const ApiV1WorkspaceRoute = ApiV1WorkspaceRouteImport.update({
   path: '/api/v1/workspace',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppDocumentsDocumentIdRoute = AppDocumentsDocumentIdRouteImport.update({
+  id: '/documents/$documentId',
+  path: '/documents/$documentId',
+  getParentRoute: () => AppRoute,
+} as any)
 const ApiV1AuthSplatRoute = ApiV1AuthSplatRouteImport.update({
   id: '/api/v1/auth/$',
   path: '/api/v1/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1DocumentsDocumentIdRoute =
+  ApiV1DocumentsDocumentIdRouteImport.update({
+    id: '/$documentId',
+    path: '/$documentId',
+    getParentRoute: () => ApiV1DocumentsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app': typeof AppRoute
+  '/app': typeof AppRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/app/': typeof AppIndexRoute
+  '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/workspace': typeof ApiV1WorkspaceRoute
+  '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
+  '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app': typeof AppRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/app': typeof AppIndexRoute
+  '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/workspace': typeof ApiV1WorkspaceRoute
+  '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
+  '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/app': typeof AppRoute
+  '/app': typeof AppRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/app/': typeof AppIndexRoute
+  '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
   '/api/v1/workspace': typeof ApiV1WorkspaceRoute
+  '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
+  '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -88,34 +124,46 @@ export interface FileRouteTypes {
     | '/app'
     | '/sign-in'
     | '/sign-up'
+    | '/app/'
+    | '/api/v1/documents'
     | '/api/v1/health'
     | '/api/v1/workspace'
+    | '/app/documents/$documentId'
     | '/api/v1/auth/$'
+    | '/api/v1/documents/$documentId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/app'
     | '/sign-in'
     | '/sign-up'
+    | '/app'
+    | '/api/v1/documents'
     | '/api/v1/health'
     | '/api/v1/workspace'
+    | '/app/documents/$documentId'
     | '/api/v1/auth/$'
+    | '/api/v1/documents/$documentId'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/sign-in'
     | '/sign-up'
+    | '/app/'
+    | '/api/v1/documents'
     | '/api/v1/health'
     | '/api/v1/workspace'
+    | '/app/documents/$documentId'
     | '/api/v1/auth/$'
+    | '/api/v1/documents/$documentId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRoute
+  AppRoute: typeof AppRouteWithChildren
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
+  ApiV1DocumentsRoute: typeof ApiV1DocumentsRouteWithChildren
   ApiV1HealthRoute: typeof ApiV1HealthRoute
   ApiV1WorkspaceRoute: typeof ApiV1WorkspaceRoute
   ApiV1AuthSplatRoute: typeof ApiV1AuthSplatRoute
@@ -151,6 +199,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignUpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/api/v1/documents': {
+      id: '/api/v1/documents'
+      path: '/api/v1/documents'
+      fullPath: '/api/v1/documents'
+      preLoaderRoute: typeof ApiV1DocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/health': {
       id: '/api/v1/health'
       path: '/api/v1/health'
@@ -165,6 +227,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1WorkspaceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/documents/$documentId': {
+      id: '/app/documents/$documentId'
+      path: '/documents/$documentId'
+      fullPath: '/app/documents/$documentId'
+      preLoaderRoute: typeof AppDocumentsDocumentIdRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/api/v1/auth/$': {
       id: '/api/v1/auth/$'
       path: '/api/v1/auth/$'
@@ -172,14 +241,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1AuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/documents/$documentId': {
+      id: '/api/v1/documents/$documentId'
+      path: '/$documentId'
+      fullPath: '/api/v1/documents/$documentId'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdRouteImport
+      parentRoute: typeof ApiV1DocumentsRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppIndexRoute: typeof AppIndexRoute
+  AppDocumentsDocumentIdRoute: typeof AppDocumentsDocumentIdRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppIndexRoute: AppIndexRoute,
+  AppDocumentsDocumentIdRoute: AppDocumentsDocumentIdRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+interface ApiV1DocumentsRouteChildren {
+  ApiV1DocumentsDocumentIdRoute: typeof ApiV1DocumentsDocumentIdRoute
+}
+
+const ApiV1DocumentsRouteChildren: ApiV1DocumentsRouteChildren = {
+  ApiV1DocumentsDocumentIdRoute: ApiV1DocumentsDocumentIdRoute,
+}
+
+const ApiV1DocumentsRouteWithChildren = ApiV1DocumentsRoute._addFileChildren(
+  ApiV1DocumentsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppRoute: AppRoute,
+  AppRoute: AppRouteWithChildren,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
+  ApiV1DocumentsRoute: ApiV1DocumentsRouteWithChildren,
   ApiV1HealthRoute: ApiV1HealthRoute,
   ApiV1WorkspaceRoute: ApiV1WorkspaceRoute,
   ApiV1AuthSplatRoute: ApiV1AuthSplatRoute,

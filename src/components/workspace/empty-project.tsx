@@ -2,9 +2,10 @@ import { FileUp, ShieldCheck } from 'lucide-react'
 
 interface EmptyProjectProps {
   projectName: string
+  children: React.ReactNode
 }
 
-export function EmptyProject({ projectName }: EmptyProjectProps) {
+export function EmptyProject({ projectName, children }: EmptyProjectProps) {
   return (
     <section
       aria-labelledby="project-heading"
@@ -36,13 +37,7 @@ export function EmptyProject({ projectName }: EmptyProjectProps) {
           Next, upload a Word document. Redline will preserve the source file and extract headings
           and paragraphs into a version-safe review copy.
         </p>
-        <button
-          className="mt-6 rounded-lg bg-[#18201d] px-4 py-2.5 text-sm font-bold text-white opacity-50"
-          disabled
-          type="button"
-        >
-          Document upload is the next milestone
-        </button>
+        <div className="mt-6">{children}</div>
       </div>
     </section>
   )
