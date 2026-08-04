@@ -4,6 +4,7 @@ import { ArrowLeft, LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { DocumentViewer } from '#/components/documents/document-viewer'
+import { ExportDocumentButton } from '#/components/documents/export-document-button'
 import { ParserWarnings } from '#/components/documents/parser-warnings'
 import { ReviewSidebar } from '#/components/reviews/review-sidebar'
 import { WorkspaceHeader } from '#/components/workspace/workspace-header'
@@ -116,6 +117,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     workspace.data.organization.role,
   )
   const canResolve = ['owner', 'admin', 'editor'].includes(workspace.data.organization.role)
+  const canExport = canResolve
   const selectedItem = reviewItems.data.find((item) => item.id === selectedItemId)
 
   return (
@@ -139,11 +141,18 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
               {document.data.document.title}
             </h1>
           </div>
-          <div className="text-right text-xs text-[#707a75]">
-            <p className="font-bold text-[#49534f]">
-              Version {document.data.version.versionNumber}
-            </p>
-            <p>{document.data.reviewRound.name}</p>
+          <div className="flex items-end gap-4">
+            <div className="text-right text-xs text-[#707a75]">
+              <p className="font-bold text-[#49534f]">
+                Version {document.data.version.versionNumber}
+              </p>
+              <p>{document.data.reviewRound.name}</p>
+            </div>
+            <ExportDocumentButton
+              canExport={canExport}
+              documentId={documentId}
+              title={document.data.document.title}
+            />
           </div>
         </div>
 
