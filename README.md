@@ -60,14 +60,16 @@ written as accessible, composable React components; there is no component-kit de
    pnpm install
    ```
 
-2. Copy `.env.example` to `.env.local` and replace `BETTER_AUTH_SECRET` with at least 32
-   cryptographically random characters. `OBJECT_STORAGE_ROOT` is optional and defaults to
-   `.data/object-storage`.
+2. Copy `.env.example` to `.env.local`. Set `POSTGRES_DB`, `POSTGRES_USER`, and a unique
+   randomly generated `POSTGRES_PASSWORD`. Set `DATABASE_URL` using those values, and set
+   `BETTER_AUTH_SECRET` to an independent cryptographically random value of at least 32
+   characters. Never reuse or commit these credentials. `OBJECT_STORAGE_ROOT` is optional
+   and defaults to `.data/object-storage`.
 
 3. Start PostgreSQL:
 
    ```bash
-   docker compose up -d postgres
+   docker compose --env-file .env.local up -d postgres
    ```
 
 4. Apply all committed database migrations:
