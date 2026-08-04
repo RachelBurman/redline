@@ -9,6 +9,23 @@ import {
 import { presenceHeartbeatSchema } from '#/server/presence/presence-schema'
 import { reviewErrorResponse } from '#/server/reviews/review-error-response'
 
+function presenceErrorResponse(error: unknown) {
+  if (error instanceof z.ZodError) {
+    return Response.json(
+      {
+        error: {
+          code: 'INVALID_PRESENCE',
+          message: 'The presence request is invalid.',
+          issues: z.treeifyError(error),
+        },
+      },
+      { status: 400 },
+    )
+  }
+
+  return reviewErrorResponse(error)
+}
+
 export const Route = createFileRoute('/api/v1/documents/$documentId/presence')({
   server: {
     handlers: {
@@ -22,7 +39,7 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/presence')({
           })
           return Response.json({ data: participants })
         } catch (error) {
-          return reviewErrorResponse(error)
+          return presenceErrorResponse(error)
         }
       },
       POST: async ({ request, params }) => {
@@ -40,7 +57,7 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/presence')({
           })
           return Response.json({ data: presence })
         } catch (error) {
-          return reviewErrorResponse(error)
+          return presenceErrorResponse(error)
         }
       },
     },
