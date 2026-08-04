@@ -21,6 +21,7 @@ import { Route as AppDocumentsDocumentIdRouteImport } from './routes/app/documen
 import { Route as ApiV1AuthSplatRouteImport } from './routes/api/v1/auth/$'
 import { Route as ApiV1DocumentsDocumentIdRouteImport } from './routes/api/v1/documents/$documentId'
 import { Route as ApiV1DocumentsDocumentIdExportsRouteImport } from './routes/api/v1/documents/$documentId/exports'
+import { Route as ApiV1DocumentsDocumentIdPresenceRouteImport } from './routes/api/v1/documents/$documentId/presence'
 import { Route as ApiV1DocumentsDocumentIdReviewItemsRouteImport } from './routes/api/v1/documents/$documentId/review-items'
 import { Route as ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRouteImport } from './routes/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
 
@@ -86,6 +87,12 @@ const ApiV1DocumentsDocumentIdExportsRoute =
     path: '/exports',
     getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
   } as any)
+const ApiV1DocumentsDocumentIdPresenceRoute =
+  ApiV1DocumentsDocumentIdPresenceRouteImport.update({
+    id: '/presence',
+    path: '/presence',
+    getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+  } as any)
 const ApiV1DocumentsDocumentIdReviewItemsRoute =
   ApiV1DocumentsDocumentIdReviewItemsRouteImport.update({
     id: '/review-items',
@@ -112,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
+  '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
   '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
 }
@@ -127,6 +135,7 @@ export interface FileRoutesByTo {
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
+  '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
   '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
 }
@@ -144,6 +153,7 @@ export interface FileRoutesById {
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
+  '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
   '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
 }
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/api/v1/auth/$'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/$documentId/exports'
+    | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
   fileRoutesByTo: FileRoutesByTo
@@ -177,6 +188,7 @@ export interface FileRouteTypes {
     | '/api/v1/auth/$'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/$documentId/exports'
+    | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
   id:
@@ -193,6 +205,7 @@ export interface FileRouteTypes {
     | '/api/v1/auth/$'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/$documentId/exports'
+    | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
   fileRoutesById: FileRoutesById
@@ -294,6 +307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1DocumentsDocumentIdExportsRouteImport
       parentRoute: typeof ApiV1DocumentsDocumentIdRoute
     }
+    '/api/v1/documents/$documentId/presence': {
+      id: '/api/v1/documents/$documentId/presence'
+      path: '/presence'
+      fullPath: '/api/v1/documents/$documentId/presence'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdPresenceRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
     '/api/v1/documents/$documentId/review-items': {
       id: '/api/v1/documents/$documentId/review-items'
       path: '/review-items'
@@ -340,12 +360,15 @@ const ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren =
 
 interface ApiV1DocumentsDocumentIdRouteChildren {
   ApiV1DocumentsDocumentIdExportsRoute: typeof ApiV1DocumentsDocumentIdExportsRoute
+  ApiV1DocumentsDocumentIdPresenceRoute: typeof ApiV1DocumentsDocumentIdPresenceRoute
   ApiV1DocumentsDocumentIdReviewItemsRoute: typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
 }
 
 const ApiV1DocumentsDocumentIdRouteChildren: ApiV1DocumentsDocumentIdRouteChildren =
   {
     ApiV1DocumentsDocumentIdExportsRoute: ApiV1DocumentsDocumentIdExportsRoute,
+    ApiV1DocumentsDocumentIdPresenceRoute:
+      ApiV1DocumentsDocumentIdPresenceRoute,
     ApiV1DocumentsDocumentIdReviewItemsRoute:
       ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren,
   }

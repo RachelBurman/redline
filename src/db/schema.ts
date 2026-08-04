@@ -356,6 +356,29 @@ export const collaborationUpdates = pgTable(
   ],
 )
 
+export const documentPresence = pgTable(
+  'document_presence',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, { onDelete: 'cascade' }),
+    documentVersionId: uuid('document_version_id')
+      .notNull()
+      .references(() => documentVersions.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    clientId: varchar('client_id', { length: 120 }).notNull(),
+    selectedBlockStableKey: varchar('selected_block_stable_key', { length: 120 }),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('document_presence_client_uq').on(table.documentId, table.userId, table.clientId),
+    index('document_presence_active_idx').on(table.documentId, table.lastSeenAt),
+  ],
+)
+
 export const auditEvents = pgTable(
   'audit_event',
   {
