@@ -10,14 +10,21 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
+import { Route as ApiV1WorkspaceRouteImport } from './routes/api/v1/workspace'
 import { Route as ApiV1AuthSplatRouteImport } from './routes/api/v1/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -35,6 +42,11 @@ const ApiV1HealthRoute = ApiV1HealthRouteImport.update({
   path: '/api/v1/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1WorkspaceRoute = ApiV1WorkspaceRouteImport.update({
+  id: '/api/v1/workspace',
+  path: '/api/v1/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1AuthSplatRoute = ApiV1AuthSplatRouteImport.update({
   id: '/api/v1/auth/$',
   path: '/api/v1/auth/$',
@@ -43,45 +55,69 @@ const ApiV1AuthSplatRoute = ApiV1AuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/workspace': typeof ApiV1WorkspaceRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/workspace': typeof ApiV1WorkspaceRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/workspace': typeof ApiV1WorkspaceRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/sign-up' | '/api/v1/health' | '/api/v1/auth/$'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign-in' | '/sign-up' | '/api/v1/health' | '/api/v1/auth/$'
-  id:
-    | '__root__'
+  fullPaths:
     | '/'
+    | '/app'
     | '/sign-in'
     | '/sign-up'
     | '/api/v1/health'
+    | '/api/v1/workspace'
+    | '/api/v1/auth/$'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/app'
+    | '/sign-in'
+    | '/sign-up'
+    | '/api/v1/health'
+    | '/api/v1/workspace'
+    | '/api/v1/auth/$'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/sign-in'
+    | '/sign-up'
+    | '/api/v1/health'
+    | '/api/v1/workspace'
     | '/api/v1/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
   ApiV1HealthRoute: typeof ApiV1HealthRoute
+  ApiV1WorkspaceRoute: typeof ApiV1WorkspaceRoute
   ApiV1AuthSplatRoute: typeof ApiV1AuthSplatRoute
 }
 
@@ -92,6 +128,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-in': {
@@ -115,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1HealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/workspace': {
+      id: '/api/v1/workspace'
+      path: '/api/v1/workspace'
+      fullPath: '/api/v1/workspace'
+      preLoaderRoute: typeof ApiV1WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/auth/$': {
       id: '/api/v1/auth/$'
       path: '/api/v1/auth/$'
@@ -127,9 +177,11 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
   ApiV1HealthRoute: ApiV1HealthRoute,
+  ApiV1WorkspaceRoute: ApiV1WorkspaceRoute,
   ApiV1AuthSplatRoute: ApiV1AuthSplatRoute,
 }
 export const routeTree = rootRouteImport

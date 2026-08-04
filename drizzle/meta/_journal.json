@@ -8,6 +8,13 @@
       "when": 1785874307245,
       "tag": "0000_romantic_cyclops",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1785882270519,
+      "tag": "0001_plain_inhumans",
+      "breakpoints": true
     }
   ]
 }

@@ -33,7 +33,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         return
       }
 
-      window.location.assign('/')
+      window.location.assign('/app')
     },
   })
 
