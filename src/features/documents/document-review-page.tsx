@@ -6,13 +6,19 @@ import { useEffect, useState } from 'react'
 import { DocumentViewer } from '#/components/documents/document-viewer'
 import { ExportDocumentButton } from '#/components/documents/export-document-button'
 import { ParserWarnings } from '#/components/documents/parser-warnings'
+import { PresenceBar } from '#/components/reviews/presence-bar'
 import { ReviewSidebar } from '#/components/reviews/review-sidebar'
 import { WorkspaceHeader } from '#/components/workspace/workspace-header'
 import { apiRequest } from '#/lib/api-client'
 import { authClient } from '#/lib/auth-client'
 
+import { useDocumentPresence } from './use-document-presence'
+
 import type { DocumentDetail } from '#/types/documents'
+import type { PresenceParticipant } from '#/types/presence'
 import type { ResolveReviewItemResult, ReviewItemSummary } from '#/types/reviews'
+
+const emptyPresence: PresenceParticipant[] = []
 
 interface WorkspaceSummary {
   organization: { id: string; name: string; slug: string; role: string }
@@ -34,11 +40,24 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     queryKey: ['document', documentId],
     queryFn: () => apiRequest<DocumentDetail>(`/api/v1/documents/${documentId}`),
     enabled: Boolean(session.data?.user),
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
   })
   const reviewItems = useQuery({
     queryKey: ['review-items', documentId],
     queryFn: () => apiRequest<ReviewItemSummary[]>(`/api/v1/documents/${documentId}/review-items`),
     enabled: Boolean(session.data?.user),
+    refetchInterval: 3_000,
+    refetchIntervalInBackground: false,
+  })
+  const selectedStableKey =
+    activeBlock?.stableKey ??
+    reviewItems.data?.find((item) => item.id === selectedItemId)?.targetStableKey
+  const presence = useDocumentPresence({
+    documentId,
+    documentVersionId: document.data?.version.id,
+    selectedBlockStableKey: selectedStableKey,
+    enabled: Boolean(session.data?.user && document.data),
   })
 
   useEffect(() => {
@@ -118,7 +137,6 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   )
   const canResolve = ['owner', 'admin', 'editor'].includes(workspace.data.organization.role)
   const canExport = canResolve
-  const selectedItem = reviewItems.data.find((item) => item.id === selectedItemId)
 
   return (
     <div className="min-h-screen bg-[#f3f2ed]">
@@ -141,7 +159,11 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
               {document.data.document.title}
             </h1>
           </div>
-          <div className="flex items-end gap-4">
+          <div className="flex flex-wrap items-end justify-end gap-4">
+            <PresenceBar
+              currentUserId={session.data.user.id}
+              participants={presence.data ?? emptyPresence}
+            />
             <div className="text-right text-xs text-[#707a75]">
               <p className="font-bold text-[#49534f]">
                 Version {document.data.version.versionNumber}
@@ -166,7 +188,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
               setActiveBlock(block)
               setSelectedItemId(null)
             }}
-            selectedStableKey={activeBlock?.stableKey ?? selectedItem?.targetStableKey}
+            selectedStableKey={selectedStableKey}
           />
           <ReviewSidebar
             activeBlock={activeBlock}
