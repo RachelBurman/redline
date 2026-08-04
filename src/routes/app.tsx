@@ -1,5 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { Outlet, createFileRoute } from '@tanstack/react-router'
 
-import { WorkspacePage } from '#/features/workspace/workspace-page'
-
-export const Route = createFileRoute('/app')({ component: WorkspacePage })
+export const Route = createFileRoute('/app')({ component: Outlet })
