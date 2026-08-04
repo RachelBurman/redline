@@ -61,7 +61,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
           </h2>
           <p className="mt-3 text-sm leading-6 text-[#6b7570]">
             {isSignUp
-              ? 'Set up your identity now. Organisation and reviewer invitations come next.'
+              ? 'Your organisation and first project will be prepared automatically.'
               : 'Use the email and password associated with your Redline account.'}
           </p>
 
