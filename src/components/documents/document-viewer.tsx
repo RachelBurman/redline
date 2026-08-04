@@ -1,11 +1,23 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 import { DocumentBlockView } from './document-block-view'
 
 import type { DocumentDetail } from '#/types/documents'
 
-export function DocumentViewer({ blocks }: { blocks: DocumentDetail['blocks'] }) {
+interface DocumentViewerProps {
+  blocks: DocumentDetail['blocks']
+  canReview: boolean
+  selectedStableKey?: string
+  onPropose: (block: DocumentDetail['blocks'][number]) => void
+}
+
+export function DocumentViewer({
+  blocks,
+  canReview,
+  selectedStableKey,
+  onPropose,
+}: DocumentViewerProps) {
   const scrollElementRef = useRef<HTMLDivElement>(null)
   const virtualizer = useVirtualizer({
     count: blocks.length,
@@ -13,6 +25,12 @@ export function DocumentViewer({ blocks }: { blocks: DocumentDetail['blocks'] })
     estimateSize: (index) => (blocks[index]?.blockType === 'heading' ? 92 : 78),
     overscan: 8,
   })
+
+  useEffect(() => {
+    if (!selectedStableKey) return
+    const index = blocks.findIndex((block) => block.stableKey === selectedStableKey)
+    if (index >= 0) virtualizer.scrollToIndex(index, { align: 'center' })
+  }, [blocks, selectedStableKey, virtualizer])
 
   return (
     <div
@@ -30,14 +48,23 @@ export function DocumentViewer({ blocks }: { blocks: DocumentDetail['blocks'] })
 
           return (
             <div
-              className="absolute top-0 left-0 w-full px-7 py-5 sm:px-12"
+              className={`absolute top-0 left-0 w-full px-7 py-5 sm:px-12 ${
+                selectedStableKey === block.stableKey
+                  ? 'bg-[#fff3ee] ring-2 ring-inset ring-[#edb8a8]'
+                  : ''
+              }`}
               data-block-id={block.id}
               data-index={virtualItem.index}
               key={block.id}
               ref={virtualizer.measureElement}
               style={{ transform: `translateY(${virtualItem.start}px)` }}
             >
-              <DocumentBlockView block={block} />
+              <DocumentBlockView
+                block={block}
+                onPropose={
+                  canReview && block.blockType === 'paragraph' ? () => onPropose(block) : undefined
+                }
+              />
             </div>
           )
         })}
