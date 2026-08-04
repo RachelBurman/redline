@@ -1,0 +1,18 @@
+pre-commit:
+  parallel: true
+  jobs:
+    - name: format staged files
+      glob: '*.{css,js,json,jsonc,jsx,md,mjs,ts,tsx,yaml,yml}'
+      run: pnpm exec oxfmt --check {staged_files}
+    - name: lint staged files
+      glob: '*.{js,jsx,mjs,ts,tsx}'
+      run: pnpm exec oxlint --deny-warnings {staged_files}
+    - name: test
+      run: pnpm test
+    - name: react doctor
+      run: pnpm react-doctor:staged
+
+pre-push:
+  jobs:
+    - name: verify repository
+      run: pnpm verify

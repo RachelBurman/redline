@@ -1,0 +1,30 @@
+allowBuilds:
+  esbuild: true
+  lightningcss: true
+  better-sqlite3: true
+  lefthook: true
+overrides:
+  '@emnapi/core': 2.0.0-alpha.3
+  '@emnapi/runtime': 2.0.0-alpha.3
+minimumReleaseAge: 10080
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  # Established transitive dependencies that predate npm provenance adoption.
+  - semver@6.3.1
+  - undici-types
+minimumReleaseAgeExclude:
+  - '@better-auth/*'
+  - '@oxfmt/*'
+  - '@oxlint/*'
+  - '@tailwindcss/*'
+  - '@tanstack/*'
+  - '@vitejs/*'
+  - better-auth
+  - deslop-js@0.9.4
+  - oxfmt
+  - oxlint
+  - oxlint-plugin-react-doctor@0.9.4
+  - react-doctor@0.9.4
+  - tailwindcss
+  - typescript
+  - vite

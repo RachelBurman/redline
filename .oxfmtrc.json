@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "singleQuote": true,
+  "semi": false,
+  "sortImports": {
+    "groups": ["builtin", "external", "internal", "parent", "sibling", "index", "type"]
+  },
+  "sortPackageJson": true,
+  "ignorePatterns": ["src/routeTree.gen.ts", "drizzle/meta/**", "coverage/**"]
+}
