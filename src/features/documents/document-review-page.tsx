@@ -1,15 +1,17 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { ArrowLeft, LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { DocumentViewer } from '#/components/documents/document-viewer'
 import { ParserWarnings } from '#/components/documents/parser-warnings'
+import { ReviewSidebar } from '#/components/reviews/review-sidebar'
 import { WorkspaceHeader } from '#/components/workspace/workspace-header'
 import { apiRequest } from '#/lib/api-client'
 import { authClient } from '#/lib/auth-client'
 
 import type { DocumentDetail } from '#/types/documents'
+import type { ResolveReviewItemResult, ReviewItemSummary } from '#/types/reviews'
 
 interface WorkspaceSummary {
   organization: { id: string; name: string; slug: string; role: string }
@@ -18,7 +20,10 @@ interface WorkspaceSummary {
 
 export function DocumentReviewPage({ documentId }: { documentId: string }) {
   const session = authClient.useSession()
+  const queryClient = useQueryClient()
   const [isSigningOut, setIsSigningOut] = useState(false)
+  const [activeBlock, setActiveBlock] = useState<DocumentDetail['blocks'][number] | null>(null)
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const workspace = useQuery({
     queryKey: ['workspace'],
     queryFn: () => apiRequest<WorkspaceSummary>('/api/v1/workspace'),
@@ -27,6 +32,11 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   const document = useQuery({
     queryKey: ['document', documentId],
     queryFn: () => apiRequest<DocumentDetail>(`/api/v1/documents/${documentId}`),
+    enabled: Boolean(session.data?.user),
+  })
+  const reviewItems = useQuery({
+    queryKey: ['review-items', documentId],
+    queryFn: () => apiRequest<ReviewItemSummary[]>(`/api/v1/documents/${documentId}/review-items`),
     enabled: Boolean(session.data?.user),
   })
 
@@ -40,10 +50,34 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     window.location.assign('/')
   }
 
+  function handleCreated(item: ReviewItemSummary) {
+    setActiveBlock(null)
+    setSelectedItemId(item.id)
+    void queryClient.invalidateQueries({ queryKey: ['review-items', documentId] })
+  }
+
+  async function handleResolve(item: ReviewItemSummary, decision: 'accept' | 'reject') {
+    await apiRequest<ResolveReviewItemResult>(
+      `/api/v1/documents/${documentId}/review-items/${item.id}/resolve`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision, expectedRevision: item.revision }),
+      },
+    )
+    setActiveBlock(null)
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['document', documentId] }),
+      queryClient.invalidateQueries({ queryKey: ['review-items', documentId] }),
+      queryClient.invalidateQueries({ queryKey: ['documents'] }),
+    ])
+  }
+
   if (
     session.isPending ||
     (!workspace.data && workspace.isPending) ||
-    (!document.data && document.isPending)
+    (!document.data && document.isPending) ||
+    (!reviewItems.data && reviewItems.isPending)
   ) {
     return (
       <main className="grid min-h-screen place-items-center" id="main-content">
@@ -56,9 +90,12 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
 
   if (!session.data?.user) return null
 
-  if (!workspace.data || !document.data) {
+  if (!workspace.data || !document.data || !reviewItems.data) {
     const message =
-      workspace.error?.message ?? document.error?.message ?? 'The document could not be loaded.'
+      workspace.error?.message ??
+      document.error?.message ??
+      reviewItems.error?.message ??
+      'The document could not be loaded.'
     return (
       <main className="grid min-h-screen place-items-center px-5" id="main-content">
         <section className="max-w-md rounded-2xl border border-[#e3c7be] bg-white p-7 text-center">
@@ -74,6 +111,12 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
       </main>
     )
   }
+
+  const canReview = ['owner', 'admin', 'editor', 'reviewer'].includes(
+    workspace.data.organization.role,
+  )
+  const canResolve = ['owner', 'admin', 'editor'].includes(workspace.data.organization.role)
+  const selectedItem = reviewItems.data.find((item) => item.id === selectedItemId)
 
   return (
     <div className="min-h-screen bg-[#f3f2ed]">
@@ -107,21 +150,31 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
         <ParserWarnings warnings={document.data.version.parserWarnings} />
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <DocumentViewer blocks={document.data.blocks} />
-          <aside
-            className="h-fit rounded-2xl border border-[#dedbd3] bg-white p-5"
-            aria-labelledby="review-queue-heading"
-          >
-            <p className="text-[10px] font-bold tracking-[0.14em] text-[#a64e38] uppercase">
-              Review queue
-            </p>
-            <h2 className="mt-2 text-lg font-bold text-[#26312d]" id="review-queue-heading">
-              No proposals yet
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-[#6e7873]">
-              Paragraph replacement proposals will appear here, separate from the readable document.
-            </p>
-          </aside>
+          <DocumentViewer
+            blocks={document.data.blocks}
+            canReview={canReview}
+            onPropose={(block) => {
+              setActiveBlock(block)
+              setSelectedItemId(null)
+            }}
+            selectedStableKey={activeBlock?.stableKey ?? selectedItem?.targetStableKey}
+          />
+          <ReviewSidebar
+            activeBlock={activeBlock}
+            canResolve={canResolve}
+            documentId={documentId}
+            documentVersionId={document.data.version.id}
+            items={reviewItems.data}
+            onCancelProposal={() => setActiveBlock(null)}
+            onCreated={handleCreated}
+            onResolve={handleResolve}
+            onSelect={(item) => {
+              setActiveBlock(null)
+              setSelectedItemId(item.id)
+            }}
+            reviewRoundId={document.data.reviewRound.id}
+            selectedItemId={selectedItemId}
+          />
         </div>
       </main>
     </div>

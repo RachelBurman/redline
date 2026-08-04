@@ -4,6 +4,7 @@ import { strFromU8, unzipSync } from 'fflate'
 import { hashText } from '#/domain/review/selection-anchor'
 
 const MAX_UNCOMPRESSED_PACKAGE_BYTES = 80 * 1024 * 1024
+const MAX_DOCUMENT_BLOCKS = 5_000
 export const DOCX_PARSER_VERSION = 'ooxml-blocks-v1'
 
 type OrderedXmlNode = Record<string, unknown> & {
@@ -303,6 +304,9 @@ export function parseDocx(bytes: Uint8Array): ParsedDocx {
   }
   if (blocks.length === 0) {
     throw new DocxParseError('The Word document did not contain reviewable headings or paragraphs.')
+  }
+  if (blocks.length > MAX_DOCUMENT_BLOCKS) {
+    throw new DocxParseError('The Word document contains too many blocks for this review version.')
   }
 
   return {
