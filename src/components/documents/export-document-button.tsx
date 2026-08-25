@@ -1,4 +1,4 @@
-import { Download, LoaderCircle } from 'lucide-react'
+import { CircleAlert, Download, LoaderCircle } from 'lucide-react'
 import { useState } from 'react'
 
 interface ExportDocumentButtonProps {
@@ -7,12 +7,14 @@ interface ExportDocumentButtonProps {
   title: string
 }
 
+type ExportState = 'idle' | 'exporting' | 'downloaded' | 'error'
+
 export function ExportDocumentButton({ canExport, documentId, title }: ExportDocumentButtonProps) {
-  const [isExporting, setIsExporting] = useState(false)
+  const [exportState, setExportState] = useState<ExportState>('idle')
   const [message, setMessage] = useState<string | null>(null)
 
   async function handleExport() {
-    setIsExporting(true)
+    setExportState('exporting')
     setMessage(null)
 
     try {
@@ -31,32 +33,44 @@ export function ExportDocumentButton({ canExport, documentId, title }: ExportDoc
       link.download = `${title.replace(/[^a-zA-Z0-9 _-]/g, '').trim() || 'document'}-resolved.docx`
       link.click()
       URL.revokeObjectURL(objectUrl)
+      setExportState('downloaded')
       setMessage('Resolved document downloaded.')
     } catch (error) {
+      setExportState('error')
       setMessage(error instanceof Error ? error.message : 'The export failed.')
-    } finally {
-      setIsExporting(false)
     }
   }
 
   if (!canExport) return null
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div>
       <button
-        className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#d4d1c9] bg-white px-3 text-xs font-bold text-[#48534e] shadow-sm hover:bg-[#faf9f5] disabled:opacity-55"
-        disabled={isExporting}
+        className="inline-flex min-h-10 min-w-[226px] items-center justify-center gap-2 rounded-lg border border-[#d4d1c9] bg-white px-3 text-xs font-bold text-[#48534e] shadow-sm hover:bg-[#faf9f5] disabled:opacity-55"
+        disabled={exportState === 'exporting'}
         onClick={() => void handleExport()}
         type="button"
       >
-        {isExporting ? (
+        {exportState === 'exporting' ? (
           <LoaderCircle aria-hidden="true" className="animate-spin" size={15} />
+        ) : exportState === 'error' ? (
+          <CircleAlert aria-hidden="true" size={15} />
         ) : (
           <Download aria-hidden="true" size={15} />
         )}
-        {isExporting ? 'Exporting…' : 'Download resolved .docx'}
+        {exportState === 'exporting'
+          ? 'Downloading...'
+          : exportState === 'downloaded'
+            ? 'DOCX downloaded'
+            : exportState === 'error'
+              ? 'Download failed - try again'
+              : 'Download resolved .docx'}
       </button>
-      {message ? <output className="text-[10px] text-[#66716b]">{message}</output> : null}
+      {message ? (
+        <output aria-live="polite" className="sr-only">
+          {message}
+        </output>
+      ) : null}
     </div>
   )
 }

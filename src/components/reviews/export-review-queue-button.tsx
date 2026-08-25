@@ -76,7 +76,7 @@ export function ExportReviewQueueButton({
         {exportState === 'exporting'
           ? 'Downloading...'
           : exportState === 'downloaded'
-            ? 'Downloaded...'
+            ? 'CSV downloaded'
             : exportState === 'error'
               ? 'Download failed - try again'
               : 'Download review queue CSV'}
