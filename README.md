@@ -8,7 +8,7 @@ clutter.
 The repository contains the first complete vertical slice: an authenticated user can create
 a workspace, upload a `.docx`, review its headings and paragraphs, propose a paragraph-level
 replacement, accept or reject it, inspect attributable decisions, and export the resolved
-content as a new `.docx`.
+content as a new `.docx` or download the complete review queue as an auditable CSV.
 
 ## Implemented workflow
 
@@ -23,6 +23,7 @@ content as a new `.docx`.
 9. Record workspace, upload, proposal, decision, and export actions in the append-only audit
    log.
 10. Generate and download a basic resolved `.docx` from the current structured version.
+11. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
 
 Multiple participants can review the same document concurrently. The viewer shows active,
 version-bound presence and refreshes proposals in the background. Decisions are serialised
@@ -158,6 +159,12 @@ Export is also isolated. It builds a new basic Word document from the current st
 blocks, stores it as a separate immutable object, records its digest and source version, and
 appends an export audit event. It never modifies the uploaded source file.
 
+Review queue export uses the same immutable export boundary. The CSV contains review and
+version identifiers, original, proposed, and final text, category, priority, rationale,
+status, action state, attribution, resolution metadata, timestamps, and discussion counts.
+Potential spreadsheet formulas are neutralised before CSV encoding, and every generated
+report is hashed and recorded in the audit log.
+
 ## Versioned API
 
 | Endpoint                                                           | Purpose                                 |
@@ -167,6 +174,7 @@ appends an export audit event. It never modifies the uploaded source file.
 | `/api/v1/documents`                                                | List documents or upload a `.docx`      |
 | `/api/v1/documents/:documentId`                                    | Read the structured current version     |
 | `/api/v1/documents/:documentId/review-items`                       | List or create proposals                |
+| `/api/v1/documents/:documentId/review-items/export`                | Download the complete review queue CSV  |
 | `/api/v1/documents/:documentId/review-items/:reviewItemId/resolve` | Accept or reject a proposal             |
 | `/api/v1/documents/:documentId/presence`                           | Read or heartbeat participant presence  |
 | `/api/v1/documents/:documentId/exports`                            | Generate the current resolved `.docx`   |

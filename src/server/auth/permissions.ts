@@ -2,6 +2,7 @@ const documentCreators = new Set(['owner', 'admin', 'editor'])
 const documentReviewers = new Set(['owner', 'admin', 'editor', 'reviewer'])
 const documentResolvers = new Set(['owner', 'admin', 'editor'])
 const documentExporters = new Set(['owner', 'admin', 'editor'])
+const reviewQueueExporters = new Set(['owner', 'admin', 'editor', 'reviewer', 'auditor'])
 
 export class PermissionDeniedError extends Error {
   constructor(message = 'You do not have permission to perform this action.') {
@@ -31,5 +32,11 @@ export function assertCanResolveReviewItem(role: string) {
 export function assertCanExportDocument(role: string) {
   if (!documentExporters.has(role)) {
     throw new PermissionDeniedError('Your organisation role cannot export resolved documents.')
+  }
+}
+
+export function assertCanExportReviewQueue(role: string) {
+  if (!reviewQueueExporters.has(role)) {
+    throw new PermissionDeniedError('Your organisation role cannot export review reports.')
   }
 }

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { DocumentViewer } from '#/components/documents/document-viewer'
 import { ExportDocumentButton } from '#/components/documents/export-document-button'
 import { ParserWarnings } from '#/components/documents/parser-warnings'
+import { ExportReviewQueueButton } from '#/components/reviews/export-review-queue-button'
 import { PresenceBar } from '#/components/reviews/presence-bar'
 import { ReviewSidebar } from '#/components/reviews/review-sidebar'
 import { WorkspaceHeader } from '#/components/workspace/workspace-header'
@@ -137,6 +138,9 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   )
   const canResolve = ['owner', 'admin', 'editor'].includes(workspace.data.organization.role)
   const canExport = canResolve
+  const canExportReviewQueue = ['owner', 'admin', 'editor', 'reviewer', 'auditor'].includes(
+    workspace.data.organization.role,
+  )
 
   return (
     <div className="min-h-screen bg-[#f3f2ed]">
@@ -172,6 +176,11 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
             </div>
             <ExportDocumentButton
               canExport={canExport}
+              documentId={documentId}
+              title={document.data.document.title}
+            />
+            <ExportReviewQueueButton
+              canExport={canExportReviewQueue}
               documentId={documentId}
               title={document.data.document.title}
             />
