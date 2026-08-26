@@ -19,11 +19,13 @@ content as a new `.docx` or download the complete review queue as an auditable C
 5. Read the clean document alongside its review queue.
 6. Create a paragraph replacement with a category, priority, and rationale.
 7. Accept or reject the proposal through an authorised, transactional decision.
-8. On acceptance, materialise a new document version without changing the source version.
-9. Record workspace, upload, proposal, decision, and export actions in the append-only audit
-   log.
-10. Generate and download a basic resolved `.docx` from the current structured version.
-11. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
+8. Keep accepted changes in a derived resolved preview until an authorised user explicitly
+   creates the next immutable version.
+9. Browse, download, and restore historical versions without deleting or rewriting history.
+10. Record workspace, upload, proposal, decision, version, restore, and export actions in the append-only audit
+    log.
+11. Generate and download a basic resolved `.docx` from the current structured version.
+12. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
 
 Multiple participants can review the same document concurrently. The viewer shows active,
 version-bound presence and refreshes proposals in the background. Decisions are serialised
@@ -140,12 +142,17 @@ and end offsets, the exact selected quote, surrounding context, and the target b
 The server validates that anchor against immutable versioned content before accepting a
 proposal.
 
-Accepting a proposal does not edit an existing version. It locks the document, checks the
-expected revision, copies the ordered blocks into a new checkpoint version, changes the one
-targeted block, closes the old review round, and opens a new round. Other unresolved items
-from the superseded version are marked as conflicts rather than silently moved to unrelated
-text. Rejection records the resolution and audit event while leaving document content
-unchanged.
+Accepting a proposal does not edit an existing version or create a version implicitly. It
+locks the document, checks the expected revision and selection anchor, records the accepted
+resolution, and includes it in the derived resolved preview. An owner, administrator, or
+editor must explicitly create the next version. That transaction materialises every accepted
+replacement, closes the old review round, opens a new round, and marks unresolved items from
+the old version as superseded rather than silently moving them.
+
+Restoring is also non-destructive. Restoring version 1 while version 4 is current creates
+version 5 with version 1's immutable blocks. The previous versions remain readable and
+downloadable, the restore reason and provenance are stored with the new version, and the
+action is appended to the audit chain. Downloads create audited exports but never versions.
 
 ### DOCX parsing and export
 
@@ -173,6 +180,10 @@ report is hashed and recorded in the audit log.
 | `/api/v1/workspace`                                                | Read or initialise the user's workspace |
 | `/api/v1/documents`                                                | List documents or upload a `.docx`      |
 | `/api/v1/documents/:documentId`                                    | Read the structured current version     |
+| `/api/v1/documents/:documentId/versions`                           | List or explicitly create versions      |
+| `/api/v1/documents/:documentId/versions/:versionId`                | Read one immutable historical version   |
+| `/api/v1/documents/:documentId/versions/:versionId/restore`        | Restore history as a new version        |
+| `/api/v1/documents/:documentId/versions/:versionId/exports`        | Download an immutable version           |
 | `/api/v1/documents/:documentId/review-items`                       | List or create proposals                |
 | `/api/v1/documents/:documentId/review-items/export`                | Download the complete review queue CSV  |
 | `/api/v1/documents/:documentId/review-items/:reviewItemId/resolve` | Accept or reject a proposal             |
@@ -188,7 +199,8 @@ room for insertions, deletions, questions, comments, threaded discussion, and ri
 queues, but those workflows are not presented as finished features. Tables and complex Word
 layout are represented explicitly as unsupported content rather than rendered inaccurately.
 Direct shared-text editing, CRDT/OT synchronisation, pagination, headers and footers, and
-pixel-perfect Word rendering remain outside this MVP.
+pixel-perfect Word rendering remain outside this MVP. Visual comparison between two versions
+is the next version-history increment and is not included in this slice.
 
 ## Security and data safety
 
@@ -199,6 +211,8 @@ pixel-perfect Word rendering remain outside this MVP.
 - Foreign keys use restrictive deletion for review and audit records.
 - Audit events form a hash chain and PostgreSQL rejects updates or deletes.
 - A review selection never silently relocates to a new document version.
+- Version creation and restore require owner, administrator, or editor permissions and an
+  expected-current-version check under a document-level PostgreSQL lock.
 - Review decisions are authorised, revision-checked, locked, and committed atomically with
   their audit events.
 - Dependency installation enforces a seven-day release maturity window and trust-downgrade

@@ -5,6 +5,7 @@ import {
   assertCanCreateDocument,
   assertCanExportDocument,
   assertCanExportReviewQueue,
+  assertCanManageDocumentVersions,
   assertCanResolveReviewItem,
   assertCanReviewDocument,
 } from './permissions'
@@ -28,6 +29,7 @@ describe('review permissions', () => {
   it.each(['owner', 'admin', 'editor'])('allows %s to resolve changes', (role) => {
     expect(() => assertCanResolveReviewItem(role)).not.toThrow()
     expect(() => assertCanExportDocument(role)).not.toThrow()
+    expect(() => assertCanManageDocumentVersions(role)).not.toThrow()
   })
 
   it.each(['viewer', 'auditor'])('prevents %s from proposing changes', (role) => {
@@ -45,4 +47,11 @@ describe('review permissions', () => {
   it.each(['viewer', 'member'])('prevents %s from exporting the review queue', (role) => {
     expect(() => assertCanExportReviewQueue(role)).toThrow(PermissionDeniedError)
   })
+
+  it.each(['reviewer', 'viewer', 'auditor', 'member'])(
+    'prevents %s from managing document versions',
+    (role) => {
+      expect(() => assertCanManageDocumentVersions(role)).toThrow(PermissionDeniedError)
+    },
+  )
 })

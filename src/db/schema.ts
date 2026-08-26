@@ -18,6 +18,8 @@ import {
 
 import { organization, user } from './auth-schema'
 
+import type { AnyPgColumn } from 'drizzle-orm/pg-core'
+
 const bytea = customType<{ data: Buffer }>({
   dataType: () => 'bytea',
 })
@@ -31,6 +33,7 @@ export const documentVersionOrigin = pgEnum('document_version_origin', [
   'upload',
   'checkpoint',
   'import',
+  'restore',
 ])
 export const documentBlockType = pgEnum('document_block_type', [
   'heading',
@@ -113,7 +116,13 @@ export const documentVersions = pgTable(
     documentId: uuid('document_id')
       .notNull()
       .references(() => documents.id, { onDelete: 'restrict' }),
-    parentVersionId: uuid('parent_version_id'),
+    parentVersionId: uuid('parent_version_id').references((): AnyPgColumn => documentVersions.id, {
+      onDelete: 'restrict',
+    }),
+    restoredFromVersionId: uuid('restored_from_version_id').references(
+      (): AnyPgColumn => documentVersions.id,
+      { onDelete: 'restrict' },
+    ),
     versionNumber: integer('version_number').notNull(),
     origin: documentVersionOrigin('origin').notNull(),
     status: documentVersionStatus('status').notNull().default('pending'),
@@ -124,6 +133,7 @@ export const documentVersions = pgTable(
     parserVersion: varchar('parser_version', { length: 40 }),
     parserWarnings: jsonb('parser_warnings').$type<string[]>().notNull().default([]),
     parseError: text('parse_error'),
+    note: text('note'),
     createdById: text('created_by_id')
       .notNull()
       .references(() => user.id, { onDelete: 'restrict' }),

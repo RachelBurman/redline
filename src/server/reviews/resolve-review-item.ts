@@ -1,16 +1,7 @@
-import { randomUUID } from 'node:crypto'
-
-import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm'
+import { and, eq, inArray, ne, sql } from 'drizzle-orm'
 
 import { db } from '#/db/index'
-import {
-  documentBlocks,
-  documentVersions,
-  documents,
-  reviewItems,
-  reviewResolutions,
-  reviewRounds,
-} from '#/db/schema'
+import { documentBlocks, documents, reviewItems, reviewResolutions } from '#/db/schema'
 import {
   StaleSelectionError,
   assertSelectionAnchorMatches,
@@ -52,20 +43,15 @@ export async function resolveReviewItem(input: {
         anchorQuote: reviewItems.anchorQuote,
         anchorSuffix: reviewItems.anchorSuffix,
         targetContentHash: reviewItems.targetContentHash,
-        originalContent: reviewItems.originalContent,
         proposedContent: reviewItems.proposedContent,
         status: reviewItems.status,
         revision: reviewItems.revision,
         blockText: documentBlocks.text,
         currentVersionId: documents.currentVersionId,
-        currentVersionNumber: documentVersions.versionNumber,
-        parserVersion: documentVersions.parserVersion,
-        parserWarnings: documentVersions.parserWarnings,
       })
       .from(reviewItems)
       .innerJoin(documents, eq(reviewItems.documentId, documents.id))
       .innerJoin(documentBlocks, eq(reviewItems.targetBlockId, documentBlocks.id))
-      .innerJoin(documentVersions, eq(reviewItems.documentVersionId, documentVersions.id))
       .where(
         and(
           eq(reviewItems.id, input.reviewItemId),
@@ -157,50 +143,24 @@ export async function resolveReviewItem(input: {
       throw error
     }
 
-    const sourceBlocks = await tx
-      .select({
-        id: documentBlocks.id,
-        parentBlockId: documentBlocks.parentBlockId,
-        stableKey: documentBlocks.stableKey,
-        ordinal: documentBlocks.ordinal,
-        blockType: documentBlocks.blockType,
-        text: documentBlocks.text,
-        headingLevel: documentBlocks.headingLevel,
-        attributes: documentBlocks.attributes,
-      })
-      .from(documentBlocks)
-      .where(eq(documentBlocks.documentVersionId, item.documentVersionId))
-      .orderBy(asc(documentBlocks.ordinal))
+    const [existingAcceptedItem] = await tx
+      .select({ id: reviewItems.id })
+      .from(reviewItems)
+      .where(
+        and(
+          eq(reviewItems.documentVersionId, item.documentVersionId),
+          eq(reviewItems.targetBlockId, item.targetBlockId),
+          eq(reviewItems.status, 'accepted'),
+          ne(reviewItems.id, item.id),
+        ),
+      )
+      .limit(1)
 
-    const newVersionId = randomUUID()
-    const newReviewRoundId = randomUUID()
-    await tx.insert(documentVersions).values({
-      id: newVersionId,
-      documentId: input.documentId,
-      parentVersionId: item.documentVersionId,
-      versionNumber: item.currentVersionNumber + 1,
-      origin: 'checkpoint',
-      status: 'ready',
-      parserVersion: item.parserVersion,
-      parserWarnings: item.parserWarnings,
-      createdById: input.context.userId,
-      publishedAt: now,
-    })
-    await tx.insert(documentBlocks).values(
-      sourceBlocks.map((block) => {
-        const text = block.id === item.targetBlockId ? item.proposedContent! : block.text
-        return {
-          documentVersionId: newVersionId,
-          stableKey: block.stableKey,
-          ordinal: block.ordinal,
-          blockType: block.blockType,
-          text,
-          headingLevel: block.headingLevel,
-          contentHash: hashText(text),
-          attributes: block.attributes,
-        }
-      }),
-    )
+    if (existingAcceptedItem) {
+      throw new ReviewConflictError(
+        'This paragraph already has an accepted change awaiting a new version.',
+      )
+    }
 
     const conflictedItems = await tx
       .update(reviewItems)
@@ -208,6 +168,7 @@ export async function resolveReviewItem(input: {
       .where(
         and(
           eq(reviewItems.documentVersionId, item.documentVersionId),
+          eq(reviewItems.targetBlockId, item.targetBlockId),
           ne(reviewItems.id, item.id),
           inArray(reviewItems.status, ['open', 'under_discussion']),
         ),
@@ -229,36 +190,20 @@ export async function resolveReviewItem(input: {
       resolverId: input.context.userId,
       resolvedAt: now,
     })
-    await tx
-      .update(reviewRounds)
-      .set({ status: 'completed', completedById: input.context.userId, completedAt: now })
-      .where(eq(reviewRounds.id, item.reviewRoundId))
-    await tx.insert(reviewRounds).values({
-      id: newReviewRoundId,
-      documentId: input.documentId,
-      documentVersionId: newVersionId,
-      name: `Review round ${item.currentVersionNumber + 1}`,
-      createdById: input.context.userId,
-    })
-    await tx
-      .update(documents)
-      .set({ currentVersionId: newVersionId, updatedAt: now })
-      .where(eq(documents.id, input.documentId))
     await appendAuditEvent(tx, {
       organizationId: input.context.organizationId,
       projectId: input.context.projectId,
       documentId: input.documentId,
-      documentVersionId: newVersionId,
+      documentVersionId: item.documentVersionId,
       reviewRoundId: item.reviewRoundId,
       reviewItemId: item.id,
       actorId: input.context.userId,
       eventType: 'review_item.accepted',
       payload: {
-        sourceDocumentVersionId: item.documentVersionId,
-        resolvedDocumentVersionId: newVersionId,
         targetBlockId: item.targetBlockId,
         finalContentHash: hashText(item.proposedContent),
         conflictedReviewItemIds: conflictedItems.map((conflict) => conflict.id),
+        awaitingVersionCreation: true,
       },
     })
 
@@ -266,8 +211,8 @@ export async function resolveReviewItem(input: {
       reviewItemId: item.id,
       decision: 'accept' as const,
       status: 'accepted' as const,
-      documentVersionId: newVersionId,
-      reviewRoundId: newReviewRoundId,
+      documentVersionId: item.documentVersionId,
+      reviewRoundId: item.reviewRoundId,
       conflictedReviewItemCount: conflictedItems.length,
     }
   })

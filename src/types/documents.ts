@@ -16,6 +16,9 @@ export interface DocumentDetail {
   version: {
     id: string
     versionNumber: number
+    origin: 'upload' | 'checkpoint' | 'import' | 'restore'
+    note: string | null
+    isCurrent: boolean
     parserWarnings: string[]
     createdAt: string
   }

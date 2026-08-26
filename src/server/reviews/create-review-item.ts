@@ -76,6 +76,23 @@ export async function createReviewItem(input: {
     if (target.blockType !== 'paragraph') {
       throw new ReviewTargetError('The first review slice supports paragraph replacements only.')
     }
+
+    const [acceptedChange] = await tx
+      .select({ id: reviewItems.id })
+      .from(reviewItems)
+      .where(
+        and(
+          eq(reviewItems.documentVersionId, input.review.documentVersionId),
+          eq(reviewItems.targetBlockId, input.review.targetBlockId),
+          eq(reviewItems.status, 'accepted'),
+        ),
+      )
+      .limit(1)
+    if (acceptedChange) {
+      throw new ReviewTargetError(
+        'This paragraph already has an accepted change awaiting a new version.',
+      )
+    }
     if (target.blockText === input.review.proposedContent) {
       throw new ReviewTargetError('Replacement text must differ from the original paragraph.')
     }

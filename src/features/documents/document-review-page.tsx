@@ -1,11 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { ArrowLeft, LoaderCircle } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { DocumentViewer } from '#/components/documents/document-viewer'
 import { ExportDocumentButton } from '#/components/documents/export-document-button'
 import { ParserWarnings } from '#/components/documents/parser-warnings'
+import { VersionHistoryPanel } from '#/components/documents/version-history-panel'
 import { ExportReviewQueueButton } from '#/components/reviews/export-review-queue-button'
 import { PresenceBar } from '#/components/reviews/presence-bar'
 import { ReviewSidebar } from '#/components/reviews/review-sidebar'
@@ -15,11 +16,13 @@ import { authClient } from '#/lib/auth-client'
 
 import { useDocumentPresence } from './use-document-presence'
 
+import type { DocumentVersionSummary, VersionActionResult } from '#/types/document-versions'
 import type { DocumentDetail } from '#/types/documents'
 import type { PresenceParticipant } from '#/types/presence'
 import type { ResolveReviewItemResult, ReviewItemSummary } from '#/types/reviews'
 
 const emptyPresence: PresenceParticipant[] = []
+const emptyReviewItems: ReviewItemSummary[] = []
 
 interface WorkspaceSummary {
   organization: { id: string; name: string; slug: string; role: string }
@@ -32,6 +35,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   const [isSigningOut, setIsSigningOut] = useState(false)
   const [activeBlock, setActiveBlock] = useState<DocumentDetail['blocks'][number] | null>(null)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [viewedVersionId, setViewedVersionId] = useState<string | null>(null)
   const workspace = useQuery({
     queryKey: ['workspace'],
     queryFn: () => apiRequest<WorkspaceSummary>('/api/v1/workspace'),
@@ -51,6 +55,30 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     refetchInterval: 3_000,
     refetchIntervalInBackground: false,
   })
+  const versions = useQuery({
+    queryKey: ['document-versions', documentId],
+    queryFn: () => apiRequest<DocumentVersionSummary[]>(`/api/v1/documents/${documentId}/versions`),
+    enabled: Boolean(session.data?.user),
+    refetchInterval: 5_000,
+    refetchIntervalInBackground: false,
+  })
+  const historicalVersion = useQuery({
+    queryKey: ['document-version', documentId, viewedVersionId],
+    queryFn: () =>
+      apiRequest<DocumentDetail>(
+        `/api/v1/documents/${documentId}/versions/${viewedVersionId ?? ''}`,
+      ),
+    enabled: Boolean(session.data?.user && viewedVersionId),
+  })
+  const displayedVersionId = viewedVersionId ?? document.data?.version.id
+  const displayedReviewItems = useMemo(
+    () =>
+      displayedVersionId
+        ? (reviewItems.data?.filter((item) => item.documentVersionId === displayedVersionId) ??
+          emptyReviewItems)
+        : emptyReviewItems,
+    [displayedVersionId, reviewItems.data],
+  )
   const selectedStableKey =
     activeBlock?.stableKey ??
     reviewItems.data?.find((item) => item.id === selectedItemId)?.targetStableKey
@@ -90,6 +118,19 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['document', documentId] }),
       queryClient.invalidateQueries({ queryKey: ['review-items', documentId] }),
+      queryClient.invalidateQueries({ queryKey: ['document-versions', documentId] }),
+      queryClient.invalidateQueries({ queryKey: ['documents'] }),
+    ])
+  }
+
+  async function handleVersionChanged(_result: VersionActionResult) {
+    setViewedVersionId(null)
+    setActiveBlock(null)
+    setSelectedItemId(null)
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['document', documentId] }),
+      queryClient.invalidateQueries({ queryKey: ['document-versions', documentId] }),
+      queryClient.invalidateQueries({ queryKey: ['review-items', documentId] }),
       queryClient.invalidateQueries({ queryKey: ['documents'] }),
     ])
   }
@@ -98,7 +139,9 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     session.isPending ||
     (!workspace.data && workspace.isPending) ||
     (!document.data && document.isPending) ||
-    (!reviewItems.data && reviewItems.isPending)
+    (!reviewItems.data && reviewItems.isPending) ||
+    (!versions.data && versions.isPending) ||
+    (viewedVersionId !== null && !historicalVersion.data && historicalVersion.isPending)
   ) {
     return (
       <main className="grid min-h-screen place-items-center" id="main-content">
@@ -111,11 +154,19 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
 
   if (!session.data?.user) return null
 
-  if (!workspace.data || !document.data || !reviewItems.data) {
+  if (
+    !workspace.data ||
+    !document.data ||
+    !reviewItems.data ||
+    !versions.data ||
+    (viewedVersionId !== null && !historicalVersion.data)
+  ) {
     const message =
       workspace.error?.message ??
       document.error?.message ??
       reviewItems.error?.message ??
+      versions.error?.message ??
+      historicalVersion.error?.message ??
       'The document could not be loaded.'
     return (
       <main className="grid min-h-screen place-items-center px-5" id="main-content">
@@ -138,9 +189,12 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   )
   const canResolve = ['owner', 'admin', 'editor'].includes(workspace.data.organization.role)
   const canExport = canResolve
+  const canManageVersions = canResolve
   const canExportReviewQueue = ['owner', 'admin', 'editor', 'reviewer', 'auditor'].includes(
     workspace.data.organization.role,
   )
+  const displayedDocument = viewedVersionId ? historicalVersion.data! : document.data
+  const isViewingHistoricalVersion = !displayedDocument.version.isCurrent
 
   return (
     <div className="min-h-screen bg-[#f3f2ed]">
@@ -164,21 +218,29 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
             </h1>
           </div>
           <div className="flex flex-wrap items-end justify-end gap-4">
-            <PresenceBar
-              currentUserId={session.data.user.id}
-              participants={presence.data ?? emptyPresence}
-            />
+            {!isViewingHistoricalVersion ? (
+              <PresenceBar
+                currentUserId={session.data.user.id}
+                participants={presence.data ?? emptyPresence}
+              />
+            ) : null}
             <div className="text-right text-xs text-[#707a75]">
               <p className="font-bold text-[#49534f]">
-                Version {document.data.version.versionNumber}
+                Version {displayedDocument.version.versionNumber}
               </p>
-              <p>{document.data.reviewRound.name}</p>
+              <p>
+                {isViewingHistoricalVersion
+                  ? 'Historical — read only'
+                  : displayedDocument.reviewRound.name}
+              </p>
             </div>
-            <ExportDocumentButton
-              canExport={canExport}
-              documentId={documentId}
-              title={document.data.document.title}
-            />
+            {!isViewingHistoricalVersion ? (
+              <ExportDocumentButton
+                canExport={canExport}
+                documentId={documentId}
+                title={document.data.document.title}
+              />
+            ) : null}
             <ExportReviewQueueButton
               canExport={canExportReviewQueue}
               documentId={documentId}
@@ -187,12 +249,42 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
           </div>
         </div>
 
-        <ParserWarnings warnings={document.data.version.parserWarnings} />
+        <VersionHistoryPanel
+          canManageVersions={canManageVersions}
+          currentVersionId={document.data.version.id}
+          documentId={documentId}
+          onVersionChanged={handleVersionChanged}
+          onViewVersion={(versionId) => {
+            setViewedVersionId(versionId)
+            setActiveBlock(null)
+            setSelectedItemId(null)
+          }}
+          versions={versions.data}
+          viewedVersionId={viewedVersionId}
+        />
+
+        {isViewingHistoricalVersion ? (
+          <section className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e0c7bd] bg-[#fff8f5] px-4 py-3">
+            <p className="text-xs font-semibold text-[#754b3f]">
+              You are viewing immutable version {displayedDocument.version.versionNumber}. Review
+              actions are disabled.
+            </p>
+            <button
+              className="min-h-9 rounded-lg bg-[#754b3f] px-3 text-xs font-bold text-white"
+              onClick={() => setViewedVersionId(null)}
+              type="button"
+            >
+              Return to current version
+            </button>
+          </section>
+        ) : null}
+
+        <ParserWarnings warnings={displayedDocument.version.parserWarnings} />
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
           <DocumentViewer
-            blocks={document.data.blocks}
-            canReview={canReview}
+            blocks={displayedDocument.blocks}
+            canReview={canReview && !isViewingHistoricalVersion}
             onPropose={(block) => {
               setActiveBlock(block)
               setSelectedItemId(null)
@@ -201,10 +293,10 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
           />
           <ReviewSidebar
             activeBlock={activeBlock}
-            canResolve={canResolve}
+            canResolve={canResolve && !isViewingHistoricalVersion}
             documentId={documentId}
-            documentVersionId={document.data.version.id}
-            items={reviewItems.data}
+            documentVersionId={displayedDocument.version.id}
+            items={displayedReviewItems}
             onCancelProposal={() => setActiveBlock(null)}
             onCreated={handleCreated}
             onResolve={handleResolve}
@@ -212,7 +304,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
               setActiveBlock(null)
               setSelectedItemId(item.id)
             }}
-            reviewRoundId={document.data.reviewRound.id}
+            reviewRoundId={displayedDocument.reviewRound.id}
             selectedItemId={selectedItemId}
           />
         </div>

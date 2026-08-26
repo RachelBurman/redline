@@ -1,7 +1,15 @@
 import { and, asc, eq } from 'drizzle-orm'
 
 import { db } from '#/db/index'
-import { documentBlocks, documentVersions, documents, reviewRounds } from '#/db/schema'
+import {
+  documentBlocks,
+  documentVersions,
+  documents,
+  reviewItems,
+  reviewResolutions,
+  reviewRounds,
+} from '#/db/schema'
+import { applyBlockReplacements } from '#/domain/documents/apply-block-replacements'
 
 export class DocumentNotFoundError extends Error {
   constructor() {
@@ -18,6 +26,8 @@ export async function getDocument(input: { documentId: string; organizationId: s
       createdAt: documents.createdAt,
       versionId: documentVersions.id,
       versionNumber: documentVersions.versionNumber,
+      versionOrigin: documentVersions.origin,
+      versionNote: documentVersions.note,
       parserWarnings: documentVersions.parserWarnings,
       versionCreatedAt: documentVersions.createdAt,
     })
@@ -30,7 +40,7 @@ export async function getDocument(input: { documentId: string; organizationId: s
 
   if (!document) throw new DocumentNotFoundError()
 
-  const [blocks, rounds] = await Promise.all([
+  const [blocks, rounds, acceptedReplacements] = await Promise.all([
     db
       .select({
         id: documentBlocks.id,
@@ -50,6 +60,20 @@ export async function getDocument(input: { documentId: string; organizationId: s
       .where(eq(reviewRounds.documentVersionId, document.versionId))
       .orderBy(asc(reviewRounds.createdAt))
       .limit(1),
+    db
+      .select({
+        targetBlockId: reviewItems.targetBlockId,
+        finalContent: reviewResolutions.finalContent,
+      })
+      .from(reviewItems)
+      .innerJoin(reviewResolutions, eq(reviewResolutions.reviewItemId, reviewItems.id))
+      .where(
+        and(
+          eq(reviewItems.documentVersionId, document.versionId),
+          eq(reviewItems.status, 'accepted'),
+          eq(reviewResolutions.decision, 'accept'),
+        ),
+      ),
   ])
 
   const reviewRound = rounds[0]
@@ -64,10 +88,20 @@ export async function getDocument(input: { documentId: string; organizationId: s
     version: {
       id: document.versionId,
       versionNumber: document.versionNumber,
+      origin: document.versionOrigin,
+      note: document.versionNote,
+      isCurrent: true,
       parserWarnings: document.parserWarnings,
       createdAt: document.versionCreatedAt.toISOString(),
     },
     reviewRound,
-    blocks,
+    blocks: applyBlockReplacements(
+      blocks,
+      acceptedReplacements.flatMap((replacement) =>
+        replacement.finalContent === null
+          ? []
+          : [{ targetBlockId: replacement.targetBlockId, finalContent: replacement.finalContent }],
+      ),
+    ),
   }
 }

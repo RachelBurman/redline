@@ -2,6 +2,7 @@ const documentCreators = new Set(['owner', 'admin', 'editor'])
 const documentReviewers = new Set(['owner', 'admin', 'editor', 'reviewer'])
 const documentResolvers = new Set(['owner', 'admin', 'editor'])
 const documentExporters = new Set(['owner', 'admin', 'editor'])
+const documentVersionManagers = new Set(['owner', 'admin', 'editor'])
 const reviewQueueExporters = new Set(['owner', 'admin', 'editor', 'reviewer', 'auditor'])
 
 export class PermissionDeniedError extends Error {
@@ -38,5 +39,11 @@ export function assertCanExportDocument(role: string) {
 export function assertCanExportReviewQueue(role: string) {
   if (!reviewQueueExporters.has(role)) {
     throw new PermissionDeniedError('Your organisation role cannot export review reports.')
+  }
+}
+
+export function assertCanManageDocumentVersions(role: string) {
+  if (!documentVersionManagers.has(role)) {
+    throw new PermissionDeniedError('Your organisation role cannot create or restore versions.')
   }
 }
