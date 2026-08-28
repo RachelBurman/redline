@@ -1,5 +1,7 @@
 # Redline
 
+[![CI](https://github.com/RachelBurman/redline/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/RachelBurman/redline/actions/workflows/ci.yml)
+
 Redline is a structured document-review system for teams that need clear decisions,
 version safety, and a defensible audit trail. It keeps a clean document beside a review
 queue, so accepted, rejected, and unresolved proposals do not become tracked-change
@@ -44,7 +46,7 @@ document text.
 - `fflate` and `fast-xml-parser` for isolated OOXML extraction
 - `docx` for resolved-document generation
 - Vitest and Testing Library
-- Oxlint and Oxfmt (OXC), React Doctor, and Lefthook
+- Oxlint and Oxfmt (OXC), React Doctor, Lefthook, and GitHub Actions CI
 
 All HTTP endpoints live under `/api/v1`. UI primitives are owned by the application and are
 written as accessible, composable React components; there is no component-kit dependency.
@@ -96,18 +98,32 @@ without changing the document or export workflows.
 
 ## Commands
 
-| Command            | Purpose                                                 |
-| ------------------ | ------------------------------------------------------- |
-| `pnpm dev`         | Run the development server                              |
-| `pnpm build`       | Create the production client and server bundles         |
-| `pnpm verify`      | Run format, lint, types, tests, React Doctor, and build |
-| `pnpm test`        | Run unit and component tests once                       |
-| `pnpm db:generate` | Generate SQL from the Drizzle schema                    |
-| `pnpm db:migrate`  | Apply committed migrations                              |
-| `pnpm db:studio`   | Open Drizzle Studio                                     |
+| Command             | Purpose                                                 |
+| ------------------- | ------------------------------------------------------- |
+| `pnpm dev`          | Run the development server                              |
+| `pnpm build`        | Create the production client and server bundles         |
+| `pnpm verify`       | Run format, lint, types, tests, React Doctor, and build |
+| `pnpm format:check` | Check repository formatting with Oxfmt                  |
+| `pnpm lint`         | Lint with Oxlint and deny warnings                      |
+| `pnpm typecheck`    | Type-check without emitting files                       |
+| `pnpm test`         | Run unit and component tests once                       |
+| `pnpm react-doctor` | Scan the React codebase and block on warnings           |
+| `pnpm db:generate`  | Generate SQL from the Drizzle schema                    |
+| `pnpm db:migrate`   | Apply committed migrations                              |
+| `pnpm db:studio`    | Open Drizzle Studio                                     |
 
-Lefthook formats and lints staged files and runs tests before a commit. Before a push it runs
-the complete `pnpm verify` gate. Commits follow Conventional Commits.
+## Quality gates and CI
+
+Lefthook checks staged-file formatting, lints staged source files, scans staged React code,
+and runs the test suite before a commit. Before a push it runs the complete `pnpm verify`
+gate. Commits follow Conventional Commits.
+
+The GitHub Actions workflow in `.github/workflows/ci.yml` runs `pnpm verify` for pull requests
+targeting `main` and for pushes to `main`. Third-party actions are pinned to full release
+commit SHAs. CI generates an ephemeral Better Auth secret for each run and uses a
+non-production PostgreSQL URL; it never reads or stores local development credentials. The
+current suite does not connect to a live CI database, so database integration tests remain a
+future quality-gate increment.
 
 ## Architecture
 
@@ -190,6 +206,15 @@ report is hashed and recorded in the audit log.
 | `/api/v1/documents/:documentId/presence`                           | Read or heartbeat participant presence  |
 | `/api/v1/documents/:documentId/exports`                            | Generate the current resolved `.docx`   |
 | `/api/v1/health`                                                   | Service health                          |
+
+## Deployment status
+
+Redline is not deployed to a production environment yet. The current Docker Compose service
+and filesystem object store are development infrastructure only. Before a production launch,
+the application needs a managed PostgreSQL database, private S3-compatible object storage,
+environment-managed secrets, HTTPS and trusted-origin configuration, a migration release
+step, backups, monitoring, and a documented recovery process. No production credentials or
+deployment-specific values belong in this repository.
 
 ## Current boundaries
 
