@@ -10,7 +10,8 @@ clutter.
 The repository contains the first complete vertical slice: an authenticated user can create
 a workspace, upload a `.docx`, review its headings and paragraphs, propose a paragraph-level
 replacement, accept or reject it, inspect attributable decisions, and export the resolved
-content as a new `.docx` or download the complete review queue as an auditable CSV.
+content as a new `.docx`, download the complete review queue as an auditable CSV, or compare
+any two immutable versions in a clean block-based view.
 
 ## Implemented workflow
 
@@ -24,10 +25,12 @@ content as a new `.docx` or download the complete review queue as an auditable C
 8. Keep accepted changes in a derived resolved preview until an authorised user explicitly
    creates the next immutable version.
 9. Browse, download, and restore historical versions without deleting or rewriting history.
-10. Record workspace, upload, proposal, decision, version, restore, and export actions in the append-only audit
-    log.
-11. Generate and download a basic resolved `.docx` from the current structured version.
-12. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
+10. Compare any two versions by logical block, with added, changed, absent, and unchanged
+    content clearly separated from the readable document.
+11. Record workspace, upload, proposal, decision, version, restore, and export actions in the
+    append-only audit log.
+12. Generate and download a basic resolved `.docx` from the current structured version.
+13. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
 
 Multiple participants can review the same document concurrently. The viewer shows active,
 version-bound presence and refreshes proposals in the background. Decisions are serialised
@@ -170,6 +173,14 @@ version 5 with version 1's immutable blocks. The previous versions remain readab
 downloadable, the restore reason and provenance are stored with the new version, and the
 action is appended to the audit chain. Downloads create audited exports but never versions.
 
+Version comparison uses the stable key stored with each version-owned block. Matching keys
+are classified as unchanged or changed; keys present in only one selected version are added
+or absent. The result is a read-only comparison and does not modify either version or create
+audit noise. Absent content is shown as a neutral, labelled record—not red text, a
+strikethrough, or tracked-change markup. The same clean-document rule is the contract for the
+future deletion-proposal workflow: accepted deletions will remain absent from the current
+document rather than becoming permanent redlines.
+
 ### DOCX parsing and export
 
 The parser is isolated from the UI. It validates the file type and ZIP signature, applies
@@ -197,6 +208,7 @@ report is hashed and recorded in the audit log.
 | `/api/v1/documents`                                                | List documents or upload a `.docx`      |
 | `/api/v1/documents/:documentId`                                    | Read the structured current version     |
 | `/api/v1/documents/:documentId/versions`                           | List or explicitly create versions      |
+| `/api/v1/documents/:documentId/versions/compare`                   | Compare two immutable versions by block |
 | `/api/v1/documents/:documentId/versions/:versionId`                | Read one immutable historical version   |
 | `/api/v1/documents/:documentId/versions/:versionId/restore`        | Restore history as a new version        |
 | `/api/v1/documents/:documentId/versions/:versionId/exports`        | Download an immutable version           |
@@ -224,8 +236,9 @@ room for insertions, deletions, questions, comments, threaded discussion, and ri
 queues, but those workflows are not presented as finished features. Tables and complex Word
 layout are represented explicitly as unsupported content rather than rendered inaccurately.
 Direct shared-text editing, CRDT/OT synchronisation, pagination, headers and footers, and
-pixel-perfect Word rendering remain outside this MVP. Visual comparison between two versions
-is the next version-history increment and is not included in this slice.
+pixel-perfect Word rendering remain outside this MVP. Version comparison is block-based; it
+does not yet calculate character-level diffs, classify moved blocks, or reproduce Word-style
+redlines.
 
 ## Security and data safety
 
