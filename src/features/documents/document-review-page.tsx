@@ -1,14 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import { ArrowLeft, LoaderCircle } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
+import { DocumentLoadingState } from '#/components/documents/document-loading-state'
+import { DocumentReviewHeader } from '#/components/documents/document-review-header'
+import { DocumentUnavailableState } from '#/components/documents/document-unavailable-state'
+import { DocumentVersionComparisonWorkspace } from '#/components/documents/document-version-comparison-workspace'
 import { DocumentViewer } from '#/components/documents/document-viewer'
-import { ExportDocumentButton } from '#/components/documents/export-document-button'
 import { ParserWarnings } from '#/components/documents/parser-warnings'
 import { VersionHistoryPanel } from '#/components/documents/version-history-panel'
-import { ExportReviewQueueButton } from '#/components/reviews/export-review-queue-button'
-import { PresenceBar } from '#/components/reviews/presence-bar'
 import { ReviewSidebar } from '#/components/reviews/review-sidebar'
 import { WorkspaceHeader } from '#/components/workspace/workspace-header'
 import { apiRequest } from '#/lib/api-client'
@@ -24,6 +23,11 @@ import type { ResolveReviewItemResult, ReviewItemSummary } from '#/types/reviews
 const emptyPresence: PresenceParticipant[] = []
 const emptyReviewItems: ReviewItemSummary[] = []
 
+interface ComparisonSelection {
+  baseVersionId: string
+  targetVersionId: string
+}
+
 interface WorkspaceSummary {
   organization: { id: string; name: string; slug: string; role: string }
   project: { id: string; name: string }
@@ -36,6 +40,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   const [activeBlock, setActiveBlock] = useState<DocumentDetail['blocks'][number] | null>(null)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [viewedVersionId, setViewedVersionId] = useState<string | null>(null)
+  const [comparisonSelection, setComparisonSelection] = useState<ComparisonSelection | null>(null)
   const workspace = useQuery({
     queryKey: ['workspace'],
     queryFn: () => apiRequest<WorkspaceSummary>('/api/v1/workspace'),
@@ -125,6 +130,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
 
   async function handleVersionChanged(_result: VersionActionResult) {
     setViewedVersionId(null)
+    setComparisonSelection(null)
     setActiveBlock(null)
     setSelectedItemId(null)
     await Promise.all([
@@ -143,13 +149,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     (!versions.data && versions.isPending) ||
     (viewedVersionId !== null && !historicalVersion.data && historicalVersion.isPending)
   ) {
-    return (
-      <main className="grid min-h-screen place-items-center" id="main-content">
-        <output className="flex items-center gap-3 text-sm font-semibold text-[#59635f]">
-          <LoaderCircle aria-hidden="true" className="animate-spin" size={18} /> Loading document…
-        </output>
-      </main>
-    )
+    return <DocumentLoadingState />
   }
 
   if (!session.data?.user) return null
@@ -168,20 +168,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
       versions.error?.message ??
       historicalVersion.error?.message ??
       'The document could not be loaded.'
-    return (
-      <main className="grid min-h-screen place-items-center px-5" id="main-content">
-        <section className="max-w-md rounded-2xl border border-[#e3c7be] bg-white p-7 text-center">
-          <h1 className="text-xl font-bold text-[#26312d]">Document unavailable</h1>
-          <p className="mt-2 text-sm leading-6 text-[#6d7672]">{message}</p>
-          <Link
-            className="mt-5 inline-flex rounded-lg bg-[#18201d] px-4 py-2.5 text-sm font-bold text-white"
-            to="/app"
-          >
-            Return to workspace
-          </Link>
-        </section>
-      </main>
-    )
+    return <DocumentUnavailableState message={message} />
   }
 
   const canReview = ['owner', 'admin', 'editor', 'reviewer'].includes(
@@ -195,6 +182,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   )
   const displayedDocument = viewedVersionId ? historicalVersion.data! : document.data
   const isViewingHistoricalVersion = !displayedDocument.version.isCurrent
+  const isComparingVersions = comparisonSelection !== null
 
   return (
     <div className="min-h-screen bg-[#f3f2ed]">
@@ -205,57 +193,37 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
         userName={session.data.user.name}
       />
       <main className="mx-auto max-w-[1500px] px-4 py-6 sm:px-7" id="main-content">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <Link
-              className="inline-flex items-center gap-2 text-xs font-bold text-[#69736e] hover:text-[#26312d]"
-              to="/app"
-            >
-              <ArrowLeft aria-hidden="true" size={14} /> Workspace
-            </Link>
-            <h1 className="mt-2 font-serif text-3xl font-semibold tracking-[-0.035em] text-[#202b27]">
-              {document.data.document.title}
-            </h1>
-          </div>
-          <div className="flex flex-wrap items-end justify-end gap-4">
-            {!isViewingHistoricalVersion ? (
-              <PresenceBar
-                currentUserId={session.data.user.id}
-                participants={presence.data ?? emptyPresence}
-              />
-            ) : null}
-            <div className="text-right text-xs text-[#707a75]">
-              <p className="font-bold text-[#49534f]">
-                Version {displayedDocument.version.versionNumber}
-              </p>
-              <p>
-                {isViewingHistoricalVersion
-                  ? 'Historical — read only'
-                  : displayedDocument.reviewRound.name}
-              </p>
-            </div>
-            {!isViewingHistoricalVersion ? (
-              <ExportDocumentButton
-                canExport={canExport}
-                documentId={documentId}
-                title={document.data.document.title}
-              />
-            ) : null}
-            <ExportReviewQueueButton
-              canExport={canExportReviewQueue}
-              documentId={documentId}
-              title={document.data.document.title}
-            />
-          </div>
-        </div>
+        <DocumentReviewHeader
+          documentId={documentId}
+          documentTitle={document.data.document.title}
+          exportPermissions={{ document: canExport, reviewQueue: canExportReviewQueue }}
+          participants={presence.data ?? emptyPresence}
+          reviewRoundName={displayedDocument.reviewRound.name}
+          userId={session.data.user.id}
+          viewMode={
+            isComparingVersions
+              ? 'comparison'
+              : isViewingHistoricalVersion
+                ? 'historical'
+                : 'current'
+          }
+          versionNumber={displayedDocument.version.versionNumber}
+        />
 
         <VersionHistoryPanel
           canManageVersions={canManageVersions}
           currentVersionId={document.data.version.id}
           documentId={documentId}
+          onCompareVersions={(baseVersionId, targetVersionId) => {
+            setComparisonSelection({ baseVersionId, targetVersionId })
+            setViewedVersionId(null)
+            setActiveBlock(null)
+            setSelectedItemId(null)
+          }}
           onVersionChanged={handleVersionChanged}
           onViewVersion={(versionId) => {
             setViewedVersionId(versionId)
+            setComparisonSelection(null)
             setActiveBlock(null)
             setSelectedItemId(null)
           }}
@@ -263,7 +231,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
           viewedVersionId={viewedVersionId}
         />
 
-        {isViewingHistoricalVersion ? (
+        {!isComparingVersions && isViewingHistoricalVersion ? (
           <section className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e0c7bd] bg-[#fff8f5] px-4 py-3">
             <p className="text-xs font-semibold text-[#754b3f]">
               You are viewing immutable version {displayedDocument.version.versionNumber}. Review
@@ -279,35 +247,46 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
           </section>
         ) : null}
 
-        <ParserWarnings warnings={displayedDocument.version.parserWarnings} />
-
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-          <DocumentViewer
-            blocks={displayedDocument.blocks}
-            canReview={canReview && !isViewingHistoricalVersion}
-            onPropose={(block) => {
-              setActiveBlock(block)
-              setSelectedItemId(null)
-            }}
-            selectedStableKey={selectedStableKey}
-          />
-          <ReviewSidebar
-            activeBlock={activeBlock}
-            canResolve={canResolve && !isViewingHistoricalVersion}
+        {comparisonSelection ? (
+          <DocumentVersionComparisonWorkspace
+            baseVersionId={comparisonSelection.baseVersionId}
             documentId={documentId}
-            documentVersionId={displayedDocument.version.id}
-            items={displayedReviewItems}
-            onCancelProposal={() => setActiveBlock(null)}
-            onCreated={handleCreated}
-            onResolve={handleResolve}
-            onSelect={(item) => {
-              setActiveBlock(null)
-              setSelectedItemId(item.id)
-            }}
-            reviewRoundId={displayedDocument.reviewRound.id}
-            selectedItemId={selectedItemId}
+            onClose={() => setComparisonSelection(null)}
+            targetVersionId={comparisonSelection.targetVersionId}
           />
-        </div>
+        ) : (
+          <>
+            <ParserWarnings warnings={displayedDocument.version.parserWarnings} />
+
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+              <DocumentViewer
+                blocks={displayedDocument.blocks}
+                canReview={canReview && !isViewingHistoricalVersion}
+                onPropose={(block) => {
+                  setActiveBlock(block)
+                  setSelectedItemId(null)
+                }}
+                selectedStableKey={selectedStableKey}
+              />
+              <ReviewSidebar
+                activeBlock={activeBlock}
+                canResolve={canResolve && !isViewingHistoricalVersion}
+                documentId={documentId}
+                documentVersionId={displayedDocument.version.id}
+                items={displayedReviewItems}
+                onCancelProposal={() => setActiveBlock(null)}
+                onCreated={handleCreated}
+                onResolve={handleResolve}
+                onSelect={(item) => {
+                  setActiveBlock(null)
+                  setSelectedItemId(item.id)
+                }}
+                reviewRoundId={displayedDocument.reviewRound.id}
+                selectedItemId={selectedItemId}
+              />
+            </div>
+          </>
+        )}
       </main>
     </div>
   )

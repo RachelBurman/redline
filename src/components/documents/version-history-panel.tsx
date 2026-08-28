@@ -5,6 +5,7 @@ import { apiRequest } from '#/lib/api-client'
 
 import { CreateDocumentVersionSection } from './create-document-version-section'
 import { DocumentVersionListItem } from './document-version-list-item'
+import { VersionComparisonControls } from './version-comparison-controls'
 
 import type { DocumentVersionSummary, VersionActionResult } from '#/types/document-versions'
 
@@ -12,6 +13,7 @@ interface VersionHistoryPanelProps {
   canManageVersions: boolean
   currentVersionId: string
   documentId: string
+  onCompareVersions: (baseVersionId: string, targetVersionId: string) => void
   onVersionChanged: (result: VersionActionResult) => Promise<void>
   onViewVersion: (versionId: string | null) => void
   versions: DocumentVersionSummary[]
@@ -22,6 +24,7 @@ export function VersionHistoryPanel({
   canManageVersions,
   currentVersionId,
   documentId,
+  onCompareVersions,
   onVersionChanged,
   onViewVersion,
   versions,
@@ -141,6 +144,8 @@ export function VersionHistoryPanel({
               onCreate={handleCreateVersion}
             />
           ) : null}
+
+          <VersionComparisonControls onCompare={onCompareVersions} versions={versions} />
 
           <ol aria-label="Document versions" className="grid gap-3">
             {versions.map((version) => (

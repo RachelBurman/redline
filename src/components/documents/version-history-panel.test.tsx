@@ -61,6 +61,7 @@ function renderPanel(onVersionChanged = vi.fn<(result: VersionActionResult) => P
       canManageVersions
       currentVersionId="version-2"
       documentId="document-1"
+      onCompareVersions={vi.fn<(baseVersionId: string, targetVersionId: string) => void>()}
       onVersionChanged={onVersionChanged}
       onViewVersion={vi.fn<(versionId: string | null) => void>()}
       versions={versions}
@@ -103,5 +104,27 @@ describe('VersionHistoryPanel', () => {
 
     expect(onVersionChanged).toHaveBeenCalledWith(createdVersion)
     expect(screen.getByText('Version 3 created from the restored content.')).toBeInTheDocument()
+  })
+
+  it('opens a comparison with the previous and current versions selected by default', async () => {
+    const onCompareVersions = vi.fn<(baseVersionId: string, targetVersionId: string) => void>()
+    render(
+      <VersionHistoryPanel
+        canManageVersions
+        currentVersionId="version-2"
+        documentId="document-1"
+        onCompareVersions={onCompareVersions}
+        onVersionChanged={vi.fn<(result: VersionActionResult) => Promise<void>>()}
+        onViewVersion={vi.fn<(versionId: string | null) => void>()}
+        versions={versions}
+        viewedVersionId={null}
+      />,
+    )
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('button', { name: /Version history/ }))
+    await user.click(screen.getByRole('button', { name: 'Compare versions' }))
+
+    expect(onCompareVersions).toHaveBeenCalledWith('version-1', 'version-2')
   })
 })
