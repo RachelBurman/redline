@@ -18,6 +18,8 @@ import {
 
 import { organization, user } from './auth-schema'
 
+import type { AnyPgColumn } from 'drizzle-orm/pg-core'
+
 const bytea = customType<{ data: Buffer }>({
   dataType: () => 'bytea',
 })
@@ -31,6 +33,7 @@ export const documentVersionOrigin = pgEnum('document_version_origin', [
   'upload',
   'checkpoint',
   'import',
+  'restore',
 ])
 export const documentBlockType = pgEnum('document_block_type', [
   'heading',
@@ -113,7 +116,13 @@ export const documentVersions = pgTable(
     documentId: uuid('document_id')
       .notNull()
       .references(() => documents.id, { onDelete: 'restrict' }),
-    parentVersionId: uuid('parent_version_id'),
+    parentVersionId: uuid('parent_version_id').references((): AnyPgColumn => documentVersions.id, {
+      onDelete: 'restrict',
+    }),
+    restoredFromVersionId: uuid('restored_from_version_id').references(
+      (): AnyPgColumn => documentVersions.id,
+      { onDelete: 'restrict' },
+    ),
     versionNumber: integer('version_number').notNull(),
     origin: documentVersionOrigin('origin').notNull(),
     status: documentVersionStatus('status').notNull().default('pending'),
@@ -124,6 +133,7 @@ export const documentVersions = pgTable(
     parserVersion: varchar('parser_version', { length: 40 }),
     parserWarnings: jsonb('parser_warnings').$type<string[]>().notNull().default([]),
     parseError: text('parse_error'),
+    note: text('note'),
     createdById: text('created_by_id')
       .notNull()
       .references(() => user.id, { onDelete: 'restrict' }),
@@ -353,6 +363,29 @@ export const collaborationUpdates = pgTable(
   (table) => [
     uniqueIndex('collaboration_update_sequence_uq').on(table.sequence),
     index('collaboration_update_version_sequence_idx').on(table.documentVersionId, table.sequence),
+  ],
+)
+
+export const documentPresence = pgTable(
+  'document_presence',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, { onDelete: 'cascade' }),
+    documentVersionId: uuid('document_version_id')
+      .notNull()
+      .references(() => documentVersions.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    clientId: varchar('client_id', { length: 120 }).notNull(),
+    selectedBlockStableKey: varchar('selected_block_stable_key', { length: 120 }),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('document_presence_client_uq').on(table.documentId, table.userId, table.clientId),
+    index('document_presence_active_idx').on(table.documentId, table.lastSeenAt),
   ],
 )
 

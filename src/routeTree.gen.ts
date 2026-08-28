@@ -10,14 +10,34 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
+import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as ApiV1DocumentsRouteImport } from './routes/api/v1/documents'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
+import { Route as ApiV1WorkspaceRouteImport } from './routes/api/v1/workspace'
+import { Route as AppDocumentsDocumentIdRouteImport } from './routes/app/documents/$documentId'
 import { Route as ApiV1AuthSplatRouteImport } from './routes/api/v1/auth/$'
+import { Route as ApiV1DocumentsDocumentIdRouteImport } from './routes/api/v1/documents/$documentId'
+import { Route as ApiV1DocumentsDocumentIdExportsRouteImport } from './routes/api/v1/documents/$documentId/exports'
+import { Route as ApiV1DocumentsDocumentIdPresenceRouteImport } from './routes/api/v1/documents/$documentId/presence'
+import { Route as ApiV1DocumentsDocumentIdReviewItemsRouteImport } from './routes/api/v1/documents/$documentId/review-items'
+import { Route as ApiV1DocumentsDocumentIdVersionsRouteImport } from './routes/api/v1/documents/$documentId/versions'
+import { Route as ApiV1DocumentsDocumentIdReviewItemsExportRouteImport } from './routes/api/v1/documents/$documentId/review-items/export'
+import { Route as ApiV1DocumentsDocumentIdVersionsVersionIdRouteImport } from './routes/api/v1/documents/$documentId/versions/$versionId'
+import { Route as ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRouteImport } from './routes/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
+import { Route as ApiV1DocumentsDocumentIdVersionsVersionIdExportsRouteImport } from './routes/api/v1/documents/$documentId/versions/$versionId/exports'
+import { Route as ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRouteImport } from './routes/api/v1/documents/$documentId/versions/$versionId/restore'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SignInRoute = SignInRouteImport.update({
@@ -30,58 +50,239 @@ const SignUpRoute = SignUpRouteImport.update({
   path: '/sign-up',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const ApiV1DocumentsRoute = ApiV1DocumentsRouteImport.update({
+  id: '/api/v1/documents',
+  path: '/api/v1/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1HealthRoute = ApiV1HealthRouteImport.update({
   id: '/api/v1/health',
   path: '/api/v1/health',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1WorkspaceRoute = ApiV1WorkspaceRouteImport.update({
+  id: '/api/v1/workspace',
+  path: '/api/v1/workspace',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppDocumentsDocumentIdRoute = AppDocumentsDocumentIdRouteImport.update({
+  id: '/documents/$documentId',
+  path: '/documents/$documentId',
+  getParentRoute: () => AppRoute,
 } as any)
 const ApiV1AuthSplatRoute = ApiV1AuthSplatRouteImport.update({
   id: '/api/v1/auth/$',
   path: '/api/v1/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiV1DocumentsDocumentIdRoute =
+  ApiV1DocumentsDocumentIdRouteImport.update({
+    id: '/$documentId',
+    path: '/$documentId',
+    getParentRoute: () => ApiV1DocumentsRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdExportsRoute =
+  ApiV1DocumentsDocumentIdExportsRouteImport.update({
+    id: '/exports',
+    path: '/exports',
+    getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdPresenceRoute =
+  ApiV1DocumentsDocumentIdPresenceRouteImport.update({
+    id: '/presence',
+    path: '/presence',
+    getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdReviewItemsRoute =
+  ApiV1DocumentsDocumentIdReviewItemsRouteImport.update({
+    id: '/review-items',
+    path: '/review-items',
+    getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdVersionsRoute =
+  ApiV1DocumentsDocumentIdVersionsRouteImport.update({
+    id: '/versions',
+    path: '/versions',
+    getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdReviewItemsExportRoute =
+  ApiV1DocumentsDocumentIdReviewItemsExportRouteImport.update({
+    id: '/export',
+    path: '/export',
+    getParentRoute: () => ApiV1DocumentsDocumentIdReviewItemsRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdVersionsVersionIdRoute =
+  ApiV1DocumentsDocumentIdVersionsVersionIdRouteImport.update({
+    id: '/$versionId',
+    path: '/$versionId',
+    getParentRoute: () => ApiV1DocumentsDocumentIdVersionsRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute =
+  ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRouteImport.update({
+    id: '/$reviewItemId/resolve',
+    path: '/$reviewItemId/resolve',
+    getParentRoute: () => ApiV1DocumentsDocumentIdReviewItemsRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute =
+  ApiV1DocumentsDocumentIdVersionsVersionIdExportsRouteImport.update({
+    id: '/exports',
+    path: '/exports',
+    getParentRoute: () => ApiV1DocumentsDocumentIdVersionsVersionIdRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute =
+  ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRouteImport.update({
+    id: '/restore',
+    path: '/restore',
+    getParentRoute: () => ApiV1DocumentsDocumentIdVersionsVersionIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/app/': typeof AppIndexRoute
+  '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/workspace': typeof ApiV1WorkspaceRoute
+  '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
+  '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
+  '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
+  '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
+  '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
+  '/api/v1/documents/$documentId/versions': typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
+  '/api/v1/documents/$documentId/review-items/export': typeof ApiV1DocumentsDocumentIdReviewItemsExportRoute
+  '/api/v1/documents/$documentId/versions/$versionId': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren
+  '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
+  '/api/v1/documents/$documentId/versions/$versionId/exports': typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute
+  '/api/v1/documents/$documentId/versions/$versionId/restore': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/app': typeof AppIndexRoute
+  '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/workspace': typeof ApiV1WorkspaceRoute
+  '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
+  '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
+  '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
+  '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
+  '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
+  '/api/v1/documents/$documentId/versions': typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
+  '/api/v1/documents/$documentId/review-items/export': typeof ApiV1DocumentsDocumentIdReviewItemsExportRoute
+  '/api/v1/documents/$documentId/versions/$versionId': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren
+  '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
+  '/api/v1/documents/$documentId/versions/$versionId/exports': typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute
+  '/api/v1/documents/$documentId/versions/$versionId/restore': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/app/': typeof AppIndexRoute
+  '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/workspace': typeof ApiV1WorkspaceRoute
+  '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
+  '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
+  '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
+  '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
+  '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
+  '/api/v1/documents/$documentId/versions': typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
+  '/api/v1/documents/$documentId/review-items/export': typeof ApiV1DocumentsDocumentIdReviewItemsExportRoute
+  '/api/v1/documents/$documentId/versions/$versionId': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren
+  '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
+  '/api/v1/documents/$documentId/versions/$versionId/exports': typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute
+  '/api/v1/documents/$documentId/versions/$versionId/restore': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign-in' | '/sign-up' | '/api/v1/health' | '/api/v1/auth/$'
+  fullPaths:
+    | '/'
+    | '/app'
+    | '/sign-in'
+    | '/sign-up'
+    | '/app/'
+    | '/api/v1/documents'
+    | '/api/v1/health'
+    | '/api/v1/workspace'
+    | '/app/documents/$documentId'
+    | '/api/v1/auth/$'
+    | '/api/v1/documents/$documentId'
+    | '/api/v1/documents/$documentId/exports'
+    | '/api/v1/documents/$documentId/presence'
+    | '/api/v1/documents/$documentId/review-items'
+    | '/api/v1/documents/$documentId/versions'
+    | '/api/v1/documents/$documentId/review-items/export'
+    | '/api/v1/documents/$documentId/versions/$versionId'
+    | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
+    | '/api/v1/documents/$documentId/versions/$versionId/exports'
+    | '/api/v1/documents/$documentId/versions/$versionId/restore'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign-in' | '/sign-up' | '/api/v1/health' | '/api/v1/auth/$'
-  id:
-    | '__root__'
+  to:
     | '/'
     | '/sign-in'
     | '/sign-up'
+    | '/app'
+    | '/api/v1/documents'
     | '/api/v1/health'
+    | '/api/v1/workspace'
+    | '/app/documents/$documentId'
     | '/api/v1/auth/$'
+    | '/api/v1/documents/$documentId'
+    | '/api/v1/documents/$documentId/exports'
+    | '/api/v1/documents/$documentId/presence'
+    | '/api/v1/documents/$documentId/review-items'
+    | '/api/v1/documents/$documentId/versions'
+    | '/api/v1/documents/$documentId/review-items/export'
+    | '/api/v1/documents/$documentId/versions/$versionId'
+    | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
+    | '/api/v1/documents/$documentId/versions/$versionId/exports'
+    | '/api/v1/documents/$documentId/versions/$versionId/restore'
+  id:
+    | '__root__'
+    | '/'
+    | '/app'
+    | '/sign-in'
+    | '/sign-up'
+    | '/app/'
+    | '/api/v1/documents'
+    | '/api/v1/health'
+    | '/api/v1/workspace'
+    | '/app/documents/$documentId'
+    | '/api/v1/auth/$'
+    | '/api/v1/documents/$documentId'
+    | '/api/v1/documents/$documentId/exports'
+    | '/api/v1/documents/$documentId/presence'
+    | '/api/v1/documents/$documentId/review-items'
+    | '/api/v1/documents/$documentId/versions'
+    | '/api/v1/documents/$documentId/review-items/export'
+    | '/api/v1/documents/$documentId/versions/$versionId'
+    | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
+    | '/api/v1/documents/$documentId/versions/$versionId/exports'
+    | '/api/v1/documents/$documentId/versions/$versionId/restore'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
+  ApiV1DocumentsRoute: typeof ApiV1DocumentsRouteWithChildren
   ApiV1HealthRoute: typeof ApiV1HealthRoute
+  ApiV1WorkspaceRoute: typeof ApiV1WorkspaceRoute
   ApiV1AuthSplatRoute: typeof ApiV1AuthSplatRoute
 }
 
@@ -92,6 +293,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sign-in': {
@@ -108,12 +316,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignUpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/api/v1/documents': {
+      id: '/api/v1/documents'
+      path: '/api/v1/documents'
+      fullPath: '/api/v1/documents'
+      preLoaderRoute: typeof ApiV1DocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/v1/health': {
       id: '/api/v1/health'
       path: '/api/v1/health'
       fullPath: '/api/v1/health'
       preLoaderRoute: typeof ApiV1HealthRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/workspace': {
+      id: '/api/v1/workspace'
+      path: '/api/v1/workspace'
+      fullPath: '/api/v1/workspace'
+      preLoaderRoute: typeof ApiV1WorkspaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/documents/$documentId': {
+      id: '/app/documents/$documentId'
+      path: '/documents/$documentId'
+      fullPath: '/app/documents/$documentId'
+      preLoaderRoute: typeof AppDocumentsDocumentIdRouteImport
+      parentRoute: typeof AppRoute
     }
     '/api/v1/auth/$': {
       id: '/api/v1/auth/$'
@@ -122,14 +358,185 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1AuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/v1/documents/$documentId': {
+      id: '/api/v1/documents/$documentId'
+      path: '/$documentId'
+      fullPath: '/api/v1/documents/$documentId'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdRouteImport
+      parentRoute: typeof ApiV1DocumentsRoute
+    }
+    '/api/v1/documents/$documentId/exports': {
+      id: '/api/v1/documents/$documentId/exports'
+      path: '/exports'
+      fullPath: '/api/v1/documents/$documentId/exports'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdExportsRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
+    '/api/v1/documents/$documentId/presence': {
+      id: '/api/v1/documents/$documentId/presence'
+      path: '/presence'
+      fullPath: '/api/v1/documents/$documentId/presence'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdPresenceRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
+    '/api/v1/documents/$documentId/review-items': {
+      id: '/api/v1/documents/$documentId/review-items'
+      path: '/review-items'
+      fullPath: '/api/v1/documents/$documentId/review-items'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdReviewItemsRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
+    '/api/v1/documents/$documentId/versions': {
+      id: '/api/v1/documents/$documentId/versions'
+      path: '/versions'
+      fullPath: '/api/v1/documents/$documentId/versions'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdVersionsRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
+    '/api/v1/documents/$documentId/review-items/export': {
+      id: '/api/v1/documents/$documentId/review-items/export'
+      path: '/export'
+      fullPath: '/api/v1/documents/$documentId/review-items/export'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdReviewItemsExportRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdReviewItemsRoute
+    }
+    '/api/v1/documents/$documentId/versions/$versionId': {
+      id: '/api/v1/documents/$documentId/versions/$versionId'
+      path: '/$versionId'
+      fullPath: '/api/v1/documents/$documentId/versions/$versionId'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdVersionsRoute
+    }
+    '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': {
+      id: '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
+      path: '/$reviewItemId/resolve'
+      fullPath: '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdReviewItemsRoute
+    }
+    '/api/v1/documents/$documentId/versions/$versionId/exports': {
+      id: '/api/v1/documents/$documentId/versions/$versionId/exports'
+      path: '/exports'
+      fullPath: '/api/v1/documents/$documentId/versions/$versionId/exports'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdRoute
+    }
+    '/api/v1/documents/$documentId/versions/$versionId/restore': {
+      id: '/api/v1/documents/$documentId/versions/$versionId/restore'
+      path: '/restore'
+      fullPath: '/api/v1/documents/$documentId/versions/$versionId/restore'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdRoute
+    }
   }
 }
 
+interface AppRouteChildren {
+  AppIndexRoute: typeof AppIndexRoute
+  AppDocumentsDocumentIdRoute: typeof AppDocumentsDocumentIdRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppIndexRoute: AppIndexRoute,
+  AppDocumentsDocumentIdRoute: AppDocumentsDocumentIdRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
+interface ApiV1DocumentsDocumentIdReviewItemsRouteChildren {
+  ApiV1DocumentsDocumentIdReviewItemsExportRoute: typeof ApiV1DocumentsDocumentIdReviewItemsExportRoute
+  ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute: typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
+}
+
+const ApiV1DocumentsDocumentIdReviewItemsRouteChildren: ApiV1DocumentsDocumentIdReviewItemsRouteChildren =
+  {
+    ApiV1DocumentsDocumentIdReviewItemsExportRoute:
+      ApiV1DocumentsDocumentIdReviewItemsExportRoute,
+    ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute:
+      ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute,
+  }
+
+const ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren =
+  ApiV1DocumentsDocumentIdReviewItemsRoute._addFileChildren(
+    ApiV1DocumentsDocumentIdReviewItemsRouteChildren,
+  )
+
+interface ApiV1DocumentsDocumentIdVersionsVersionIdRouteChildren {
+  ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute
+  ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute
+}
+
+const ApiV1DocumentsDocumentIdVersionsVersionIdRouteChildren: ApiV1DocumentsDocumentIdVersionsVersionIdRouteChildren =
+  {
+    ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute:
+      ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute,
+    ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute:
+      ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute,
+  }
+
+const ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren =
+  ApiV1DocumentsDocumentIdVersionsVersionIdRoute._addFileChildren(
+    ApiV1DocumentsDocumentIdVersionsVersionIdRouteChildren,
+  )
+
+interface ApiV1DocumentsDocumentIdVersionsRouteChildren {
+  ApiV1DocumentsDocumentIdVersionsVersionIdRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren
+}
+
+const ApiV1DocumentsDocumentIdVersionsRouteChildren: ApiV1DocumentsDocumentIdVersionsRouteChildren =
+  {
+    ApiV1DocumentsDocumentIdVersionsVersionIdRoute:
+      ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren,
+  }
+
+const ApiV1DocumentsDocumentIdVersionsRouteWithChildren =
+  ApiV1DocumentsDocumentIdVersionsRoute._addFileChildren(
+    ApiV1DocumentsDocumentIdVersionsRouteChildren,
+  )
+
+interface ApiV1DocumentsDocumentIdRouteChildren {
+  ApiV1DocumentsDocumentIdExportsRoute: typeof ApiV1DocumentsDocumentIdExportsRoute
+  ApiV1DocumentsDocumentIdPresenceRoute: typeof ApiV1DocumentsDocumentIdPresenceRoute
+  ApiV1DocumentsDocumentIdReviewItemsRoute: typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
+  ApiV1DocumentsDocumentIdVersionsRoute: typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
+}
+
+const ApiV1DocumentsDocumentIdRouteChildren: ApiV1DocumentsDocumentIdRouteChildren =
+  {
+    ApiV1DocumentsDocumentIdExportsRoute: ApiV1DocumentsDocumentIdExportsRoute,
+    ApiV1DocumentsDocumentIdPresenceRoute:
+      ApiV1DocumentsDocumentIdPresenceRoute,
+    ApiV1DocumentsDocumentIdReviewItemsRoute:
+      ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren,
+    ApiV1DocumentsDocumentIdVersionsRoute:
+      ApiV1DocumentsDocumentIdVersionsRouteWithChildren,
+  }
+
+const ApiV1DocumentsDocumentIdRouteWithChildren =
+  ApiV1DocumentsDocumentIdRoute._addFileChildren(
+    ApiV1DocumentsDocumentIdRouteChildren,
+  )
+
+interface ApiV1DocumentsRouteChildren {
+  ApiV1DocumentsDocumentIdRoute: typeof ApiV1DocumentsDocumentIdRouteWithChildren
+}
+
+const ApiV1DocumentsRouteChildren: ApiV1DocumentsRouteChildren = {
+  ApiV1DocumentsDocumentIdRoute: ApiV1DocumentsDocumentIdRouteWithChildren,
+}
+
+const ApiV1DocumentsRouteWithChildren = ApiV1DocumentsRoute._addFileChildren(
+  ApiV1DocumentsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
+  ApiV1DocumentsRoute: ApiV1DocumentsRouteWithChildren,
   ApiV1HealthRoute: ApiV1HealthRoute,
+  ApiV1WorkspaceRoute: ApiV1WorkspaceRoute,
   ApiV1AuthSplatRoute: ApiV1AuthSplatRoute,
 }
 export const routeTree = rootRouteImport
