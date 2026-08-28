@@ -1,4 +1,4 @@
-import { LogOut } from 'lucide-react'
+import { LogOut, UserRoundCog } from 'lucide-react'
 
 import { BrandMark } from '#/components/brand/brand-mark'
 
@@ -29,6 +29,13 @@ export function WorkspaceHeader({
         </div>
         <div className="flex items-center gap-3">
           <span className="hidden text-sm text-[#65706b] sm:inline">{userName}</span>
+          <a
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#d7d5ce] bg-white px-3 text-sm font-semibold text-[#47514d] transition-colors hover:bg-[#f5f4ef]"
+            href="/app/account"
+          >
+            <UserRoundCog aria-hidden="true" size={15} />
+            Account
+          </a>
           <button
             className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#d7d5ce] bg-white px-3 text-sm font-semibold text-[#47514d] transition-colors hover:bg-[#f5f4ef] disabled:opacity-55"
             disabled={isSigningOut}
