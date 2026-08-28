@@ -16,8 +16,8 @@ any two immutable versions in a clean block-based view.
 ## Implemented workflow
 
 1. Sign up or sign in with Better Auth.
-2. Change the current account password from the authenticated Account page; the current
-   password is verified and every other active session is revoked.
+2. Use the sign-in page's **Forgot password?** link to request a one-hour reset link, or
+   change a known password from the authenticated Account page.
 3. Create an organisation-scoped workspace and default project.
 4. Upload a `.docx` and store its immutable source bytes and SHA-256 digest.
 5. Parse headings and paragraphs into ordered, version-owned document blocks.
@@ -76,10 +76,10 @@ written as accessible, composable React components; there is no component-kit de
    characters. Never reuse or commit these credentials. `OBJECT_STORAGE_ROOT` is optional
    and defaults to `.data/object-storage`.
 
-3. Start PostgreSQL:
+3. Start PostgreSQL and the local email inbox:
 
    ```bash
-   docker compose --env-file .env.local up -d postgres
+   docker compose --env-file .env.local up -d postgres mailpit
    ```
 
 4. Apply all committed database migrations:
@@ -95,7 +95,14 @@ written as accessible, composable React components; there is no component-kit de
    ```
 
 The application runs at `http://localhost:3000`; the health endpoint is
-`http://localhost:3000/api/v1/health`.
+`http://localhost:3000/api/v1/health`. In local development, password-reset emails are
+captured by Mailpit at `http://localhost:8025`; they are never delivered to the public
+internet. The default SMTP settings in `.env.example` target that loopback-only service.
+
+A deployed environment must replace the Mailpit defaults with its transactional email
+provider's `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and
+`SMTP_FROM` values. Store those values only in the deployment environment or its secret
+manager.
 
 The filesystem object-store adapter is suitable for local development. A deployed
 environment should supply an implementation backed by private S3-compatible object storage
@@ -240,13 +247,14 @@ layout are represented explicitly as unsupported content rather than rendered in
 Direct shared-text editing, CRDT/OT synchronisation, pagination, headers and footers, and
 pixel-perfect Word rendering remain outside this MVP. Version comparison is block-based; it
 does not yet calculate character-level diffs, classify moved blocks, or reproduce Word-style
-redlines. Authenticated users can change a known password, but email-based recovery for a
-forgotten password is not yet configured.
+redlines.
 
 ## Security and data safety
 
 - Better Auth roles are organisation-scoped: owner, admin, editor, reviewer, viewer, and
   auditor.
+- Forgotten-password requests return the same confirmation whether or not an account exists.
+  Reset links expire after one hour, and a successful reset revokes every existing session.
 - Password changes require the current password, enforce the configured 8–128 character
   boundary, use Better Auth's password hashing, and revoke every session except the current
   one.
