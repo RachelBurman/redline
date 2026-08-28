@@ -16,21 +16,23 @@ any two immutable versions in a clean block-based view.
 ## Implemented workflow
 
 1. Sign up or sign in with Better Auth.
-2. Create an organisation-scoped workspace and default project.
-3. Upload a `.docx` and store its immutable source bytes and SHA-256 digest.
-4. Parse headings and paragraphs into ordered, version-owned document blocks.
-5. Read the clean document alongside its review queue.
-6. Create a paragraph replacement with a category, priority, and rationale.
-7. Accept or reject the proposal through an authorised, transactional decision.
-8. Keep accepted changes in a derived resolved preview until an authorised user explicitly
+2. Change the current account password from the authenticated Account page; the current
+   password is verified and every other active session is revoked.
+3. Create an organisation-scoped workspace and default project.
+4. Upload a `.docx` and store its immutable source bytes and SHA-256 digest.
+5. Parse headings and paragraphs into ordered, version-owned document blocks.
+6. Read the clean document alongside its review queue.
+7. Create a paragraph replacement with a category, priority, and rationale.
+8. Accept or reject the proposal through an authorised, transactional decision.
+9. Keep accepted changes in a derived resolved preview until an authorised user explicitly
    creates the next immutable version.
-9. Browse, download, and restore historical versions without deleting or rewriting history.
-10. Compare any two versions by logical block, with added, changed, absent, and unchanged
+10. Browse, download, and restore historical versions without deleting or rewriting history.
+11. Compare any two versions by logical block, with added, changed, absent, and unchanged
     content clearly separated from the readable document.
-11. Record workspace, upload, proposal, decision, version, restore, and export actions in the
+12. Record workspace, upload, proposal, decision, version, restore, and export actions in the
     append-only audit log.
-12. Generate and download a basic resolved `.docx` from the current structured version.
-13. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
+13. Generate and download a basic resolved `.docx` from the current structured version.
+14. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
 
 Multiple participants can review the same document concurrently. The viewer shows active,
 version-bound presence and refreshes proposals in the background. Decisions are serialised
@@ -201,23 +203,23 @@ report is hashed and recorded in the audit log.
 
 ## Versioned API
 
-| Endpoint                                                           | Purpose                                 |
-| ------------------------------------------------------------------ | --------------------------------------- |
-| `/api/v1/auth/*`                                                   | Better Auth handlers                    |
-| `/api/v1/workspace`                                                | Read or initialise the user's workspace |
-| `/api/v1/documents`                                                | List documents or upload a `.docx`      |
-| `/api/v1/documents/:documentId`                                    | Read the structured current version     |
-| `/api/v1/documents/:documentId/versions`                           | List or explicitly create versions      |
-| `/api/v1/documents/:documentId/versions/compare`                   | Compare two immutable versions by block |
-| `/api/v1/documents/:documentId/versions/:versionId`                | Read one immutable historical version   |
-| `/api/v1/documents/:documentId/versions/:versionId/restore`        | Restore history as a new version        |
-| `/api/v1/documents/:documentId/versions/:versionId/exports`        | Download an immutable version           |
-| `/api/v1/documents/:documentId/review-items`                       | List or create proposals                |
-| `/api/v1/documents/:documentId/review-items/export`                | Download the complete review queue CSV  |
-| `/api/v1/documents/:documentId/review-items/:reviewItemId/resolve` | Accept or reject a proposal             |
-| `/api/v1/documents/:documentId/presence`                           | Read or heartbeat participant presence  |
-| `/api/v1/documents/:documentId/exports`                            | Generate the current resolved `.docx`   |
-| `/api/v1/health`                                                   | Service health                          |
+| Endpoint                                                           | Purpose                                  |
+| ------------------------------------------------------------------ | ---------------------------------------- |
+| `/api/v1/auth/*`                                                   | Better Auth and password-change handlers |
+| `/api/v1/workspace`                                                | Read or initialise the user's workspace  |
+| `/api/v1/documents`                                                | List documents or upload a `.docx`       |
+| `/api/v1/documents/:documentId`                                    | Read the structured current version      |
+| `/api/v1/documents/:documentId/versions`                           | List or explicitly create versions       |
+| `/api/v1/documents/:documentId/versions/compare`                   | Compare two immutable versions by block  |
+| `/api/v1/documents/:documentId/versions/:versionId`                | Read one immutable historical version    |
+| `/api/v1/documents/:documentId/versions/:versionId/restore`        | Restore history as a new version         |
+| `/api/v1/documents/:documentId/versions/:versionId/exports`        | Download an immutable version            |
+| `/api/v1/documents/:documentId/review-items`                       | List or create proposals                 |
+| `/api/v1/documents/:documentId/review-items/export`                | Download the complete review queue CSV   |
+| `/api/v1/documents/:documentId/review-items/:reviewItemId/resolve` | Accept or reject a proposal              |
+| `/api/v1/documents/:documentId/presence`                           | Read or heartbeat participant presence   |
+| `/api/v1/documents/:documentId/exports`                            | Generate the current resolved `.docx`    |
+| `/api/v1/health`                                                   | Service health                           |
 
 ## Deployment status
 
@@ -238,12 +240,16 @@ layout are represented explicitly as unsupported content rather than rendered in
 Direct shared-text editing, CRDT/OT synchronisation, pagination, headers and footers, and
 pixel-perfect Word rendering remain outside this MVP. Version comparison is block-based; it
 does not yet calculate character-level diffs, classify moved blocks, or reproduce Word-style
-redlines.
+redlines. Authenticated users can change a known password, but email-based recovery for a
+forgotten password is not yet configured.
 
 ## Security and data safety
 
 - Better Auth roles are organisation-scoped: owner, admin, editor, reviewer, viewer, and
   auditor.
+- Password changes require the current password, enforce the configured 8–128 character
+  boundary, use Better Auth's password hashing, and revoke every session except the current
+  one.
 - Upload type, size, archive expansion, and block-count limits are enforced on the server.
 - Source files and exports live outside the web root under opaque object keys.
 - Foreign keys use restrictive deletion for review and audit records.
