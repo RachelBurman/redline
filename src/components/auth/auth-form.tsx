@@ -107,6 +107,15 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         )}
       </form.Field>
 
+      {mode === 'sign-in' ? (
+        <a
+          className="-mt-2 justify-self-end text-xs font-bold text-[#934530] underline-offset-4 hover:underline"
+          href="/forgot-password"
+        >
+          Forgot password?
+        </a>
+      ) : null}
+
       {submissionError ? (
         <p
           className="rounded-xl border border-[#e8c9c0] bg-[#fff3ef] px-4 py-3 text-sm text-[#934530]"
