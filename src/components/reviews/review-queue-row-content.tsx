@@ -11,7 +11,12 @@ export function ReviewQueueRowContent({ item }: { item: ReviewItemSummary }) {
   return (
     <span className="block text-left">
       <span className="flex items-center justify-between gap-2">
-        <span className="text-xs font-bold text-[#37423d]">{item.category}</span>
+        <span className="min-w-0">
+          <span className="block text-[10px] font-bold tracking-wide text-[#8a6540] uppercase">
+            {item.changeType === 'delete' ? 'Deletion' : 'Replacement'}
+          </span>
+          <span className="block truncate text-xs font-bold text-[#37423d]">{item.category}</span>
+        </span>
         <span
           className={`rounded-full px-2 py-0.5 text-[10px] font-bold capitalize ${priorityStyles[item.priority]}`}
         >
@@ -19,7 +24,7 @@ export function ReviewQueueRowContent({ item }: { item: ReviewItemSummary }) {
         </span>
       </span>
       <span className="mt-2 line-clamp-2 block text-xs leading-5 text-[#68726d]">
-        {item.proposedContent ?? item.originalContent}
+        {item.changeType === 'delete' ? item.originalContent : item.proposedContent}
       </span>
       <span className="mt-2 flex items-center justify-between text-[10px] text-[#8a918e]">
         <span>{item.author.name}</span>

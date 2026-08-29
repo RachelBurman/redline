@@ -6,13 +6,31 @@ import { reviewCategories, reviewPriorities } from '#/domain/review/review-optio
 import { apiRequest } from '#/lib/api-client'
 
 import type { DocumentDetail } from '#/types/documents'
-import type { CreateReviewItemInput, ReviewItemSummary } from '#/types/reviews'
+import type { CreateReviewItemInput, ReviewChangeType, ReviewItemSummary } from '#/types/reviews'
+
+export type CreateReviewItemAction = (
+  documentId: string,
+  input: CreateReviewItemInput,
+) => Promise<ReviewItemSummary>
+
+async function createReviewItemWithApi(
+  documentId: string,
+  input: CreateReviewItemInput,
+): Promise<ReviewItemSummary> {
+  return apiRequest<ReviewItemSummary>(`/api/v1/documents/${documentId}/review-items`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  })
+}
 
 interface ReviewProposalFormProps {
   documentId: string
   versionId: string
   reviewRoundId: string
   block: DocumentDetail['blocks'][number]
+  changeType: ReviewChangeType
+  createReviewItem?: CreateReviewItemAction
   onCancel: () => void
   onCreated: (reviewItem: ReviewItemSummary) => void
 }
@@ -22,6 +40,8 @@ export function ReviewProposalForm({
   versionId,
   reviewRoundId,
   block,
+  changeType,
+  createReviewItem = createReviewItemWithApi,
   onCancel,
   onCreated,
 }: ReviewProposalFormProps) {
@@ -36,22 +56,23 @@ export function ReviewProposalForm({
     onSubmit: async ({ value }) => {
       setSubmissionError(null)
       try {
-        const item = await apiRequest<ReviewItemSummary>(
-          `/api/v1/documents/${documentId}/review-items`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              documentVersionId: versionId,
-              reviewRoundId,
-              targetBlockId: block.id,
-              proposedContent: value.proposedContent,
-              category: value.category,
-              priority: value.priority,
-              rationale: value.rationale,
-            } satisfies CreateReviewItemInput),
-          },
-        )
+        const commonInput = {
+          documentVersionId: versionId,
+          reviewRoundId,
+          targetBlockId: block.id,
+          category: value.category,
+          priority: value.priority,
+          rationale: value.rationale,
+        }
+        const input: CreateReviewItemInput =
+          changeType === 'delete'
+            ? { ...commonInput, changeType: 'delete', proposedContent: null }
+            : {
+                ...commonInput,
+                changeType: 'replace',
+                proposedContent: value.proposedContent,
+              }
+        const item = await createReviewItem(documentId, input)
         onCreated(item)
       } catch (error) {
         setSubmissionError(
@@ -69,7 +90,7 @@ export function ReviewProposalForm({
             New proposal
           </p>
           <h2 className="mt-1 text-lg font-bold text-[#26312d]" id="proposal-heading">
-            Replace paragraph
+            {changeType === 'delete' ? 'Delete paragraph' : 'Replace paragraph'}
           </h2>
         </div>
         <button
@@ -94,24 +115,31 @@ export function ReviewProposalForm({
           void form.handleSubmit()
         }}
       >
-        <form.Field name="proposedContent">
-          {(field) => (
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-bold text-[#46504c]">
-                Replacement text
-              </span>
-              <textarea
-                className="min-h-28 w-full resize-y rounded-xl border border-[#d5d3cc] bg-white px-3 py-2.5 text-sm leading-6 focus:border-[#dc755b] focus:outline-none"
-                maxLength={100000}
-                name={field.name}
-                onBlur={field.handleBlur}
-                onChange={(event) => field.handleChange(event.target.value)}
-                required
-                value={field.state.value}
-              />
-            </label>
-          )}
-        </form.Field>
+        {changeType === 'replace' ? (
+          <form.Field name="proposedContent">
+            {(field) => (
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-bold text-[#46504c]">
+                  Replacement text
+                </span>
+                <textarea
+                  className="min-h-28 w-full resize-y rounded-xl border border-[#d5d3cc] bg-white px-3 py-2.5 text-sm leading-6 focus:border-[#dc755b] focus:outline-none"
+                  maxLength={100000}
+                  name={field.name}
+                  onBlur={field.handleBlur}
+                  onChange={(event) => field.handleChange(event.target.value)}
+                  required
+                  value={field.state.value}
+                />
+              </label>
+            )}
+          </form.Field>
+        ) : (
+          <p className="rounded-xl border border-[#e5d6bd] bg-[#fff9ee] px-3 py-2.5 text-xs leading-5 text-[#6f542b]">
+            If accepted, this paragraph will be absent from the clean resolved document. Its
+            original text and the decision remain in the review queue and audit trail.
+          </p>
+        )}
 
         <div className="grid grid-cols-2 gap-3">
           <form.Field name="category">
@@ -192,7 +220,11 @@ export function ReviewProposalForm({
               {isSubmitting ? (
                 <LoaderCircle aria-hidden="true" className="animate-spin" size={15} />
               ) : null}
-              {isSubmitting ? 'Creating proposal…' : 'Create proposal'}
+              {isSubmitting
+                ? 'Creating proposal…'
+                : changeType === 'delete'
+                  ? 'Create deletion proposal'
+                  : 'Create replacement proposal'}
             </button>
           )}
         </form.Subscribe>

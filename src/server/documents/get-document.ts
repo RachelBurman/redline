@@ -9,7 +9,9 @@ import {
   reviewResolutions,
   reviewRounds,
 } from '#/db/schema'
-import { applyBlockReplacements } from '#/domain/documents/apply-block-replacements'
+import { applyBlockChanges } from '#/domain/documents/apply-block-changes'
+
+import type { AcceptedBlockChange } from '#/domain/documents/apply-block-changes'
 
 export class DocumentNotFoundError extends Error {
   constructor() {
@@ -63,6 +65,7 @@ export async function getDocument(input: { documentId: string; organizationId: s
     db
       .select({
         targetBlockId: reviewItems.targetBlockId,
+        changeType: reviewItems.changeType,
         finalContent: reviewResolutions.finalContent,
       })
       .from(reviewItems)
@@ -78,6 +81,23 @@ export async function getDocument(input: { documentId: string; organizationId: s
 
   const reviewRound = rounds[0]
   if (!reviewRound) throw new Error('The document review round is missing.')
+
+  const acceptedChanges: AcceptedBlockChange[] = []
+  for (const replacement of acceptedReplacements) {
+    if (replacement.changeType === 'delete') {
+      acceptedChanges.push({
+        changeType: 'delete',
+        targetBlockId: replacement.targetBlockId,
+        finalContent: null,
+      })
+    } else if (replacement.changeType === 'replace' && replacement.finalContent !== null) {
+      acceptedChanges.push({
+        changeType: 'replace',
+        targetBlockId: replacement.targetBlockId,
+        finalContent: replacement.finalContent,
+      })
+    }
+  }
 
   return {
     document: {
@@ -95,13 +115,6 @@ export async function getDocument(input: { documentId: string; organizationId: s
       createdAt: document.versionCreatedAt.toISOString(),
     },
     reviewRound,
-    blocks: applyBlockReplacements(
-      blocks,
-      acceptedReplacements.flatMap((replacement) =>
-        replacement.finalContent === null
-          ? []
-          : [{ targetBlockId: replacement.targetBlockId, finalContent: replacement.finalContent }],
-      ),
-    ),
+    blocks: applyBlockChanges(blocks, acceptedChanges),
   }
 }

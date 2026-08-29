@@ -34,7 +34,7 @@ describe('cloneVersionBlocks', () => {
           attributes: {},
         },
       ],
-      replacements: [{ targetBlockId: 'old-child', finalContent: 'Replacement' }],
+      changes: [{ changeType: 'replace', targetBlockId: 'old-child', finalContent: 'Replacement' }],
     })
 
     expect(result[0]).toMatchObject({
@@ -49,5 +49,52 @@ describe('cloneVersionBlocks', () => {
       text: 'Replacement',
       contentHash: hashText('Replacement'),
     })
+  })
+
+  it('omits deleted paragraphs and normalises the remaining block order', () => {
+    const ids = ['new-first', 'new-last']
+    const result = cloneVersionBlocks({
+      documentVersionId: 'new-version',
+      createId: () => ids.shift()!,
+      blocks: [
+        {
+          id: 'first',
+          parentBlockId: null,
+          stableKey: 'paragraph-1',
+          ordinal: 0,
+          blockType: 'paragraph',
+          text: 'First',
+          headingLevel: null,
+          contentHash: hashText('First'),
+          attributes: {},
+        },
+        {
+          id: 'deleted',
+          parentBlockId: null,
+          stableKey: 'paragraph-2',
+          ordinal: 1,
+          blockType: 'paragraph',
+          text: 'Delete me',
+          headingLevel: null,
+          contentHash: hashText('Delete me'),
+          attributes: {},
+        },
+        {
+          id: 'last',
+          parentBlockId: null,
+          stableKey: 'paragraph-3',
+          ordinal: 2,
+          blockType: 'paragraph',
+          text: 'Last',
+          headingLevel: null,
+          contentHash: hashText('Last'),
+          attributes: {},
+        },
+      ],
+      changes: [{ changeType: 'delete', targetBlockId: 'deleted', finalContent: null }],
+    })
+
+    expect(result.map((block) => block.stableKey)).toEqual(['paragraph-1', 'paragraph-3'])
+    expect(result.map((block) => block.ordinal)).toEqual([0, 1])
   })
 })

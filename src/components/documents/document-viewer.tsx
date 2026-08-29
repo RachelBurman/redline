@@ -4,12 +4,13 @@ import { useEffect, useRef } from 'react'
 import { DocumentBlockView } from './document-block-view'
 
 import type { DocumentDetail } from '#/types/documents'
+import type { ReviewChangeType } from '#/types/reviews'
 
 interface DocumentViewerProps {
   blocks: DocumentDetail['blocks']
   canReview: boolean
   selectedStableKey?: string
-  onPropose: (block: DocumentDetail['blocks'][number]) => void
+  onPropose: (block: DocumentDetail['blocks'][number], changeType: ReviewChangeType) => void
 }
 
 export function DocumentViewer({
@@ -61,8 +62,15 @@ export function DocumentViewer({
             >
               <DocumentBlockView
                 block={block}
-                onPropose={
-                  canReview && block.blockType === 'paragraph' ? () => onPropose(block) : undefined
+                onProposeDeletion={
+                  canReview && block.blockType === 'paragraph'
+                    ? () => onPropose(block, 'delete')
+                    : undefined
+                }
+                onProposeReplacement={
+                  canReview && block.blockType === 'paragraph'
+                    ? () => onPropose(block, 'replace')
+                    : undefined
                 }
               />
             </div>

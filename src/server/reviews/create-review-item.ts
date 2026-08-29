@@ -74,7 +74,9 @@ export async function createReviewItem(input: {
       throw new ReviewTargetError('This review round is already complete.')
     }
     if (target.blockType !== 'paragraph') {
-      throw new ReviewTargetError('The first review slice supports paragraph replacements only.')
+      throw new ReviewTargetError(
+        'Only paragraph replacement and deletion proposals are supported.',
+      )
     }
 
     const [acceptedChange] = await tx
@@ -93,7 +95,10 @@ export async function createReviewItem(input: {
         'This paragraph already has an accepted change awaiting a new version.',
       )
     }
-    if (target.blockText === input.review.proposedContent) {
+    if (
+      input.review.changeType === 'replace' &&
+      target.blockText === input.review.proposedContent
+    ) {
       throw new ReviewTargetError('Replacement text must differ from the original paragraph.')
     }
 
@@ -123,7 +128,7 @@ export async function createReviewItem(input: {
         targetContentHash: anchor.contentHash,
         originalContent: target.blockText,
         proposedContent: input.review.proposedContent,
-        changeType: 'replace',
+        changeType: input.review.changeType,
         category: input.review.category,
         priority: input.review.priority,
         rationale: input.review.rationale,
@@ -142,7 +147,7 @@ export async function createReviewItem(input: {
       actorId: input.context.userId,
       eventType: 'review_item.created',
       payload: {
-        changeType: 'replace',
+        changeType: input.review.changeType,
         category: input.review.category,
         priority: input.review.priority,
         targetBlockId: input.review.targetBlockId,

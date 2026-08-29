@@ -6,6 +6,7 @@ const validProposal = {
   documentVersionId: '7c322e0c-d60a-4d39-b4bc-f21a7685add6',
   reviewRoundId: '18ef785c-eb37-4459-9656-01147d3c0f6e',
   targetBlockId: '5ca113d3-7070-43e3-9c0f-722fa8340417',
+  changeType: 'replace',
   proposedContent: 'The endpoint will be assessed at week 16.',
   category: 'Statistical issue',
   priority: 'high',
@@ -23,6 +24,22 @@ describe('review request schemas', () => {
     ).toThrow('Replacement text is required.')
     expect(() => createReviewItemSchema.parse({ ...validProposal, rationale: '  ' })).toThrow(
       /Too small/,
+    )
+  })
+
+  it('accepts deletion proposals without replacement text', () => {
+    const deletion = {
+      ...validProposal,
+      changeType: 'delete' as const,
+      proposedContent: null,
+    }
+
+    expect(createReviewItemSchema.parse(deletion)).toMatchObject(deletion)
+  })
+
+  it('rejects replacement text on deletion proposals', () => {
+    expect(() => createReviewItemSchema.parse({ ...validProposal, changeType: 'delete' })).toThrow(
+      /Invalid input/,
     )
   })
 

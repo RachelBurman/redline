@@ -9,12 +9,15 @@ export type ReviewItemStatus =
   | 'conflict'
   | 'resolved'
 
+export type ReviewChangeType = 'replace' | 'delete'
+
 export interface ReviewItemSummary {
   id: string
   documentVersionId: string
   reviewRoundId: string
   targetBlockId: string
   targetStableKey: string
+  changeType: ReviewChangeType
   originalContent: string
   proposedContent: string | null
   category: ReviewCategory
@@ -30,15 +33,20 @@ export interface ReviewItemSummary {
   resolvedAt: string | null
 }
 
-export interface CreateReviewItemInput {
+interface CreateReviewItemBase {
   documentVersionId: string
   reviewRoundId: string
   targetBlockId: string
-  proposedContent: string
   category: ReviewCategory
   priority: ReviewPriority
   rationale: string
 }
+
+export type CreateReviewItemInput = CreateReviewItemBase &
+  (
+    | { changeType: 'replace'; proposedContent: string }
+    | { changeType: 'delete'; proposedContent: null }
+  )
 
 export interface ResolveReviewItemResult {
   reviewItemId: string

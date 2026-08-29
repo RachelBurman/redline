@@ -1,8 +1,8 @@
 import { randomUUID } from 'node:crypto'
 
-import { applyBlockReplacements } from '#/domain/documents/apply-block-replacements'
+import { applyBlockChanges } from '#/domain/documents/apply-block-changes'
 
-import type { AcceptedBlockReplacement } from '#/domain/documents/apply-block-replacements'
+import type { AcceptedBlockChange } from '#/domain/documents/apply-block-changes'
 
 export interface VersionSourceBlock {
   id: string
@@ -27,20 +27,20 @@ export interface VersionSourceBlock {
 export function cloneVersionBlocks(input: {
   blocks: VersionSourceBlock[]
   documentVersionId: string
-  replacements?: AcceptedBlockReplacement[]
+  changes?: AcceptedBlockChange[]
   createId?: () => string
 }) {
   const createId = input.createId ?? randomUUID
-  const materialisedBlocks = applyBlockReplacements(input.blocks, input.replacements ?? [])
+  const materialisedBlocks = applyBlockChanges(input.blocks, input.changes ?? [])
   const clonedIdBySourceId = new Map(materialisedBlocks.map((block) => [block.id, createId()]))
 
-  return materialisedBlocks.map((block) => ({
+  return materialisedBlocks.map((block, ordinal) => ({
     id: clonedIdBySourceId.get(block.id)!,
     documentVersionId: input.documentVersionId,
     parentBlockId:
       block.parentBlockId === null ? null : (clonedIdBySourceId.get(block.parentBlockId) ?? null),
     stableKey: block.stableKey,
-    ordinal: block.ordinal,
+    ordinal,
     blockType: block.blockType,
     text: block.text,
     headingLevel: block.headingLevel,

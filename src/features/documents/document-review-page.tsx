@@ -19,6 +19,7 @@ import type { DocumentVersionSummary, VersionActionResult } from '#/types/docume
 import type { DocumentDetail } from '#/types/documents'
 import type { PresenceParticipant } from '#/types/presence'
 import type { ResolveReviewItemResult, ReviewItemSummary } from '#/types/reviews'
+import type { ReviewChangeType } from '#/types/reviews'
 
 const emptyPresence: PresenceParticipant[] = []
 const emptyReviewItems: ReviewItemSummary[] = []
@@ -26,6 +27,11 @@ const emptyReviewItems: ReviewItemSummary[] = []
 interface ComparisonSelection {
   baseVersionId: string
   targetVersionId: string
+}
+
+interface ActiveProposal {
+  block: DocumentDetail['blocks'][number]
+  changeType: ReviewChangeType
 }
 
 interface WorkspaceSummary {
@@ -37,7 +43,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   const session = authClient.useSession()
   const queryClient = useQueryClient()
   const [isSigningOut, setIsSigningOut] = useState(false)
-  const [activeBlock, setActiveBlock] = useState<DocumentDetail['blocks'][number] | null>(null)
+  const [activeProposal, setActiveProposal] = useState<ActiveProposal | null>(null)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
   const [viewedVersionId, setViewedVersionId] = useState<string | null>(null)
   const [comparisonSelection, setComparisonSelection] = useState<ComparisonSelection | null>(null)
@@ -85,7 +91,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     [displayedVersionId, reviewItems.data],
   )
   const selectedStableKey =
-    activeBlock?.stableKey ??
+    activeProposal?.block.stableKey ??
     reviewItems.data?.find((item) => item.id === selectedItemId)?.targetStableKey
   const presence = useDocumentPresence({
     documentId,
@@ -105,7 +111,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   }
 
   function handleCreated(item: ReviewItemSummary) {
-    setActiveBlock(null)
+    setActiveProposal(null)
     setSelectedItemId(item.id)
     void queryClient.invalidateQueries({ queryKey: ['review-items', documentId] })
   }
@@ -119,7 +125,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
         body: JSON.stringify({ decision, expectedRevision: item.revision }),
       },
     )
-    setActiveBlock(null)
+    setActiveProposal(null)
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['document', documentId] }),
       queryClient.invalidateQueries({ queryKey: ['review-items', documentId] }),
@@ -131,7 +137,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   async function handleVersionChanged(_result: VersionActionResult) {
     setViewedVersionId(null)
     setComparisonSelection(null)
-    setActiveBlock(null)
+    setActiveProposal(null)
     setSelectedItemId(null)
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['document', documentId] }),
@@ -217,14 +223,14 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
           onCompareVersions={(baseVersionId, targetVersionId) => {
             setComparisonSelection({ baseVersionId, targetVersionId })
             setViewedVersionId(null)
-            setActiveBlock(null)
+            setActiveProposal(null)
             setSelectedItemId(null)
           }}
           onVersionChanged={handleVersionChanged}
           onViewVersion={(versionId) => {
             setViewedVersionId(versionId)
             setComparisonSelection(null)
-            setActiveBlock(null)
+            setActiveProposal(null)
             setSelectedItemId(null)
           }}
           versions={versions.data}
@@ -262,23 +268,24 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
               <DocumentViewer
                 blocks={displayedDocument.blocks}
                 canReview={canReview && !isViewingHistoricalVersion}
-                onPropose={(block) => {
-                  setActiveBlock(block)
+                onPropose={(block, changeType) => {
+                  setActiveProposal({ block, changeType })
                   setSelectedItemId(null)
                 }}
                 selectedStableKey={selectedStableKey}
               />
               <ReviewSidebar
-                activeBlock={activeBlock}
+                activeBlock={activeProposal?.block ?? null}
+                activeChangeType={activeProposal?.changeType ?? null}
                 canResolve={canResolve && !isViewingHistoricalVersion}
                 documentId={documentId}
                 documentVersionId={displayedDocument.version.id}
                 items={displayedReviewItems}
-                onCancelProposal={() => setActiveBlock(null)}
+                onCancelProposal={() => setActiveProposal(null)}
                 onCreated={handleCreated}
                 onResolve={handleResolve}
                 onSelect={(item) => {
-                  setActiveBlock(null)
+                  setActiveProposal(null)
                   setSelectedItemId(item.id)
                 }}
                 reviewRoundId={displayedDocument.reviewRound.id}

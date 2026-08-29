@@ -36,7 +36,7 @@ export function ReviewItemDetail({ item, canResolve, onResolve }: ReviewItemDeta
         Selected proposal
       </p>
       <h3 className="mt-1 text-sm font-bold text-[#303b36]" id="review-detail-heading">
-        {item.category}
+        {item.changeType === 'delete' ? 'Deletion' : 'Replacement'} · {item.category}
       </h3>
 
       <dl className="mt-3 grid gap-3 text-xs">
@@ -46,12 +46,21 @@ export function ReviewItemDetail({ item, canResolve, onResolve }: ReviewItemDeta
             {item.originalContent}
           </dd>
         </div>
-        <div>
-          <dt className="font-bold text-[#68716d]">Proposed</dt>
-          <dd className="mt-1 rounded-lg bg-[#edf5f0] px-3 py-2 leading-5 text-[#315845]">
-            {item.proposedContent}
-          </dd>
-        </div>
+        {item.changeType === 'delete' ? (
+          <div>
+            <dt className="font-bold text-[#68716d]">Proposed action</dt>
+            <dd className="mt-1 rounded-lg border border-[#e5d6bd] bg-[#fff9ee] px-3 py-2 leading-5 text-[#6f542b]">
+              Remove this paragraph from the clean resolved document.
+            </dd>
+          </div>
+        ) : (
+          <div>
+            <dt className="font-bold text-[#68716d]">Proposed</dt>
+            <dd className="mt-1 rounded-lg bg-[#edf5f0] px-3 py-2 leading-5 text-[#315845]">
+              {item.proposedContent}
+            </dd>
+          </div>
+        )}
         <div>
           <dt className="font-bold text-[#68716d]">Rationale</dt>
           <dd className="mt-1 leading-5 text-[#4e5954]">{item.rationale}</dd>
@@ -90,7 +99,7 @@ export function ReviewItemDetail({ item, canResolve, onResolve }: ReviewItemDeta
             ) : (
               <Check aria-hidden="true" size={14} />
             )}
-            Accept
+            {item.changeType === 'delete' ? 'Accept deletion' : 'Accept'}
           </button>
         </div>
       ) : null}

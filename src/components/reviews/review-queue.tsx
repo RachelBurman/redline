@@ -53,7 +53,7 @@ export function ReviewQueue({
 
       {items.length === 0 ? (
         <p className="mt-3 text-sm leading-6 text-[#6e7873]">
-          Choose Review beside a paragraph to create a replacement proposal.
+          Choose Replace or Propose deletion beside a paragraph to create a review proposal.
         </p>
       ) : (
         <table className="mt-4 w-full border-separate border-spacing-y-2">

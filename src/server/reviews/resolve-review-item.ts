@@ -43,6 +43,7 @@ export async function resolveReviewItem(input: {
         anchorQuote: reviewItems.anchorQuote,
         anchorSuffix: reviewItems.anchorSuffix,
         targetContentHash: reviewItems.targetContentHash,
+        changeType: reviewItems.changeType,
         proposedContent: reviewItems.proposedContent,
         status: reviewItems.status,
         revision: reviewItems.revision,
@@ -113,8 +114,14 @@ export async function resolveReviewItem(input: {
         'This proposal targets an older document version and cannot be accepted automatically.',
       )
     }
-    if (item.startOffset === null || item.endOffset === null || item.proposedContent === null) {
-      throw new ReviewTargetError('The replacement proposal is incomplete.')
+    if (item.startOffset === null || item.endOffset === null) {
+      throw new ReviewTargetError('The paragraph proposal is incomplete.')
+    }
+    if (item.changeType === 'replace' && item.proposedContent === null) {
+      throw new ReviewTargetError('The replacement proposal has no replacement text.')
+    }
+    if (!['replace', 'delete'].includes(item.changeType)) {
+      throw new ReviewTargetError('This proposal type cannot be resolved by the current workflow.')
     }
 
     try {
@@ -183,10 +190,15 @@ export async function resolveReviewItem(input: {
         updatedAt: now,
       })
       .where(and(eq(reviewItems.id, item.id), eq(reviewItems.revision, item.revision)))
+    const finalContent = item.changeType === 'delete' ? null : item.proposedContent
+    if (item.changeType === 'replace' && finalContent === null) {
+      throw new ReviewTargetError('The replacement proposal has no replacement text.')
+    }
+
     await tx.insert(reviewResolutions).values({
       reviewItemId: item.id,
       decision: 'accept',
-      finalContent: item.proposedContent,
+      finalContent,
       resolverId: input.context.userId,
       resolvedAt: now,
     })
@@ -200,8 +212,10 @@ export async function resolveReviewItem(input: {
       actorId: input.context.userId,
       eventType: 'review_item.accepted',
       payload: {
+        changeType: item.changeType,
         targetBlockId: item.targetBlockId,
-        finalContentHash: hashText(item.proposedContent),
+        finalContentHash: finalContent === null ? null : hashText(finalContent),
+        deletedContentHash: item.changeType === 'delete' ? item.targetContentHash : null,
         conflictedReviewItemIds: conflictedItems.map((conflict) => conflict.id),
         awaitingVersionCreation: true,
       },

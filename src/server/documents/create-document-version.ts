@@ -18,6 +18,8 @@ import { cloneVersionBlocks } from './clone-version-blocks'
 import { DocumentNotFoundError } from './get-document'
 import { DocumentVersionConflictError, NoAcceptedChangesError } from './version-errors'
 
+import type { AcceptedBlockChange } from '#/domain/documents/apply-block-changes'
+
 interface VersionContext {
   organizationId: string
   projectId: string
@@ -94,6 +96,7 @@ export async function createDocumentVersion(input: {
         .select({
           reviewItemId: reviewItems.id,
           targetBlockId: reviewItems.targetBlockId,
+          changeType: reviewItems.changeType,
           finalContent: reviewResolutions.finalContent,
         })
         .from(reviewItems)
@@ -107,17 +110,24 @@ export async function createDocumentVersion(input: {
         ),
     ])
 
-    const acceptedChanges = acceptedRows.flatMap((row) =>
-      row.finalContent === null
-        ? []
-        : [
-            {
-              reviewItemId: row.reviewItemId,
-              targetBlockId: row.targetBlockId,
-              finalContent: row.finalContent,
-            },
-          ],
-    )
+    const acceptedChanges: Array<AcceptedBlockChange & { reviewItemId: string }> = []
+    for (const row of acceptedRows) {
+      if (row.changeType === 'delete') {
+        acceptedChanges.push({
+          reviewItemId: row.reviewItemId,
+          targetBlockId: row.targetBlockId,
+          changeType: 'delete',
+          finalContent: null,
+        })
+      } else if (row.changeType === 'replace' && row.finalContent !== null) {
+        acceptedChanges.push({
+          reviewItemId: row.reviewItemId,
+          targetBlockId: row.targetBlockId,
+          changeType: 'replace',
+          finalContent: row.finalContent,
+        })
+      }
+    }
     if (acceptedChanges.length === 0) throw new NoAcceptedChangesError()
 
     const now = new Date()
@@ -142,7 +152,7 @@ export async function createDocumentVersion(input: {
       cloneVersionBlocks({
         blocks: sourceBlocks,
         documentVersionId: newVersionId,
-        replacements: acceptedChanges,
+        changes: acceptedChanges,
       }),
     )
 

@@ -76,4 +76,22 @@ describe('buildReviewQueueCsv', () => {
     expect(csv).toContain('"Review Item ID"')
     expect(csv.split('\r\n')).toHaveLength(2)
   })
+
+  it('exports deletion proposals with their original text and empty replacement fields', () => {
+    const csv = buildReviewQueueCsv([
+      {
+        ...row,
+        changeType: 'delete',
+        proposedContent: null,
+        finalContent: null,
+        decision: 'accept',
+        status: 'accepted',
+        actioned: true,
+      },
+    ])
+
+    expect(csv).toContain('"delete"')
+    expect(csv).toContain('"Use the primary endpoint.","",""')
+    expect(csv).toContain('"accepted","1","Yes"')
+  })
 })
