@@ -16,7 +16,11 @@ import { assertCanManageDocumentVersions } from '#/server/auth/permissions'
 
 import { cloneVersionBlocks } from './clone-version-blocks'
 import { DocumentNotFoundError } from './get-document'
-import { DocumentVersionConflictError, NoAcceptedChangesError } from './version-errors'
+import {
+  assertDocumentVersionHasBlocks,
+  DocumentVersionConflictError,
+  NoAcceptedChangesError,
+} from './version-errors'
 
 import type { AcceptedBlockChange } from '#/domain/documents/apply-block-changes'
 
@@ -144,6 +148,12 @@ export async function createDocumentVersion(input: {
     const newVersionId = randomUUID()
     const newReviewRoundId = randomUUID()
     const nextVersionNumber = current.versionNumber + 1
+    const clonedBlocks = cloneVersionBlocks({
+      blocks: sourceBlocks,
+      documentVersionId: newVersionId,
+      changes: acceptedChanges,
+    })
+    assertDocumentVersionHasBlocks(clonedBlocks)
 
     await tx.insert(documentVersions).values({
       id: newVersionId,
@@ -158,13 +168,7 @@ export async function createDocumentVersion(input: {
       createdById: input.context.userId,
       publishedAt: now,
     })
-    await tx.insert(documentBlocks).values(
-      cloneVersionBlocks({
-        blocks: sourceBlocks,
-        documentVersionId: newVersionId,
-        changes: acceptedChanges,
-      }),
-    )
+    await tx.insert(documentBlocks).values(clonedBlocks)
 
     const supersededItems = await tx
       .update(reviewItems)

@@ -18,3 +18,10 @@ export class NoAcceptedChangesError extends Error {
     this.name = 'NoAcceptedChangesError'
   }
 }
+
+export function assertDocumentVersionHasBlocks(blocks: unknown[]) {
+  if (blocks.length > 0) return
+  throw new DocumentVersionConflictError(
+    'The next version cannot be empty. Propose and accept a new paragraph before creating it.',
+  )
+}

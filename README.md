@@ -184,6 +184,8 @@ Paragraph additions are anchored after the final block of the immutable source v
 action remains available when accepted deletions leave the resolved preview empty, so a user
 can delete all original content and still propose replacement paragraphs. Each addition is a
 separate review item with its own decision, attribution, rationale, and audit events.
+Creating the next version is blocked until at least one paragraph remains or an addition is
+accepted, preventing an empty immutable version from losing its insertion anchor.
 
 Restoring is also non-destructive. Restoring version 1 while version 4 is current creates
 version 5 with version 1's immutable blocks. The previous versions remain readable and
