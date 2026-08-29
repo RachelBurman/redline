@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 
-import { and, eq, sql } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 
 import { db } from '#/db/index'
 import { documentBlocks, documents, reviewItems, reviewRounds } from '#/db/schema'
@@ -73,27 +73,30 @@ export async function createReviewItem(input: {
     if (target.reviewRoundStatus !== 'open') {
       throw new ReviewTargetError('This review round is already complete.')
     }
-    if (target.blockType !== 'paragraph') {
+    if (input.review.changeType !== 'insert' && target.blockType !== 'paragraph') {
       throw new ReviewTargetError(
         'Only paragraph replacement and deletion proposals are supported.',
       )
     }
 
-    const [acceptedChange] = await tx
-      .select({ id: reviewItems.id })
-      .from(reviewItems)
-      .where(
-        and(
-          eq(reviewItems.documentVersionId, input.review.documentVersionId),
-          eq(reviewItems.targetBlockId, input.review.targetBlockId),
-          eq(reviewItems.status, 'accepted'),
-        ),
-      )
-      .limit(1)
-    if (acceptedChange) {
-      throw new ReviewTargetError(
-        'This paragraph already has an accepted change awaiting a new version.',
-      )
+    if (input.review.changeType !== 'insert') {
+      const [acceptedChange] = await tx
+        .select({ id: reviewItems.id })
+        .from(reviewItems)
+        .where(
+          and(
+            eq(reviewItems.documentVersionId, input.review.documentVersionId),
+            eq(reviewItems.targetBlockId, input.review.targetBlockId),
+            eq(reviewItems.status, 'accepted'),
+            inArray(reviewItems.changeType, ['replace', 'delete']),
+          ),
+        )
+        .limit(1)
+      if (acceptedChange) {
+        throw new ReviewTargetError(
+          'This paragraph already has an accepted change awaiting a new version.',
+        )
+      }
     }
     if (
       input.review.changeType === 'replace' &&
@@ -102,12 +105,13 @@ export async function createReviewItem(input: {
       throw new ReviewTargetError('Replacement text must differ from the original paragraph.')
     }
 
+    const insertionOffset = target.blockText.length
     const anchor = createTextSelectionAnchor({
       documentVersionId: target.documentVersionId,
       blockId: target.blockId,
       blockText: target.blockText,
-      startOffset: 0,
-      endOffset: target.blockText.length,
+      startOffset: input.review.changeType === 'insert' ? insertionOffset : 0,
+      endOffset: input.review.changeType === 'insert' ? insertionOffset : target.blockText.length,
     })
     const reviewItemId = randomUUID()
     const [reviewItem] = await tx
@@ -126,7 +130,7 @@ export async function createReviewItem(input: {
         anchorQuote: anchor.quote,
         anchorSuffix: anchor.suffix,
         targetContentHash: anchor.contentHash,
-        originalContent: target.blockText,
+        originalContent: input.review.changeType === 'insert' ? '' : target.blockText,
         proposedContent: input.review.proposedContent,
         changeType: input.review.changeType,
         category: input.review.category,

@@ -97,4 +97,46 @@ describe('cloneVersionBlocks', () => {
     expect(result.map((block) => block.stableKey)).toEqual(['paragraph-1', 'paragraph-3'])
     expect(result.map((block) => block.ordinal)).toEqual([0, 1])
   })
+
+  it('materialises an accepted insertion when its source anchor is deleted', () => {
+    const result = cloneVersionBlocks({
+      documentVersionId: 'new-version',
+      createId: () => 'new-inserted-paragraph',
+      blocks: [
+        {
+          id: 'anchor',
+          parentBlockId: null,
+          stableKey: 'paragraph-1',
+          ordinal: 0,
+          blockType: 'paragraph',
+          text: 'Delete the original paragraph.',
+          headingLevel: null,
+          contentHash: hashText('Delete the original paragraph.'),
+          attributes: {},
+        },
+      ],
+      changes: [
+        { changeType: 'delete', targetBlockId: 'anchor', finalContent: null },
+        {
+          changeType: 'insert',
+          targetBlockId: 'anchor',
+          insertedBlockId: 'review-1',
+          insertedStableKey: 'insert-review-1',
+          finalContent: 'The new first paragraph.',
+        },
+      ],
+    })
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        id: 'new-inserted-paragraph',
+        documentVersionId: 'new-version',
+        stableKey: 'insert-review-1',
+        ordinal: 0,
+        blockType: 'paragraph',
+        text: 'The new first paragraph.',
+        contentHash: hashText('The new first paragraph.'),
+      }),
+    ])
+  })
 })

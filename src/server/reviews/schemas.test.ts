@@ -43,6 +43,26 @@ describe('review request schemas', () => {
     )
   })
 
+  it('accepts a non-empty paragraph insertion', () => {
+    const insertion = {
+      ...validProposal,
+      changeType: 'insert' as const,
+      proposedContent: 'A newly proposed paragraph.',
+    }
+
+    expect(createReviewItemSchema.parse(insertion)).toMatchObject(insertion)
+  })
+
+  it('rejects a blank paragraph insertion', () => {
+    expect(() =>
+      createReviewItemSchema.parse({
+        ...validProposal,
+        changeType: 'insert',
+        proposedContent: '   ',
+      }),
+    ).toThrow('New paragraph text is required.')
+  })
+
   it('requires optimistic concurrency data for decisions', () => {
     expect(resolveReviewItemSchema.parse({ decision: 'accept', expectedRevision: 2 })).toEqual({
       decision: 'accept',

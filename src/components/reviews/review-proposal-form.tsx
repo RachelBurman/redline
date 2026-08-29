@@ -48,7 +48,7 @@ export function ReviewProposalForm({
   const [submissionError, setSubmissionError] = useState<string | null>(null)
   const form = useForm({
     defaultValues: {
-      proposedContent: block.text,
+      proposedContent: changeType === 'replace' ? block.text : '',
       category: 'Clarification' as CreateReviewItemInput['category'],
       priority: 'medium' as CreateReviewItemInput['priority'],
       rationale: '',
@@ -67,11 +67,9 @@ export function ReviewProposalForm({
         const input: CreateReviewItemInput =
           changeType === 'delete'
             ? { ...commonInput, changeType: 'delete', proposedContent: null }
-            : {
-                ...commonInput,
-                changeType: 'replace',
-                proposedContent: value.proposedContent,
-              }
+            : changeType === 'insert'
+              ? { ...commonInput, changeType: 'insert', proposedContent: value.proposedContent }
+              : { ...commonInput, changeType: 'replace', proposedContent: value.proposedContent }
         const item = await createReviewItem(documentId, input)
         onCreated(item)
       } catch (error) {
@@ -90,7 +88,11 @@ export function ReviewProposalForm({
             New proposal
           </p>
           <h2 className="mt-1 text-lg font-bold text-[#26312d]" id="proposal-heading">
-            {changeType === 'delete' ? 'Delete paragraph' : 'Replace paragraph'}
+            {changeType === 'delete'
+              ? 'Delete paragraph'
+              : changeType === 'insert'
+                ? 'Add paragraph'
+                : 'Replace paragraph'}
           </h2>
         </div>
         <button
@@ -104,7 +106,7 @@ export function ReviewProposalForm({
       </div>
 
       <p className="mt-3 line-clamp-3 rounded-lg bg-[#f2f1ec] px-3 py-2 text-xs leading-5 text-[#68716d]">
-        {block.text}
+        {changeType === 'insert' ? 'Insert at the end of the document' : block.text}
       </p>
 
       <form
@@ -115,12 +117,12 @@ export function ReviewProposalForm({
           void form.handleSubmit()
         }}
       >
-        {changeType === 'replace' ? (
+        {changeType !== 'delete' ? (
           <form.Field name="proposedContent">
             {(field) => (
               <label className="block">
                 <span className="mb-1.5 block text-xs font-bold text-[#46504c]">
-                  Replacement text
+                  {changeType === 'insert' ? 'New paragraph text' : 'Replacement text'}
                 </span>
                 <textarea
                   className="min-h-28 w-full resize-y rounded-xl border border-[#d5d3cc] bg-white px-3 py-2.5 text-sm leading-6 focus:border-[#dc755b] focus:outline-none"
@@ -224,7 +226,9 @@ export function ReviewProposalForm({
                 ? 'Creating proposal…'
                 : changeType === 'delete'
                   ? 'Create deletion proposal'
-                  : 'Create replacement proposal'}
+                  : changeType === 'insert'
+                    ? 'Create paragraph proposal'
+                    : 'Create replacement proposal'}
             </button>
           )}
         </form.Subscribe>

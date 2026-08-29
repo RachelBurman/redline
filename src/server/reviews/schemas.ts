@@ -23,6 +23,13 @@ export const createReviewItemSchema = z.discriminatedUnion('changeType', [
     changeType: z.literal('delete'),
     proposedContent: z.null(),
   }),
+  createReviewItemBaseSchema.extend({
+    changeType: z.literal('insert'),
+    proposedContent: z
+      .string()
+      .max(100_000)
+      .refine((value) => value.trim().length > 0, 'New paragraph text is required.'),
+  }),
 ])
 
 export const resolveReviewItemSchema = z.object({

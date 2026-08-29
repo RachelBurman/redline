@@ -64,6 +64,7 @@ export async function getDocument(input: { documentId: string; organizationId: s
       .limit(1),
     db
       .select({
+        reviewItemId: reviewItems.id,
         targetBlockId: reviewItems.targetBlockId,
         changeType: reviewItems.changeType,
         finalContent: reviewResolutions.finalContent,
@@ -76,7 +77,8 @@ export async function getDocument(input: { documentId: string; organizationId: s
           eq(reviewItems.status, 'accepted'),
           eq(reviewResolutions.decision, 'accept'),
         ),
-      ),
+      )
+      .orderBy(asc(reviewItems.createdAt)),
   ])
 
   const reviewRound = rounds[0]
@@ -94,6 +96,14 @@ export async function getDocument(input: { documentId: string; organizationId: s
       acceptedChanges.push({
         changeType: 'replace',
         targetBlockId: replacement.targetBlockId,
+        finalContent: replacement.finalContent,
+      })
+    } else if (replacement.changeType === 'insert' && replacement.finalContent !== null) {
+      acceptedChanges.push({
+        changeType: 'insert',
+        targetBlockId: replacement.targetBlockId,
+        insertedBlockId: replacement.reviewItemId,
+        insertedStableKey: `insert-${replacement.reviewItemId}`,
         finalContent: replacement.finalContent,
       })
     }
@@ -115,6 +125,13 @@ export async function getDocument(input: { documentId: string; organizationId: s
       createdAt: document.versionCreatedAt.toISOString(),
     },
     reviewRound,
+    insertionAnchor:
+      blocks.length === 0
+        ? null
+        : {
+            blockId: blocks.at(-1)!.id,
+            stableKey: blocks.at(-1)!.stableKey,
+          },
     blocks: applyBlockChanges(blocks, acceptedChanges),
   }
 }

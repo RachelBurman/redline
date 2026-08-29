@@ -94,4 +94,18 @@ describe('buildReviewQueueCsv', () => {
     expect(csv).toContain('"Use the primary endpoint.","",""')
     expect(csv).toContain('"accepted","1","Yes"')
   })
+
+  it('exports paragraph insertions with empty original text and the proposed text', () => {
+    const csv = buildReviewQueueCsv([
+      {
+        ...row,
+        changeType: 'insert',
+        originalContent: '',
+        proposedContent: 'A newly proposed paragraph.',
+      },
+    ])
+
+    expect(csv).toContain('"insert"')
+    expect(csv).toContain('"","A newly proposed paragraph.",""')
+  })
 })

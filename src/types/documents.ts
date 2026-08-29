@@ -26,6 +26,10 @@ export interface DocumentDetail {
     id: string
     name: string
   }
+  insertionAnchor: {
+    blockId: string
+    stableKey: string
+  } | null
   blocks: Array<{
     id: string
     stableKey: string

@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { cleanup, render, screen } from '@testing-library/react'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { ReviewItemDetail } from './review-item-detail'
 
@@ -24,6 +24,8 @@ const deletion: ReviewItemSummary = {
   resolvedAt: null,
 }
 
+afterEach(cleanup)
+
 describe('ReviewItemDetail', () => {
   it('describes a deletion without rendering crossed-out document text', () => {
     const { container } = render(
@@ -42,5 +44,31 @@ describe('ReviewItemDetail', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Accept deletion' })).toBeInTheDocument()
     expect(container.querySelector('del, s')).toBeNull()
+  })
+
+  it('shows a new paragraph without pretending that it replaces original text', () => {
+    render(
+      <ReviewItemDetail
+        canResolve
+        item={{
+          ...deletion,
+          id: 'review-2',
+          changeType: 'insert',
+          originalContent: '',
+          proposedContent: 'A newly proposed paragraph.',
+        }}
+        onResolve={vi.fn<
+          (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
+        >()}
+      />,
+    )
+
+    expect(
+      screen.getByRole('heading', { name: 'New paragraph · Required change' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('End of document')).toBeInTheDocument()
+    expect(screen.getByText('A newly proposed paragraph.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Accept paragraph' })).toBeInTheDocument()
+    expect(screen.queryByText('Original')).not.toBeInTheDocument()
   })
 })

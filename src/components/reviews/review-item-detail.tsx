@@ -36,16 +36,30 @@ export function ReviewItemDetail({ item, canResolve, onResolve }: ReviewItemDeta
         Selected proposal
       </p>
       <h3 className="mt-1 text-sm font-bold text-[#303b36]" id="review-detail-heading">
-        {item.changeType === 'delete' ? 'Deletion' : 'Replacement'} · {item.category}
+        {item.changeType === 'delete'
+          ? 'Deletion'
+          : item.changeType === 'insert'
+            ? 'New paragraph'
+            : 'Replacement'}{' '}
+        · {item.category}
       </h3>
 
       <dl className="mt-3 grid gap-3 text-xs">
-        <div>
-          <dt className="font-bold text-[#68716d]">Original</dt>
-          <dd className="mt-1 rounded-lg bg-[#f1f0eb] px-3 py-2 leading-5 text-[#5f6964]">
-            {item.originalContent}
-          </dd>
-        </div>
+        {item.changeType === 'insert' ? (
+          <div>
+            <dt className="font-bold text-[#68716d]">Insertion point</dt>
+            <dd className="mt-1 rounded-lg bg-[#f1f0eb] px-3 py-2 leading-5 text-[#5f6964]">
+              End of document
+            </dd>
+          </div>
+        ) : (
+          <div>
+            <dt className="font-bold text-[#68716d]">Original</dt>
+            <dd className="mt-1 rounded-lg bg-[#f1f0eb] px-3 py-2 leading-5 text-[#5f6964]">
+              {item.originalContent}
+            </dd>
+          </div>
+        )}
         {item.changeType === 'delete' ? (
           <div>
             <dt className="font-bold text-[#68716d]">Proposed action</dt>
@@ -55,7 +69,9 @@ export function ReviewItemDetail({ item, canResolve, onResolve }: ReviewItemDeta
           </div>
         ) : (
           <div>
-            <dt className="font-bold text-[#68716d]">Proposed</dt>
+            <dt className="font-bold text-[#68716d]">
+              {item.changeType === 'insert' ? 'New paragraph' : 'Proposed'}
+            </dt>
             <dd className="mt-1 rounded-lg bg-[#edf5f0] px-3 py-2 leading-5 text-[#315845]">
               {item.proposedContent}
             </dd>
@@ -99,7 +115,11 @@ export function ReviewItemDetail({ item, canResolve, onResolve }: ReviewItemDeta
             ) : (
               <Check aria-hidden="true" size={14} />
             )}
-            {item.changeType === 'delete' ? 'Accept deletion' : 'Accept'}
+            {item.changeType === 'delete'
+              ? 'Accept deletion'
+              : item.changeType === 'insert'
+                ? 'Accept paragraph'
+                : 'Accept'}
           </button>
         </div>
       ) : null}

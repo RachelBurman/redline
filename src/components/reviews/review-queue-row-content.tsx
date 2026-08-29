@@ -13,7 +13,11 @@ export function ReviewQueueRowContent({ item }: { item: ReviewItemSummary }) {
       <span className="flex items-center justify-between gap-2">
         <span className="min-w-0">
           <span className="block text-[10px] font-bold tracking-wide text-[#8a6540] uppercase">
-            {item.changeType === 'delete' ? 'Deletion' : 'Replacement'}
+            {item.changeType === 'delete'
+              ? 'Deletion'
+              : item.changeType === 'insert'
+                ? 'New paragraph'
+                : 'Replacement'}
           </span>
           <span className="block truncate text-xs font-bold text-[#37423d]">{item.category}</span>
         </span>

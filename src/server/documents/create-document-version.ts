@@ -107,7 +107,8 @@ export async function createDocumentVersion(input: {
             eq(reviewItems.status, 'accepted'),
             eq(reviewResolutions.decision, 'accept'),
           ),
-        ),
+        )
+        .orderBy(asc(reviewItems.createdAt)),
     ])
 
     const acceptedChanges: Array<AcceptedBlockChange & { reviewItemId: string }> = []
@@ -124,6 +125,15 @@ export async function createDocumentVersion(input: {
           reviewItemId: row.reviewItemId,
           targetBlockId: row.targetBlockId,
           changeType: 'replace',
+          finalContent: row.finalContent,
+        })
+      } else if (row.changeType === 'insert' && row.finalContent !== null) {
+        acceptedChanges.push({
+          reviewItemId: row.reviewItemId,
+          targetBlockId: row.targetBlockId,
+          changeType: 'insert',
+          insertedBlockId: row.reviewItemId,
+          insertedStableKey: `insert-${row.reviewItemId}`,
           finalContent: row.finalContent,
         })
       }

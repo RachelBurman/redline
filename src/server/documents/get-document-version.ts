@@ -79,6 +79,13 @@ export async function getDocumentVersion(input: {
       createdAt: version.versionCreatedAt.toISOString(),
     },
     reviewRound,
+    insertionAnchor:
+      blocks.length === 0
+        ? null
+        : {
+            blockId: blocks.at(-1)!.id,
+            stableKey: blocks.at(-1)!.stableKey,
+          },
     blocks,
   }
 }

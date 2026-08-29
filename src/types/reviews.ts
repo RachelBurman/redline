@@ -9,7 +9,7 @@ export type ReviewItemStatus =
   | 'conflict'
   | 'resolved'
 
-export type ReviewChangeType = 'replace' | 'delete'
+export type ReviewChangeType = 'replace' | 'delete' | 'insert'
 
 export interface ReviewItemSummary {
   id: string
@@ -46,6 +46,7 @@ export type CreateReviewItemInput = CreateReviewItemBase &
   (
     | { changeType: 'replace'; proposedContent: string }
     | { changeType: 'delete'; proposedContent: null }
+    | { changeType: 'insert'; proposedContent: string }
   )
 
 export interface ResolveReviewItemResult {

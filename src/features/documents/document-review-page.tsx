@@ -267,9 +267,31 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
             <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
               <DocumentViewer
                 blocks={displayedDocument.blocks}
+                canInsert={
+                  canReview &&
+                  !isViewingHistoricalVersion &&
+                  displayedDocument.insertionAnchor !== null
+                }
                 canReview={canReview && !isViewingHistoricalVersion}
                 onPropose={(block, changeType) => {
                   setActiveProposal({ block, changeType })
+                  setSelectedItemId(null)
+                }}
+                onProposeInsertion={() => {
+                  const anchor = displayedDocument.insertionAnchor
+                  if (!anchor) return
+                  setActiveProposal({
+                    changeType: 'insert',
+                    block: {
+                      id: anchor.blockId,
+                      stableKey: anchor.stableKey,
+                      ordinal: displayedDocument.blocks.length,
+                      blockType: 'paragraph',
+                      text: '',
+                      headingLevel: null,
+                      contentHash: '',
+                    },
+                  })
                   setSelectedItemId(null)
                 }}
                 selectedStableKey={selectedStableKey}

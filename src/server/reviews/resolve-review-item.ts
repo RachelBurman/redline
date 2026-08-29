@@ -117,10 +117,13 @@ export async function resolveReviewItem(input: {
     if (item.startOffset === null || item.endOffset === null) {
       throw new ReviewTargetError('The paragraph proposal is incomplete.')
     }
-    if (item.changeType === 'replace' && item.proposedContent === null) {
-      throw new ReviewTargetError('The replacement proposal has no replacement text.')
+    if (
+      (item.changeType === 'replace' || item.changeType === 'insert') &&
+      item.proposedContent === null
+    ) {
+      throw new ReviewTargetError('The proposal has no proposed text.')
     }
-    if (!['replace', 'delete'].includes(item.changeType)) {
+    if (!['replace', 'delete', 'insert'].includes(item.changeType)) {
       throw new ReviewTargetError('This proposal type cannot be resolved by the current workflow.')
     }
 
@@ -150,37 +153,44 @@ export async function resolveReviewItem(input: {
       throw error
     }
 
-    const [existingAcceptedItem] = await tx
-      .select({ id: reviewItems.id })
-      .from(reviewItems)
-      .where(
-        and(
-          eq(reviewItems.documentVersionId, item.documentVersionId),
-          eq(reviewItems.targetBlockId, item.targetBlockId),
-          eq(reviewItems.status, 'accepted'),
-          ne(reviewItems.id, item.id),
-        ),
-      )
-      .limit(1)
+    if (item.changeType !== 'insert') {
+      const [existingAcceptedItem] = await tx
+        .select({ id: reviewItems.id })
+        .from(reviewItems)
+        .where(
+          and(
+            eq(reviewItems.documentVersionId, item.documentVersionId),
+            eq(reviewItems.targetBlockId, item.targetBlockId),
+            eq(reviewItems.status, 'accepted'),
+            inArray(reviewItems.changeType, ['replace', 'delete']),
+            ne(reviewItems.id, item.id),
+          ),
+        )
+        .limit(1)
 
-    if (existingAcceptedItem) {
-      throw new ReviewConflictError(
-        'This paragraph already has an accepted change awaiting a new version.',
-      )
+      if (existingAcceptedItem) {
+        throw new ReviewConflictError(
+          'This paragraph already has an accepted change awaiting a new version.',
+        )
+      }
     }
 
-    const conflictedItems = await tx
-      .update(reviewItems)
-      .set({ status: 'conflict', updatedAt: now })
-      .where(
-        and(
-          eq(reviewItems.documentVersionId, item.documentVersionId),
-          eq(reviewItems.targetBlockId, item.targetBlockId),
-          ne(reviewItems.id, item.id),
-          inArray(reviewItems.status, ['open', 'under_discussion']),
-        ),
-      )
-      .returning({ id: reviewItems.id })
+    const conflictedItems =
+      item.changeType === 'insert'
+        ? []
+        : await tx
+            .update(reviewItems)
+            .set({ status: 'conflict', updatedAt: now })
+            .where(
+              and(
+                eq(reviewItems.documentVersionId, item.documentVersionId),
+                eq(reviewItems.targetBlockId, item.targetBlockId),
+                ne(reviewItems.id, item.id),
+                inArray(reviewItems.changeType, ['replace', 'delete']),
+                inArray(reviewItems.status, ['open', 'under_discussion']),
+              ),
+            )
+            .returning({ id: reviewItems.id })
     await tx
       .update(reviewItems)
       .set({
@@ -191,8 +201,8 @@ export async function resolveReviewItem(input: {
       })
       .where(and(eq(reviewItems.id, item.id), eq(reviewItems.revision, item.revision)))
     const finalContent = item.changeType === 'delete' ? null : item.proposedContent
-    if (item.changeType === 'replace' && finalContent === null) {
-      throw new ReviewTargetError('The replacement proposal has no replacement text.')
+    if (item.changeType !== 'delete' && finalContent === null) {
+      throw new ReviewTargetError('The proposal has no proposed text.')
     }
 
     await tx.insert(reviewResolutions).values({

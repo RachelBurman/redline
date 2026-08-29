@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ReviewProposalForm } from './review-proposal-form'
 
 import type { DocumentDetail } from '#/types/documents'
-import type { ReviewItemSummary } from '#/types/reviews'
+import type { ReviewChangeType, ReviewItemSummary } from '#/types/reviews'
 import type { CreateReviewItemAction } from './review-proposal-form'
 
 const block: DocumentDetail['blocks'][number] = {
@@ -20,7 +20,7 @@ const block: DocumentDetail['blocks'][number] = {
 
 afterEach(cleanup)
 
-function createdItem(changeType: 'replace' | 'delete', proposedContent: string | null) {
+function createdItem(changeType: ReviewChangeType, proposedContent: string | null) {
   return {
     id: '7c322e0c-d60a-4d39-b4bc-f21a7685add6',
     documentVersionId: '8d433f1d-e71b-4e40-a5cd-032b8796bee7',
@@ -28,7 +28,7 @@ function createdItem(changeType: 'replace' | 'delete', proposedContent: string |
     targetBlockId: block.id,
     targetStableKey: block.stableKey,
     changeType,
-    originalContent: block.text,
+    originalContent: changeType === 'insert' ? '' : block.text,
     proposedContent,
     category: 'Clarification' as const,
     priority: 'medium' as const,
@@ -113,6 +113,47 @@ describe('ReviewProposalForm', () => {
         expect.objectContaining({
           changeType: 'replace',
           proposedContent: 'Use this shorter paragraph.',
+        }),
+      ),
+    )
+  })
+
+  it('creates a paragraph insertion proposal with required new text', async () => {
+    const user = userEvent.setup()
+    const createReviewItem = vi.fn<CreateReviewItemAction>(async (_documentId, input) =>
+      createdItem(input.changeType, input.proposedContent),
+    )
+
+    render(
+      <ReviewProposalForm
+        block={{ ...block, text: '' }}
+        changeType="insert"
+        createReviewItem={createReviewItem}
+        documentId="b5e038f0-129b-461c-b30c-d42e4cdfd1bd"
+        onCancel={vi.fn<() => void>()}
+        onCreated={vi.fn<(item: ReviewItemSummary) => void>()}
+        reviewRoundId="18ef785c-eb37-4459-9656-01147d3c0f6e"
+        versionId="8d433f1d-e71b-4e40-a5cd-032b8796bee7"
+      />,
+    )
+
+    expect(screen.getByText('Insert at the end of the document')).toBeInTheDocument()
+    await user.type(
+      screen.getByRole('textbox', { name: 'New paragraph text' }),
+      'This is a newly proposed paragraph.',
+    )
+    await user.type(
+      screen.getByRole('textbox', { name: 'Reason for change' }),
+      'The conclusion needs this qualification.',
+    )
+    await user.click(screen.getByRole('button', { name: 'Create paragraph proposal' }))
+
+    await waitFor(() =>
+      expect(createReviewItem).toHaveBeenCalledWith(
+        'b5e038f0-129b-461c-b30c-d42e4cdfd1bd',
+        expect.objectContaining({
+          changeType: 'insert',
+          proposedContent: 'This is a newly proposed paragraph.',
         }),
       ),
     )
