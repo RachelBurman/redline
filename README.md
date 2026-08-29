@@ -9,9 +9,10 @@ clutter.
 
 The repository contains the first complete vertical slice: an authenticated user can create
 a workspace, upload a `.docx`, review its headings and paragraphs, propose a paragraph-level
-replacement or deletion, accept or reject it, inspect attributable decisions, and export the
-resolved content as a new `.docx`, download the complete review queue as an auditable CSV, or
-compare any two immutable versions in a clean block-based view.
+replacement, deletion, or addition at the end of the document, accept or reject it, inspect
+attributable decisions, and export the resolved content as a new `.docx`, download the complete
+review queue as an auditable CSV, or compare any two immutable versions in a clean block-based
+view.
 
 ## Implemented workflow
 
@@ -22,7 +23,8 @@ compare any two immutable versions in a clean block-based view.
 4. Upload a `.docx` and store its immutable source bytes and SHA-256 digest.
 5. Parse headings and paragraphs into ordered, version-owned document blocks.
 6. Read the clean document alongside its review queue.
-7. Create a paragraph replacement or deletion with a category, priority, and rationale.
+7. Create a paragraph replacement, deletion, or end-of-document addition with a category,
+   priority, and rationale.
 8. Accept or reject the proposal through an authorised, transactional decision.
 9. Keep accepted changes in a derived resolved preview until an authorised user explicitly
    creates the next immutable version.
@@ -174,9 +176,14 @@ Accepting a proposal does not edit an existing version or create a version impli
 locks the document, checks the expected revision and selection anchor, records the accepted
 resolution, and includes it in the derived resolved preview. An owner, administrator, or
 editor must explicitly create the next version. That transaction materialises every accepted
-replacement and omits every accepted deletion, closes the old review round, opens a new
-round, and marks unresolved items from the old version as superseded rather than silently
-moving them.
+replacement, omits every accepted deletion, and inserts every accepted new paragraph in
+proposal order. It then closes the old review round, opens a new round, and marks unresolved
+items from the old version as superseded rather than silently moving them.
+
+Paragraph additions are anchored after the final block of the immutable source version. The
+action remains available when accepted deletions leave the resolved preview empty, so a user
+can delete all original content and still propose replacement paragraphs. Each addition is a
+separate review item with its own decision, attribution, rationale, and audit events.
 
 Restoring is also non-destructive. Restoring version 1 while version 4 is current creates
 version 5 with version 1's immutable blocks. The previous versions remain readable and
@@ -243,10 +250,11 @@ deployment-specific values belong in this repository.
 ## Current boundaries
 
 This slice proves the version-safe proposal workflow; it does not recreate Microsoft Word.
-The UI currently supports paragraph-level replacements and deletions. The schema and review
-domain leave room for insertions, questions, comments, threaded discussion, and richer
-review queues, but those workflows are not presented as finished features. Tables and complex
-Word layout are represented explicitly as unsupported content rather than rendered inaccurately.
+The UI currently supports paragraph-level replacements, deletions, and additions at the end
+of a document. It does not yet insert between existing paragraphs. The schema and review
+domain leave room for questions, comments, threaded discussion, and richer review queues, but
+those workflows are not presented as finished features. Tables and complex Word layout are
+represented explicitly as unsupported content rather than rendered inaccurately.
 Direct shared-text editing, CRDT/OT synchronisation, pagination, headers and footers, and
 pixel-perfect Word rendering remain outside this MVP. Version comparison is block-based; it
 does not yet calculate character-level diffs, classify moved blocks, or reproduce Word-style
