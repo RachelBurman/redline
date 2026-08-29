@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ReviewItemDetail } from './review-item-detail'
 
 import type { ReviewItemSummary } from '#/types/reviews'
+import type { ReviewCommentSummary } from '#/types/reviews'
 
 const deletion: ReviewItemSummary = {
   id: 'review-1',
@@ -30,8 +31,11 @@ describe('ReviewItemDetail', () => {
   it('describes a deletion without rendering crossed-out document text', () => {
     const { container } = render(
       <ReviewItemDetail
+        canComment={false}
         canResolve
+        documentId="document-1"
         item={deletion}
+        onCommentCreated={vi.fn<(comment: ReviewCommentSummary) => void>()}
         onResolve={vi.fn<
           (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
         >()}
@@ -49,7 +53,9 @@ describe('ReviewItemDetail', () => {
   it('shows a new paragraph without pretending that it replaces original text', () => {
     render(
       <ReviewItemDetail
+        canComment={false}
         canResolve
+        documentId="document-1"
         item={{
           ...deletion,
           id: 'review-2',
@@ -57,6 +63,7 @@ describe('ReviewItemDetail', () => {
           originalContent: '',
           proposedContent: 'A newly proposed paragraph.',
         }}
+        onCommentCreated={vi.fn<(comment: ReviewCommentSummary) => void>()}
         onResolve={vi.fn<
           (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
         >()}
@@ -70,5 +77,23 @@ describe('ReviewItemDetail', () => {
     expect(screen.getByText('A newly proposed paragraph.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Accept paragraph' })).toBeInTheDocument()
     expect(screen.queryByText('Original')).not.toBeInTheDocument()
+  })
+
+  it('offers a comment form when the user can participate in the discussion', () => {
+    render(
+      <ReviewItemDetail
+        canComment
+        canResolve={false}
+        documentId="document-1"
+        item={deletion}
+        onCommentCreated={vi.fn<(comment: ReviewCommentSummary) => void>()}
+        onResolve={vi.fn<
+          (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
+        >()}
+      />,
+    )
+
+    expect(screen.getByRole('textbox', { name: 'Comment' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Add comment' })).toBeInTheDocument()
   })
 })

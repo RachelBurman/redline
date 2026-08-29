@@ -3,7 +3,7 @@ import { createColumnHelper, tableFeatures, useTable } from '@tanstack/react-tab
 import { ReviewItemDetail } from './review-item-detail'
 import { ReviewQueueRowContent } from './review-queue-row-content'
 
-import type { ReviewItemSummary } from '#/types/reviews'
+import type { ReviewCommentSummary, ReviewItemSummary } from '#/types/reviews'
 
 const features = tableFeatures({})
 const columnHelper = createColumnHelper<typeof features, ReviewItemSummary>()
@@ -17,17 +17,23 @@ const columns = columnHelper.columns([
 
 interface ReviewQueueProps {
   items: ReviewItemSummary[]
+  documentId: string
   selectedItemId: string | null
+  canComment: boolean
   canResolve: boolean
   onSelect: (item: ReviewItemSummary) => void
+  onCommentCreated: (comment: ReviewCommentSummary) => void
   onResolve: (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
 }
 
 export function ReviewQueue({
   items,
+  documentId,
   selectedItemId,
+  canComment,
   canResolve,
   onSelect,
+  onCommentCreated,
   onResolve,
 }: ReviewQueueProps) {
   const table = useTable({ features, columns, data: items })
@@ -92,7 +98,14 @@ export function ReviewQueue({
       )}
 
       {selectedItem ? (
-        <ReviewItemDetail canResolve={canResolve} item={selectedItem} onResolve={onResolve} />
+        <ReviewItemDetail
+          canComment={canComment}
+          canResolve={canResolve}
+          documentId={documentId}
+          item={selectedItem}
+          onCommentCreated={onCommentCreated}
+          onResolve={onResolve}
+        />
       ) : null}
     </section>
   )

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   PermissionDeniedError,
+  assertCanCommentOnReviewItem,
   assertCanCreateDocument,
   assertCanExportDocument,
   assertCanExportReviewQueue,
@@ -30,6 +31,17 @@ describe('review permissions', () => {
     expect(() => assertCanResolveReviewItem(role)).not.toThrow()
     expect(() => assertCanExportDocument(role)).not.toThrow()
     expect(() => assertCanManageDocumentVersions(role)).not.toThrow()
+  })
+
+  it.each(['owner', 'admin', 'editor', 'reviewer'])(
+    'allows %s to comment on review proposals',
+    (role) => {
+      expect(() => assertCanCommentOnReviewItem(role)).not.toThrow()
+    },
+  )
+
+  it.each(['viewer', 'auditor', 'member'])('prevents %s from commenting', (role) => {
+    expect(() => assertCanCommentOnReviewItem(role)).toThrow(PermissionDeniedError)
   })
 
   it.each(['viewer', 'auditor'])('prevents %s from proposing changes', (role) => {

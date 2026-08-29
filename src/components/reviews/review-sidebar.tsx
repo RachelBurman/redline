@@ -2,7 +2,7 @@ import { ReviewProposalForm } from './review-proposal-form'
 import { ReviewQueue } from './review-queue'
 
 import type { DocumentDetail } from '#/types/documents'
-import type { ReviewItemSummary } from '#/types/reviews'
+import type { ReviewCommentSummary, ReviewItemSummary } from '#/types/reviews'
 import type { ReviewChangeType } from '#/types/reviews'
 
 interface ReviewSidebarProps {
@@ -13,10 +13,12 @@ interface ReviewSidebarProps {
   activeChangeType: ReviewChangeType | null
   items: ReviewItemSummary[]
   selectedItemId: string | null
+  canComment: boolean
   canResolve: boolean
   onCancelProposal: () => void
   onCreated: (item: ReviewItemSummary) => void
   onSelect: (item: ReviewItemSummary) => void
+  onCommentCreated: (comment: ReviewCommentSummary) => void
   onResolve: (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
 }
 
@@ -28,10 +30,12 @@ export function ReviewSidebar({
   activeChangeType,
   items,
   selectedItemId,
+  canComment,
   canResolve,
   onCancelProposal,
   onCreated,
   onSelect,
+  onCommentCreated,
   onResolve,
 }: ReviewSidebarProps) {
   return (
@@ -50,8 +54,11 @@ export function ReviewSidebar({
       ) : null}
       <div className={activeBlock && activeChangeType ? 'pt-5' : ''}>
         <ReviewQueue
+          canComment={canComment}
           canResolve={canResolve}
+          documentId={documentId}
           items={items}
+          onCommentCreated={onCommentCreated}
           onResolve={onResolve}
           onSelect={onSelect}
           selectedItemId={selectedItemId}

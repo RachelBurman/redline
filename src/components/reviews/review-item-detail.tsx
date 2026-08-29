@@ -1,15 +1,27 @@
 import { Check, LoaderCircle, X } from 'lucide-react'
 import { useState } from 'react'
 
-import type { ReviewItemSummary } from '#/types/reviews'
+import { ReviewCommentForm } from './review-comment-form'
+
+import type { ReviewCommentSummary, ReviewItemSummary } from '#/types/reviews'
 
 interface ReviewItemDetailProps {
   item: ReviewItemSummary
+  documentId: string
+  canComment: boolean
   canResolve: boolean
+  onCommentCreated: (comment: ReviewCommentSummary) => void
   onResolve: (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
 }
 
-export function ReviewItemDetail({ item, canResolve, onResolve }: ReviewItemDetailProps) {
+export function ReviewItemDetail({
+  item,
+  documentId,
+  canComment,
+  canResolve,
+  onCommentCreated,
+  onResolve,
+}: ReviewItemDetailProps) {
   const [pendingDecision, setPendingDecision] = useState<'accept' | 'reject' | null>(null)
   const [resolutionError, setResolutionError] = useState<string | null>(null)
   const isOpen = ['open', 'under_discussion'].includes(item.status)
@@ -82,6 +94,15 @@ export function ReviewItemDetail({ item, canResolve, onResolve }: ReviewItemDeta
           <dd className="mt-1 leading-5 text-[#4e5954]">{item.rationale}</dd>
         </div>
       </dl>
+
+      {canComment ? (
+        <ReviewCommentForm
+          documentId={documentId}
+          key={item.id}
+          onCreated={onCommentCreated}
+          reviewItemId={item.id}
+        />
+      ) : null}
 
       {resolutionError ? (
         <p className="mt-3 rounded-lg bg-[#fff0eb] px-3 py-2 text-xs text-[#91452f]" role="alert">

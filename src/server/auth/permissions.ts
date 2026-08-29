@@ -1,6 +1,7 @@
 const documentCreators = new Set(['owner', 'admin', 'editor'])
 const documentReviewers = new Set(['owner', 'admin', 'editor', 'reviewer'])
 const documentResolvers = new Set(['owner', 'admin', 'editor'])
+const reviewCommenters = new Set(['owner', 'admin', 'editor', 'reviewer'])
 const documentExporters = new Set(['owner', 'admin', 'editor'])
 const documentVersionManagers = new Set(['owner', 'admin', 'editor'])
 const reviewQueueExporters = new Set(['owner', 'admin', 'editor', 'reviewer', 'auditor'])
@@ -27,6 +28,12 @@ export function assertCanReviewDocument(role: string) {
 export function assertCanResolveReviewItem(role: string) {
   if (!documentResolvers.has(role)) {
     throw new PermissionDeniedError('Your organisation role cannot accept or reject proposals.')
+  }
+}
+
+export function assertCanCommentOnReviewItem(role: string) {
+  if (!reviewCommenters.has(role)) {
+    throw new PermissionDeniedError('Your organisation role cannot comment on review proposals.')
   }
 }
 

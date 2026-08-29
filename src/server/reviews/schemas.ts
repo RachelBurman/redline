@@ -36,3 +36,7 @@ export const resolveReviewItemSchema = z.object({
   decision: z.enum(['accept', 'reject']),
   expectedRevision: z.int().positive(),
 })
+
+export const createReviewCommentSchema = z.object({
+  body: z.string().trim().min(1, 'Comment text is required.').max(5_000),
+})

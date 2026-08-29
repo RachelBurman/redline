@@ -18,7 +18,11 @@ import { useDocumentPresence } from './use-document-presence'
 import type { DocumentVersionSummary, VersionActionResult } from '#/types/document-versions'
 import type { DocumentDetail } from '#/types/documents'
 import type { PresenceParticipant } from '#/types/presence'
-import type { ResolveReviewItemResult, ReviewItemSummary } from '#/types/reviews'
+import type {
+  ResolveReviewItemResult,
+  ReviewCommentSummary,
+  ReviewItemSummary,
+} from '#/types/reviews'
 import type { ReviewChangeType } from '#/types/reviews'
 
 const emptyPresence: PresenceParticipant[] = []
@@ -113,6 +117,10 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   function handleCreated(item: ReviewItemSummary) {
     setActiveProposal(null)
     setSelectedItemId(item.id)
+    void queryClient.invalidateQueries({ queryKey: ['review-items', documentId] })
+  }
+
+  function handleCommentCreated(_comment: ReviewCommentSummary) {
     void queryClient.invalidateQueries({ queryKey: ['review-items', documentId] })
   }
 
@@ -299,12 +307,14 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
               <ReviewSidebar
                 activeBlock={activeProposal?.block ?? null}
                 activeChangeType={activeProposal?.changeType ?? null}
+                canComment={canReview && !isViewingHistoricalVersion}
                 canResolve={canResolve && !isViewingHistoricalVersion}
                 documentId={documentId}
                 documentVersionId={displayedDocument.version.id}
                 items={displayedReviewItems}
                 onCancelProposal={() => setActiveProposal(null)}
                 onCreated={handleCreated}
+                onCommentCreated={handleCommentCreated}
                 onResolve={handleResolve}
                 onSelect={(item) => {
                   setActiveProposal(null)

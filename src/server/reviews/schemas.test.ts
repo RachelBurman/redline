@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
-import { createReviewItemSchema, resolveReviewItemSchema } from './schemas'
+import {
+  createReviewCommentSchema,
+  createReviewItemSchema,
+  resolveReviewItemSchema,
+} from './schemas'
 
 const validProposal = {
   documentVersionId: '7c322e0c-d60a-4d39-b4bc-f21a7685add6',
@@ -71,5 +75,18 @@ describe('review request schemas', () => {
     expect(() =>
       resolveReviewItemSchema.parse({ decision: 'accept', expectedRevision: 0 }),
     ).toThrow(/Too small/)
+  })
+
+  it('trims and accepts a review comment', () => {
+    expect(createReviewCommentSchema.parse({ body: '  Please confirm this value.  ' })).toEqual({
+      body: 'Please confirm this value.',
+    })
+  })
+
+  it('rejects blank and oversized review comments', () => {
+    expect(() => createReviewCommentSchema.parse({ body: '   ' })).toThrow(
+      'Comment text is required.',
+    )
+    expect(() => createReviewCommentSchema.parse({ body: 'a'.repeat(5_001) })).toThrow(/Too big/)
   })
 })
