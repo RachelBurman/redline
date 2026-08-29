@@ -18,9 +18,10 @@ audit events where appropriate, and automated tests.
 ## Next product slices
 
 1. [ ] Add threaded discussions to review items.
-   - Create comments and replies with author attribution and timestamps.
-   - Enforce organisation roles and document access on versioned API routes.
-   - Refresh discussions for concurrent reviewers and audit comment creation.
+   - [x] Create validated, attributable top-level comments through an organisation-scoped,
+         versioned API and audit comment creation.
+   - [ ] Display comment history with author attribution and timestamps.
+   - [ ] Create replies and refresh discussions for concurrent reviewers.
 2. [ ] Add review-queue filters and sorting.
    - Filter by reviewer, category, status, section, and priority.
    - Preserve an accessible table and keyboard workflow.

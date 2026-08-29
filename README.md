@@ -10,9 +10,9 @@ clutter.
 The repository contains the first complete vertical slice: an authenticated user can create
 a workspace, upload a `.docx`, review its headings and paragraphs, propose a paragraph-level
 replacement, deletion, or addition at the end of the document, accept or reject it, inspect
-attributable decisions, and export the resolved content as a new `.docx`, download the complete
-review queue as an auditable CSV, or compare any two immutable versions in a clean block-based
-view.
+attributable decisions, add a top-level comment to a review proposal, and export the resolved
+content as a new `.docx`, download the complete review queue as an auditable CSV, or compare any
+two immutable versions in a clean block-based view.
 
 ## Implemented workflow
 
@@ -25,16 +25,18 @@ view.
 6. Read the clean document alongside its review queue.
 7. Create a paragraph replacement, deletion, or end-of-document addition with a category,
    priority, and rationale.
-8. Accept or reject the proposal through an authorised, transactional decision.
-9. Keep accepted changes in a derived resolved preview until an authorised user explicitly
-   creates the next immutable version.
-10. Browse, download, and restore historical versions without deleting or rewriting history.
-11. Compare any two versions by logical block, with added, changed, absent, and unchanged
+8. Add an attributable comment to a proposal; the first comment moves an open proposal under
+   discussion and is recorded in the audit chain.
+9. Accept or reject the proposal through an authorised, transactional decision.
+10. Keep accepted changes in a derived resolved preview until an authorised user explicitly
+    creates the next immutable version.
+11. Browse, download, and restore historical versions without deleting or rewriting history.
+12. Compare any two versions by logical block, with added, changed, absent, and unchanged
     content clearly separated from the readable document.
-12. Record workspace, upload, proposal, decision, version, restore, and export actions in the
-    append-only audit log.
-13. Generate and download a basic resolved `.docx` from the current structured version.
-14. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
+13. Record workspace, upload, proposal, comment, decision, version, restore, and export actions
+    in the append-only audit log.
+14. Generate and download a basic resolved `.docx` from the current structured version.
+15. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
 
 Multiple participants can review the same document concurrently. The viewer shows active,
 version-bound presence and refreshes proposals in the background. Decisions are serialised
@@ -222,23 +224,24 @@ report is hashed and recorded in the audit log.
 
 ## Versioned API
 
-| Endpoint                                                           | Purpose                                  |
-| ------------------------------------------------------------------ | ---------------------------------------- |
-| `/api/v1/auth/*`                                                   | Better Auth and password-change handlers |
-| `/api/v1/workspace`                                                | Read or initialise the user's workspace  |
-| `/api/v1/documents`                                                | List documents or upload a `.docx`       |
-| `/api/v1/documents/:documentId`                                    | Read the structured current version      |
-| `/api/v1/documents/:documentId/versions`                           | List or explicitly create versions       |
-| `/api/v1/documents/:documentId/versions/compare`                   | Compare two immutable versions by block  |
-| `/api/v1/documents/:documentId/versions/:versionId`                | Read one immutable historical version    |
-| `/api/v1/documents/:documentId/versions/:versionId/restore`        | Restore history as a new version         |
-| `/api/v1/documents/:documentId/versions/:versionId/exports`        | Download an immutable version            |
-| `/api/v1/documents/:documentId/review-items`                       | List or create proposals                 |
-| `/api/v1/documents/:documentId/review-items/export`                | Download the complete review queue CSV   |
-| `/api/v1/documents/:documentId/review-items/:reviewItemId/resolve` | Accept or reject a proposal              |
-| `/api/v1/documents/:documentId/presence`                           | Read or heartbeat participant presence   |
-| `/api/v1/documents/:documentId/exports`                            | Generate the current resolved `.docx`    |
-| `/api/v1/health`                                                   | Service health                           |
+| Endpoint                                                            | Purpose                                  |
+| ------------------------------------------------------------------- | ---------------------------------------- |
+| `/api/v1/auth/*`                                                    | Better Auth and password-change handlers |
+| `/api/v1/workspace`                                                 | Read or initialise the user's workspace  |
+| `/api/v1/documents`                                                 | List documents or upload a `.docx`       |
+| `/api/v1/documents/:documentId`                                     | Read the structured current version      |
+| `/api/v1/documents/:documentId/versions`                            | List or explicitly create versions       |
+| `/api/v1/documents/:documentId/versions/compare`                    | Compare two immutable versions by block  |
+| `/api/v1/documents/:documentId/versions/:versionId`                 | Read one immutable historical version    |
+| `/api/v1/documents/:documentId/versions/:versionId/restore`         | Restore history as a new version         |
+| `/api/v1/documents/:documentId/versions/:versionId/exports`         | Download an immutable version            |
+| `/api/v1/documents/:documentId/review-items`                        | List or create proposals                 |
+| `/api/v1/documents/:documentId/review-items/export`                 | Download the complete review queue CSV   |
+| `/api/v1/documents/:documentId/review-items/:reviewItemId/comments` | Add a top-level review comment           |
+| `/api/v1/documents/:documentId/review-items/:reviewItemId/resolve`  | Accept or reject a proposal              |
+| `/api/v1/documents/:documentId/presence`                            | Read or heartbeat participant presence   |
+| `/api/v1/documents/:documentId/exports`                             | Generate the current resolved `.docx`    |
+| `/api/v1/health`                                                    | Service health                           |
 
 ## Deployment status
 
@@ -254,9 +257,11 @@ deployment-specific values belong in this repository.
 This slice proves the version-safe proposal workflow; it does not recreate Microsoft Word.
 The UI currently supports paragraph-level replacements, deletions, and additions at the end
 of a document. It does not yet insert between existing paragraphs. The schema and review
-domain leave room for questions, comments, threaded discussion, and richer review queues, but
-those workflows are not presented as finished features. Tables and complex Word layout are
+domain leave room for questions, threaded discussion, and richer review queues, but those
+workflows are not presented as finished features. Tables and complex Word layout are
 represented explicitly as unsupported content rather than rendered inaccurately.
+Top-level comments can be submitted and audited, but displaying comment history, replies,
+editing, and resolving discussion threads remain follow-up work.
 Direct shared-text editing, CRDT/OT synchronisation, pagination, headers and footers, and
 pixel-perfect Word rendering remain outside this MVP. Version comparison is block-based; it
 does not yet calculate character-level diffs, classify moved blocks, or reproduce Word-style
