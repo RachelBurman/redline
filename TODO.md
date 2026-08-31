@@ -29,7 +29,15 @@ audit events where appropriate, and automated tests.
    - [x] Sort by date, priority, and immutable document order.
    - [x] Preserve an accessible table, keyboard workflow, selected proposal, and complete audit
          export.
-3. [ ] Add reviewer invitations and review-round assignments.
+3. [x] Add reviewer invitations and review-round assignments.
+   - [x] Send Better Auth organisation invitations through environment-backed email and require
+         the signed-in recipient address to be verified before acceptance.
+   - [x] Allow owners and administrators to view members and pending invitations and invite the
+         reviewer role through versioned endpoints.
+   - [x] Allow owners, administrators, and editors to assign or revoke eligible organisation
+         members on the current open review round without deleting assignment history.
+   - [x] Bind assignments to an exact round and document version, serialise concurrent changes,
+         and append invitation and assignment events to the immutable audit chain.
 4. [ ] Allow paragraph additions between existing document blocks, with immutable
        before/after anchors.
 5. [ ] Build a composable accessible modal/dialog system from scratch.

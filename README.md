@@ -11,9 +11,9 @@ The repository contains the first complete vertical slice: an authenticated user
 a workspace, upload a `.docx`, review its headings and paragraphs, propose a paragraph-level
 replacement, deletion, or addition at the end of the document, accept or reject it, inspect
 attributable decisions, filter and sort the review queue, hold a one-level threaded discussion
-on a review proposal, and export the resolved content as a new `.docx`, download the complete
-review queue as an auditable CSV, or compare any two immutable versions in a clean block-based
-view.
+on a review proposal, securely invite reviewers, assign organisation members to an exact review
+round, and export the resolved content as a new `.docx`, download the complete review queue as an
+auditable CSV, or compare any two immutable versions in a clean block-based view.
 
 ## Implemented workflow
 
@@ -21,25 +21,29 @@ view.
 2. Use the sign-in page's **Forgot password?** link to request a one-hour reset link, or
    change a known password from the authenticated Account page.
 3. Create an organisation-scoped workspace and default project.
-4. Upload a `.docx` and store its immutable source bytes and SHA-256 digest.
-5. Parse headings and paragraphs into ordered, version-owned document blocks.
-6. Read the clean document alongside its review queue, filtered by reviewer, category, status,
+4. Invite a reviewer by email. The recipient signs in or creates an account with that address,
+   verifies it, and explicitly accepts the organisation invitation.
+5. Assign eligible organisation members to the current document version's exact review round;
+   owners, administrators, and editors can revoke an assignment without deleting its history.
+6. Upload a `.docx` and store its immutable source bytes and SHA-256 digest.
+7. Parse headings and paragraphs into ordered, version-owned document blocks.
+8. Read the clean document alongside its review queue, filtered by reviewer, category, status,
    section, or priority and sorted by date, priority, or document order.
-7. Create a paragraph replacement, deletion, or end-of-document addition with a category,
+9. Create a paragraph replacement, deletion, or end-of-document addition with a category,
    priority, and rationale.
-8. Add and read attributable proposal comments and direct replies in chronological threads; the
-   first comment moves an open proposal under discussion, and every message is recorded in the
-   audit chain.
-9. Accept or reject the proposal through an authorised, transactional decision.
-10. Keep accepted changes in a derived resolved preview until an authorised user explicitly
+10. Add and read attributable proposal comments and direct replies in chronological threads; the
+    first comment moves an open proposal under discussion, and every message is recorded in the
+    audit chain.
+11. Accept or reject the proposal through an authorised, transactional decision.
+12. Keep accepted changes in a derived resolved preview until an authorised user explicitly
     creates the next immutable version.
-11. Browse, download, and restore historical versions without deleting or rewriting history.
-12. Compare any two versions by logical block, with added, changed, absent, and unchanged
+13. Browse, download, and restore historical versions without deleting or rewriting history.
+14. Compare any two versions by logical block, with added, changed, absent, and unchanged
     content clearly separated from the readable document.
-13. Record workspace, upload, proposal, comment, decision, version, restore, and export actions
-    in the append-only audit log.
-14. Generate and download a basic resolved `.docx` from the current structured version.
-15. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
+15. Record invitations, assignments, uploads, proposals, comments, decisions, versions, restores,
+    and exports in the append-only audit log.
+16. Generate and download a basic resolved `.docx` from the current structured version.
+17. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
 
 Multiple participants can review the same document concurrently. The viewer shows active,
 version-bound presence and refreshes proposals and the selected discussion in the background.
@@ -102,9 +106,10 @@ written as accessible, composable React components; there is no component-kit de
    ```
 
 The application runs at `http://localhost:3000`; the health endpoint is
-`http://localhost:3000/api/v1/health`. In local development, password-reset emails are
-captured by Mailpit at `http://localhost:8025`; they are never delivered to the public
-internet. The default SMTP settings in `.env.example` target that loopback-only service.
+`http://localhost:3000/api/v1/health`. In local development, password-reset, email-verification,
+and reviewer-invitation messages are captured by Mailpit at `http://localhost:8025`; they are
+never delivered to the public internet. The default SMTP settings in `.env.example` target that
+loopback-only service.
 
 A deployed environment must replace the Mailpit defaults with its transactional email
 provider's `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, and
@@ -158,6 +163,8 @@ src/server/documents/    Upload validation, parsing, and document reads
 src/server/reviews/      Proposal, queue, and transactional decision workflows
 src/server/exports/      Resolved-document generation and persistence
 src/server/presence/     Ephemeral version-bound participant presence
+src/server/reviewers/    Exact-round review assignment workflows
+src/server/email/        Environment-backed transactional email delivery
 src/server/storage/      Replaceable private object-store interface and local adapter
 src/server/auth/         Authentication and organisation-scoped authorisation
 src/server/audit/        Append-only audit-event creation
@@ -191,6 +198,13 @@ can delete all original content and still propose replacement paragraphs. Each a
 separate review item with its own decision, attribution, rationale, and audit events.
 Creating the next version is blocked until at least one paragraph remains or an addition is
 accepted, preventing an empty immutable version from losing its insertion anchor.
+
+Reviewer membership and review work are separate decisions. Better Auth owns opaque organisation
+invitations and requires the recipient's signed-in email to match and be verified before
+acceptance. An assignment belongs to one review-round ID and therefore one immutable document
+version; it is never carried automatically to a successor round. Only an open round on the
+document's current version can be changed. Revocation timestamps the assignment row instead of
+deleting it, and both assignment actions are appended to the audit chain.
 
 Restoring is also non-destructive. Restoring version 1 while version 4 is current creates
 version 5 with version 1's immutable blocks. The previous versions remain readable and
@@ -228,24 +242,27 @@ never silently narrow this complete audit export.
 
 ## Versioned API
 
-| Endpoint                                                            | Purpose                                  |
-| ------------------------------------------------------------------- | ---------------------------------------- |
-| `/api/v1/auth/*`                                                    | Better Auth and password-change handlers |
-| `/api/v1/workspace`                                                 | Read or initialise the user's workspace  |
-| `/api/v1/documents`                                                 | List documents or upload a `.docx`       |
-| `/api/v1/documents/:documentId`                                     | Read the structured current version      |
-| `/api/v1/documents/:documentId/versions`                            | List or explicitly create versions       |
-| `/api/v1/documents/:documentId/versions/compare`                    | Compare two immutable versions by block  |
-| `/api/v1/documents/:documentId/versions/:versionId`                 | Read one immutable historical version    |
-| `/api/v1/documents/:documentId/versions/:versionId/restore`         | Restore history as a new version         |
-| `/api/v1/documents/:documentId/versions/:versionId/exports`         | Download an immutable version            |
-| `/api/v1/documents/:documentId/review-items`                        | List or create proposals                 |
-| `/api/v1/documents/:documentId/review-items/export`                 | Download the complete review queue CSV   |
-| `/api/v1/documents/:documentId/review-items/:reviewItemId/comments` | List or add comments and direct replies  |
-| `/api/v1/documents/:documentId/review-items/:reviewItemId/resolve`  | Accept or reject a proposal              |
-| `/api/v1/documents/:documentId/presence`                            | Read or heartbeat participant presence   |
-| `/api/v1/documents/:documentId/exports`                             | Generate the current resolved `.docx`    |
-| `/api/v1/health`                                                    | Service health                           |
+| Endpoint                                                                         | Purpose                                  |
+| -------------------------------------------------------------------------------- | ---------------------------------------- |
+| `/api/v1/auth/*`                                                                 | Better Auth and organisation invitations |
+| `/api/v1/workspace`                                                              | Read or initialise the user's workspace  |
+| `/api/v1/reviewers`                                                              | List members and pending invitations     |
+| `/api/v1/documents`                                                              | List documents or upload a `.docx`       |
+| `/api/v1/documents/:documentId`                                                  | Read the structured current version      |
+| `/api/v1/documents/:documentId/versions`                                         | List or explicitly create versions       |
+| `/api/v1/documents/:documentId/versions/compare`                                 | Compare two immutable versions by block  |
+| `/api/v1/documents/:documentId/versions/:versionId`                              | Read one immutable historical version    |
+| `/api/v1/documents/:documentId/versions/:versionId/restore`                      | Restore history as a new version         |
+| `/api/v1/documents/:documentId/versions/:versionId/exports`                      | Download an immutable version            |
+| `/api/v1/documents/:documentId/review-rounds/:roundId/assignments`               | List or create exact-round assignments   |
+| `/api/v1/documents/:documentId/review-rounds/:roundId/assignments/:assignmentId` | Revoke an active assignment              |
+| `/api/v1/documents/:documentId/review-items`                                     | List or create proposals                 |
+| `/api/v1/documents/:documentId/review-items/export`                              | Download the complete review queue CSV   |
+| `/api/v1/documents/:documentId/review-items/:reviewItemId/comments`              | List or add comments and direct replies  |
+| `/api/v1/documents/:documentId/review-items/:reviewItemId/resolve`               | Accept or reject a proposal              |
+| `/api/v1/documents/:documentId/presence`                                         | Read or heartbeat participant presence   |
+| `/api/v1/documents/:documentId/exports`                                          | Generate the current resolved `.docx`    |
+| `/api/v1/health`                                                                 | Service health                           |
 
 ## Deployment status
 
@@ -262,12 +279,13 @@ This slice proves the version-safe proposal workflow; it does not recreate Micro
 The UI currently supports paragraph-level replacements, deletions, and additions at the end
 of a document. It does not yet insert between existing paragraphs. The visible queue can be
 filtered and sorted without changing the complete audit CSV; section labels are derived from
-the nearest preceding immutable heading. The schema and review domain leave room for questions
-and richer review assignment workflows, but those workflows are not presented as finished
-features. Tables and complex Word layout are represented explicitly as unsupported content
-rather than rendered inaccurately. Top-level comments and one level of direct replies can be
-submitted, audited, and read with author attribution and timestamps. Replies to replies, editing
-comments, and resolving discussion threads remain follow-up work.
+the nearest preceding immutable heading. The schema and review domain leave room for questions,
+assignment completion, due dates, and workload reporting, but those workflows are not presented
+as finished features. Invitation cancellation and role changes also remain follow-up work. Tables
+and complex Word layout are represented explicitly as unsupported content rather than rendered
+inaccurately. Top-level comments and one level of direct replies can be submitted, audited, and
+read with author attribution and timestamps. Replies to replies, editing comments, and resolving
+discussion threads remain follow-up work.
 Direct shared-text editing, CRDT/OT synchronisation, pagination, headers and footers, and
 pixel-perfect Word rendering remain outside this MVP. Version comparison is block-based; it
 does not yet calculate character-level diffs, classify moved blocks, or reproduce Word-style
@@ -277,6 +295,9 @@ redlines.
 
 - Better Auth roles are organisation-scoped: owner, admin, editor, reviewer, viewer, and
   auditor.
+- Reviewer invitations use Better Auth's opaque invitation IDs, require the signed-in email to
+  match the recipient, and require verification before acceptance. Invitation emails and SMTP
+  credentials are environment-backed.
 - Forgotten-password requests return the same confirmation whether or not an account exists.
   Reset links expire after one hour, and a successful reset revokes every existing session.
 - Password changes require the current password, enforce the configured 8–128 character
@@ -291,6 +312,8 @@ redlines.
   expected-current-version check under a document-level PostgreSQL lock.
 - Review decisions are authorised, revision-checked, locked, and committed atomically with
   their audit events.
+- Review assignments are tenant-checked, restricted to eligible organisation members, serialised
+  per round, and retained after revocation with corresponding immutable audit events.
 - Dependency installation enforces a seven-day release maturity window and trust-downgrade
   checks, with narrow documented exceptions for established transitive packages.
 
