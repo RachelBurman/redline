@@ -46,13 +46,14 @@ audit events where appropriate, and automated tests.
          version, including an explicit end boundary.
    - [x] Materialise accepted insertions deterministically through the existing resolved preview,
          version creation, audit, CSV, and DOCX export workflows.
-5. [ ] Build a composable accessible modal/dialog system from scratch.
-   - Use native dialog semantics where practical, with focus trapping and restoration,
-     Escape/backdrop handling, scroll management, accessible labels, and reduced-motion
-     behavior.
-   - Use it only where a modal interruption is appropriate, such as destructive confirmations
-     or focused comparison settings; keep routine review processing inline.
-   - Add keyboard and accessibility-focused component tests.
+5. [x] Build a composable accessible modal/dialog system from scratch.
+   - [x] Use native modal dialog semantics with browser focus containment, explicit initial-focus
+         and focus-restoration behavior, Escape/backdrop handling, scroll management, accessible
+         labels and descriptions, and reduced-motion-aware presentation.
+   - [x] Use it for the consequential historical-version restore workflow while keeping routine
+         review processing inline.
+   - [x] Add keyboard, focus, backdrop, scroll-lock, and accessibility-focused component and
+         integration tests.
 6. [ ] Evaluate and integrate [`@pierre/diffs`](https://diffs.com/) for document-version
        comparison.
    - Prototype split and unified prose comparisons with word-level inline changes.

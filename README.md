@@ -37,7 +37,8 @@ auditable CSV, or compare any two immutable versions in a clean block-based view
 11. Accept or reject the proposal through an authorised, transactional decision.
 12. Keep accepted changes in a derived resolved preview until an authorised user explicitly
     creates the next immutable version.
-13. Browse, download, and restore historical versions without deleting or rewriting history.
+13. Browse and download historical versions, or restore one through a focused, accessible
+    confirmation dialog without deleting or rewriting history.
 14. Compare any two versions by logical block, with added, changed, absent, and unchanged
     content clearly separated from the readable document.
 15. Record invitations, assignments, uploads, proposals, comments, decisions, versions, restores,
@@ -54,16 +55,15 @@ overwriting shared document text.
 
 ## Current product status
 
-The version-safe review foundation and the first four follow-on product slices are complete:
+The version-safe review foundation and the first five follow-on product slices are complete:
 threaded proposal discussions, review-queue filters and sorting, reviewer invitations and
-exact-round assignments, and paragraph additions at immutable block boundaries.
+exact-round assignments, paragraph additions at immutable block boundaries, and an accessible
+application-owned modal/dialog system.
 
-The next planned slice is an application-owned, composable modal/dialog system with accessible
-focus management, keyboard and backdrop handling, scroll management, reduced-motion support,
-and component tests. It will be used only where a focused interruption is appropriate. After
-that, the roadmap covers evaluating `@pierre/diffs` for richer document-version comparisons,
-adding safely versioned image and graph blocks, and improving collaboration updates beyond
-polling without expanding the MVP into unrestricted real-time word processing.
+The next planned slice is evaluating `@pierre/diffs` for richer document-version comparisons.
+After that, the roadmap covers adding safely versioned image and graph blocks and improving
+collaboration updates beyond polling without expanding the MVP into unrestricted real-time word
+processing.
 
 See [`TODO.md`](./TODO.md) for the detailed, checked product roadmap.
 
@@ -173,6 +173,7 @@ viewer:
 src/routes/              TanStack pages and versioned HTTP routes
 src/features/            Page-level product composition
 src/components/          One accessible component per file
+src/components/ui/       Application-owned composable UI primitives
 src/domain/              Framework-independent review rules and anchors
 src/server/documents/    Upload validation, parsing, and document reads
 src/server/reviews/      Proposal, queue, and transactional decision workflows
@@ -227,6 +228,10 @@ Restoring is also non-destructive. Restoring version 1 while version 4 is curren
 version 5 with version 1's immutable blocks. The previous versions remain readable and
 downloadable, the restore reason and provenance are stored with the new version, and the
 action is appended to the audit chain. Downloads create audited exports but never versions.
+The restore confirmation uses Redline's native-dialog-based modal primitive: it supplies an
+accessible name and description, moves focus to the required reason, contains focus in the
+browser's modal top layer, closes with Escape or the backdrop, locks background scrolling, and
+returns focus to the triggering control. Routine proposal processing remains inline.
 
 Version comparison uses the stable key stored with each version-owned block. Matching keys
 are classified as unchanged or changed; keys present in only one selected version are added

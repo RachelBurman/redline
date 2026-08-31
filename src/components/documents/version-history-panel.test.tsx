@@ -99,11 +99,17 @@ describe('VersionHistoryPanel', () => {
 
     await user.click(screen.getByRole('button', { name: /Version history/ }))
     await user.click(screen.getByRole('button', { name: 'Restore version 1' }))
-    await user.type(screen.getByLabelText('Reason for restoring'), 'Undo an incorrect revision')
+    expect(screen.getByRole('dialog', { name: 'Restore version 1?' })).toHaveAccessibleDescription(
+      'This creates version 3 from version 1. Nothing is deleted, but pending changes on the current version will be superseded.',
+    )
+    const reason = screen.getByLabelText('Reason for restoring')
+    expect(reason).toHaveFocus()
+    await user.type(reason, 'Undo an incorrect revision')
     await user.click(screen.getByRole('button', { name: 'Restore as a new version' }))
 
     expect(onVersionChanged).toHaveBeenCalledWith(createdVersion)
     expect(screen.getByText('Version 3 created from the restored content.')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('opens a comparison with the previous and current versions selected by default', async () => {

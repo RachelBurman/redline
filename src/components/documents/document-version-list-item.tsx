@@ -1,5 +1,7 @@
 import { ArchiveRestore, Download, LoaderCircle, RotateCcw } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+
+import { Dialog } from '#/components/ui/dialog'
 
 import type { DocumentVersionSummary } from '#/types/document-versions'
 import type { FormEvent } from 'react'
@@ -42,6 +44,7 @@ export function DocumentVersionListItem({
 }: DocumentVersionListItemProps) {
   const [showRestoreForm, setShowRestoreForm] = useState(false)
   const [restoreReason, setRestoreReason] = useState('')
+  const restoreReasonRef = useRef<HTMLTextAreaElement>(null)
 
   async function handleRestore(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -114,48 +117,58 @@ export function DocumentVersionListItem({
         </div>
       </div>
 
-      {showRestoreForm ? (
-        <form
-          className="mt-4 grid gap-3 border-t border-[#ead9d3] pt-4"
-          onSubmit={(event) => void handleRestore(event)}
+      {access === 'manager' && !version.isCurrent ? (
+        <Dialog
+          description={
+            <>
+              This creates version {currentVersionNumber + 1} from version {version.versionNumber}.
+              Nothing is deleted, but pending changes on the current version will be superseded.
+            </>
+          }
+          initialFocusRef={restoreReasonRef}
+          onOpenChange={(open) => {
+            if (actionState !== 'restoring') setShowRestoreForm(open)
+          }}
+          open={showRestoreForm}
+          title={`Restore version ${version.versionNumber}?`}
         >
-          <p className="text-xs leading-5 text-[#704b40]">
-            This creates version {currentVersionNumber + 1} from version {version.versionNumber}.
-            Nothing is deleted, but pending changes on the current version will be superseded.
-          </p>
-          <label className="grid gap-1 text-xs font-bold text-[#57433d]">
-            Reason for restoring
-            <textarea
-              className="min-h-20 rounded-lg border border-[#d9b5a9] bg-white px-3 py-2 font-normal"
-              maxLength={500}
-              minLength={3}
-              onChange={(event) => setRestoreReason(event.target.value)}
-              required
-              value={restoreReason}
-            />
-          </label>
-          <div className="flex flex-wrap gap-2">
-            <button
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#8a4937] px-4 text-xs font-bold text-white disabled:opacity-50"
-              disabled={actionState === 'restoring'}
-              type="submit"
-            >
-              {actionState === 'restoring' ? (
-                <LoaderCircle aria-hidden="true" className="animate-spin" size={15} />
-              ) : (
-                <RotateCcw aria-hidden="true" size={15} />
-              )}
-              Restore as a new version
-            </button>
-            <button
-              className="min-h-10 rounded-lg px-3 text-xs font-bold text-[#71605a] hover:bg-white"
-              onClick={() => setShowRestoreForm(false)}
-              type="button"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+          <form className="grid gap-5" onSubmit={(event) => void handleRestore(event)}>
+            <label className="grid gap-2 text-sm font-bold text-[#57433d]">
+              Reason for restoring
+              <textarea
+                className="min-h-28 resize-y rounded-lg border border-[#d9b5a9] bg-white px-3 py-2 font-normal"
+                maxLength={500}
+                minLength={3}
+                onChange={(event) => setRestoreReason(event.target.value)}
+                ref={restoreReasonRef}
+                required
+                value={restoreReason}
+              />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#8a4937] px-4 text-xs font-bold text-white disabled:opacity-50"
+                disabled={actionState === 'restoring'}
+                type="submit"
+              >
+                {actionState === 'restoring' ? (
+                  <LoaderCircle aria-hidden="true" className="animate-spin" size={15} />
+                ) : (
+                  <RotateCcw aria-hidden="true" size={15} />
+                )}
+                Restore as a new version
+              </button>
+              <button
+                className="min-h-10 rounded-lg px-3 text-xs font-bold text-[#71605a] hover:bg-[#f7f5ef] disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={actionState === 'restoring'}
+                onClick={() => setShowRestoreForm(false)}
+                type="button"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </Dialog>
       ) : null}
     </li>
   )

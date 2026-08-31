@@ -49,12 +49,39 @@ a {
   color: #18201d;
 }
 
+.app-dialog[open] {
+  animation: dialog-enter 160ms ease-out;
+}
+
+.app-dialog::backdrop {
+  background: rgb(23 32 29 / 55%);
+  backdrop-filter: blur(2px);
+  animation: dialog-backdrop-enter 160ms ease-out;
+}
+
+@keyframes dialog-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) scale(0.985);
+  }
+}
+
+@keyframes dialog-backdrop-enter {
+  from {
+    opacity: 0;
+  }
+}
+
 :focus-visible {
   outline: 3px solid #e06d4f;
   outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .app-dialog::backdrop {
+    animation-duration: 0.01ms !important;
+  }
+
   *,
   *::before,
   *::after {
