@@ -9,7 +9,7 @@ clutter.
 
 The repository contains the first complete vertical slice: an authenticated user can create
 a workspace, upload a `.docx`, review its headings and paragraphs, propose a paragraph-level
-replacement, deletion, or addition at the end of the document, accept or reject it, inspect
+replacement, deletion, or addition at a chosen block boundary, accept or reject it, inspect
 attributable decisions, filter and sort the review queue, hold a one-level threaded discussion
 on a review proposal, securely invite reviewers, assign organisation members to an exact review
 round, and export the resolved content as a new `.docx`, download the complete review queue as an
@@ -29,8 +29,8 @@ auditable CSV, or compare any two immutable versions in a clean block-based view
 7. Parse headings and paragraphs into ordered, version-owned document blocks.
 8. Read the clean document alongside its review queue, filtered by reviewer, category, status,
    section, or priority and sorted by date, priority, or document order.
-9. Create a paragraph replacement, deletion, or end-of-document addition with a category,
-   priority, and rationale.
+9. Create a paragraph replacement, deletion, or an addition after any visible immutable block
+   with a category, priority, and rationale.
 10. Add and read attributable proposal comments and direct replies in chronological threads; the
     first comment moves an open proposal under discussion, and every message is recorded in the
     audit chain.
@@ -192,10 +192,12 @@ replacement, omits every accepted deletion, and inserts every accepted new parag
 proposal order. It then closes the old review round, opens a new round, and marks unresolved
 items from the old version as superseded rather than silently moving them.
 
-Paragraph additions are anchored after the final block of the immutable source version. The
-action remains available when accepted deletions leave the resolved preview empty, so a user
-can delete all original content and still propose replacement paragraphs. Each addition is a
-separate review item with its own decision, attribution, rationale, and audit events.
+Paragraph additions store the immutable block before the insertion and the immediately adjacent
+block after it, or an explicit null following-block anchor for the end of the document. The server
+checks that pair against the selected version before creating the proposal. The end action remains available
+when accepted deletions leave the resolved preview empty, so a user can delete all original
+content and still propose replacement paragraphs. Each addition is a separate review item with
+its own decision, attribution, rationale, and audit events.
 Creating the next version is blocked until at least one paragraph remains or an addition is
 accepted, preventing an empty immutable version from losing its insertion anchor.
 
@@ -276,9 +278,9 @@ deployment-specific values belong in this repository.
 ## Current boundaries
 
 This slice proves the version-safe proposal workflow; it does not recreate Microsoft Word.
-The UI currently supports paragraph-level replacements, deletions, and additions at the end
-of a document. It does not yet insert between existing paragraphs. The visible queue can be
-filtered and sorted without changing the complete audit CSV; section labels are derived from
+The UI currently supports paragraph-level replacements, deletions, and additions after visible
+immutable blocks or at the end of a document. The visible queue can be filtered and sorted
+without changing the complete audit CSV; section labels are derived from
 the nearest preceding immutable heading. The schema and review domain leave room for questions,
 assignment completion, due dates, and workload reporting, but those workflows are not presented
 as finished features. Invitation cancellation and role changes also remain follow-up work. Tables

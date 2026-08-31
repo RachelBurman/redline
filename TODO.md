@@ -38,8 +38,14 @@ audit events where appropriate, and automated tests.
          members on the current open review round without deleting assignment history.
    - [x] Bind assignments to an exact round and document version, serialise concurrent changes,
          and append invitation and assignment events to the immutable audit chain.
-4. [ ] Allow paragraph additions between existing document blocks, with immutable
+4. [x] Allow paragraph additions between existing document blocks, with immutable
        before/after anchors.
+   - [x] Expose accessible add-paragraph controls at visible immutable block boundaries while
+         retaining the existing end-of-document action.
+   - [x] Store and validate the exact adjacent before/after block pair for the selected document
+         version, including an explicit end boundary.
+   - [x] Materialise accepted insertions deterministically through the existing resolved preview,
+         version creation, audit, CSV, and DOCX export workflows.
 5. [ ] Build a composable accessible modal/dialog system from scratch.
    - Use native dialog semantics where practical, with focus trapping and restoration,
      Escape/backdrop handling, scroll management, accessible labels, and reduced-motion
