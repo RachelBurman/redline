@@ -52,6 +52,21 @@ two competing decisions cannot both succeed. This is deliberately not a real-tim
 processor: users collaborate through explicit proposals and decisions rather than directly
 overwriting shared document text.
 
+## Current product status
+
+The version-safe review foundation and the first four follow-on product slices are complete:
+threaded proposal discussions, review-queue filters and sorting, reviewer invitations and
+exact-round assignments, and paragraph additions at immutable block boundaries.
+
+The next planned slice is an application-owned, composable modal/dialog system with accessible
+focus management, keyboard and backdrop handling, scroll management, reduced-motion support,
+and component tests. It will be used only where a focused interruption is appropriate. After
+that, the roadmap covers evaluating `@pierre/diffs` for richer document-version comparisons,
+adding safely versioned image and graph blocks, and improving collaboration updates beyond
+polling without expanding the MVP into unrestricted real-time word processing.
+
+See [`TODO.md`](./TODO.md) for the detailed, checked product roadmap.
+
 ## Stack
 
 - TanStack Start and Router on React 19
