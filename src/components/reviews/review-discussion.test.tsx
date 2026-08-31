@@ -74,6 +74,22 @@ describe('ReviewDiscussion', () => {
       'datetime',
       '2026-08-31T10:15:00.000Z',
     )
+    expect(screen.queryByRole('button', { name: 'Reply to Aisha Rahman' })).not.toBeInTheDocument()
+  })
+
+  it('renders chronological replies beneath their parent comment', async () => {
+    const reply: ReviewCommentSummary = {
+      ...comments[1]!,
+      id: 'reply-1',
+      parentCommentId: 'comment-1',
+      body: 'This is the direct reply.',
+    }
+    renderDiscussion({ listReviewComments: async () => [reply, comments[0]!] })
+
+    const replies = await screen.findByRole('list', {
+      name: "Replies to Aisha Rahman's comment",
+    })
+    expect(within(replies).getByRole('article')).toHaveTextContent('This is the direct reply.')
   })
 
   it('shows an accessible empty discussion state', async () => {
@@ -124,5 +140,53 @@ describe('ReviewDiscussion', () => {
 
     await waitFor(() => expect(onCommentCreated).toHaveBeenCalledWith(createdComment))
     expect(screen.getByText('This comment should appear immediately.')).toBeVisible()
+  })
+
+  it('opens, submits, and immediately displays an accessible direct reply', async () => {
+    const user = userEvent.setup()
+    const createdReply: ReviewCommentSummary = {
+      ...comments[1]!,
+      id: 'reply-1',
+      parentCommentId: 'comment-1',
+      body: 'This reply should appear immediately.',
+    }
+    const createReviewComment = vi.fn<CreateReviewCommentAction>(async () => createdReply)
+    renderDiscussion({
+      canComment: true,
+      createReviewComment,
+      listReviewComments: async () => [comments[0]!],
+    })
+
+    await user.click(await screen.findByRole('button', { name: 'Reply to Aisha Rahman' }))
+    const replyField = screen.getByRole('textbox', { name: 'Reply to Aisha Rahman' })
+    expect(replyField).toHaveFocus()
+    await user.type(replyField, 'This reply should appear immediately.')
+    await user.click(screen.getByRole('button', { name: 'Add reply' }))
+
+    await waitFor(() =>
+      expect(createReviewComment).toHaveBeenCalledWith('document-1', 'review-1', {
+        body: 'This reply should appear immediately.',
+        parentCommentId: 'comment-1',
+      }),
+    )
+    const replies = screen.getByRole('list', { name: "Replies to Aisha Rahman's comment" })
+    expect(within(replies).getByText('This reply should appear immediately.')).toBeVisible()
+    expect(screen.getByText('Reply added to the discussion.')).toBeInTheDocument()
+    expect(screen.queryByRole('textbox', { name: 'Reply to Aisha Rahman' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reply to Aisha Rahman' })).toHaveFocus()
+  })
+
+  it('cancels an inline reply without changing the discussion', async () => {
+    const user = userEvent.setup()
+    renderDiscussion({
+      canComment: true,
+      listReviewComments: async () => [comments[0]!],
+    })
+
+    await user.click(await screen.findByRole('button', { name: 'Reply to Aisha Rahman' }))
+    await user.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByRole('textbox', { name: 'Reply to Aisha Rahman' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reply to Aisha Rahman' })).toHaveFocus()
   })
 })

@@ -1,0 +1,3 @@
+ALTER TABLE "review_comment" ADD CONSTRAINT "review_comment_parent_comment_id_review_comment_id_fk" FOREIGN KEY ("parent_comment_id") REFERENCES "public"."review_comment"("id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
+CREATE INDEX "review_comment_parent_created_idx" ON "review_comment" USING btree ("parent_comment_id","created_at");--> statement-breakpoint
+ALTER TABLE "review_comment" ADD CONSTRAINT "review_comment_parent_not_self" CHECK ("review_comment"."parent_comment_id" is null or "review_comment"."parent_comment_id" <> "review_comment"."id");

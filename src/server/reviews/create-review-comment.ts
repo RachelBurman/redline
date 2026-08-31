@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from 'node:crypto'
+import { randomUUID } from 'node:crypto'
 
 import { and, eq, sql } from 'drizzle-orm'
 
@@ -7,7 +7,8 @@ import { documents, reviewComments, reviewItems } from '#/db/schema'
 import { appendAuditEvent } from '#/server/audit/append-audit-event'
 import { assertCanCommentOnReviewItem } from '#/server/auth/permissions'
 
-import { ReviewTargetError } from './review-errors'
+import { buildReviewCommentAuditPayload } from './review-comment-audit'
+import { ReviewCommentParentError, ReviewTargetError } from './review-errors'
 
 import type { CreateReviewCommentInput, ReviewCommentSummary } from '#/types/reviews'
 
@@ -17,6 +18,23 @@ interface CommentContext {
   role: string
   userId: string
   userName: string
+}
+
+interface ReplyParent {
+  id: string
+  parentCommentId: string | null
+}
+
+export function assertValidReplyParent(
+  requestedParentId: string | undefined,
+  parent: ReplyParent | undefined,
+) {
+  if (!requestedParentId) return null
+  if (!parent || parent.id !== requestedParentId) throw new ReviewCommentParentError()
+  if (parent.parentCommentId) {
+    throw new ReviewCommentParentError('Replies can only be added to top-level comments.')
+  }
+  return parent.id
 }
 
 export async function createReviewComment(input: {
@@ -52,6 +70,24 @@ export async function createReviewComment(input: {
 
     if (!reviewItem) throw new ReviewTargetError('The review proposal was not found.')
 
+    const [replyParent] = input.comment.parentCommentId
+      ? await tx
+          .select({
+            id: reviewComments.id,
+            parentCommentId: reviewComments.parentCommentId,
+          })
+          .from(reviewComments)
+          .where(
+            and(
+              eq(reviewComments.id, input.comment.parentCommentId),
+              eq(reviewComments.reviewItemId, reviewItem.id),
+            ),
+          )
+          .limit(1)
+          .for('share')
+      : []
+    const parentCommentId = assertValidReplyParent(input.comment.parentCommentId, replyParent)
+
     const now = new Date()
     const commentId = randomUUID()
     const [comment] = await tx
@@ -59,6 +95,7 @@ export async function createReviewComment(input: {
       .values({
         id: commentId,
         reviewItemId: reviewItem.id,
+        parentCommentId,
         authorId: input.context.userId,
         body: input.comment.body,
         createdAt: now,
@@ -89,12 +126,11 @@ export async function createReviewComment(input: {
       reviewItemId: reviewItem.id,
       actorId: input.context.userId,
       eventType: 'review_comment.created',
-      payload: {
+      payload: buildReviewCommentAuditPayload({
+        body: input.comment.body,
         commentId,
-        parentCommentId: null,
-        bodyLength: input.comment.body.length,
-        bodyHash: createHash('sha256').update(input.comment.body, 'utf8').digest('hex'),
-      },
+        parentCommentId,
+      }),
     })
 
     return {

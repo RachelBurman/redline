@@ -72,4 +72,39 @@ describe('ReviewCommentForm', () => {
     )
     expect(comment).toHaveValue('Please confirm this value.')
   })
+
+  it('submits an attributable direct reply to its parent comment', async () => {
+    const user = userEvent.setup()
+    const reply: ReviewCommentSummary = {
+      ...createdComment,
+      id: 'reply-1',
+      parentCommentId: 'comment-1',
+      body: 'I confirmed the value.',
+    }
+    const createReviewComment = vi.fn<CreateReviewCommentAction>(async () => reply)
+
+    render(
+      <ReviewCommentForm
+        createReviewComment={createReviewComment}
+        documentId="document-1"
+        onCancel={vi.fn<() => void>()}
+        onCreated={vi.fn<(comment: ReviewCommentSummary) => void>()}
+        parentCommentAuthor="Aisha Rahman"
+        parentCommentId="comment-1"
+        reviewItemId="review-1"
+      />,
+    )
+
+    const replyField = screen.getByRole('textbox', { name: 'Reply to Aisha Rahman' })
+    expect(replyField).toHaveFocus()
+    await user.type(replyField, 'I confirmed the value.')
+    await user.click(screen.getByRole('button', { name: 'Add reply' }))
+
+    await waitFor(() =>
+      expect(createReviewComment).toHaveBeenCalledWith('document-1', 'review-1', {
+        body: 'I confirmed the value.',
+        parentCommentId: 'comment-1',
+      }),
+    )
+  })
 })

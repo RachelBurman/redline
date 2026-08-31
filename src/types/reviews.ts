@@ -60,6 +60,7 @@ export interface ResolveReviewItemResult {
 
 export interface CreateReviewCommentInput {
   body: string
+  parentCommentId?: string
 }
 
 export interface ReviewCommentSummary {

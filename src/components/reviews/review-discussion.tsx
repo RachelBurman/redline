@@ -1,10 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle, RefreshCw } from 'lucide-react'
+import { useState } from 'react'
 
 import { apiRequest } from '#/lib/api-client'
 
-import { ReviewCommentCard } from './review-comment-card'
+import { groupReviewComments } from './group-review-comments'
 import { ReviewCommentForm } from './review-comment-form'
+import { ReviewCommentThread } from './review-comment-thread'
 
 import type { ReviewCommentSummary, ReviewItemSummary } from '#/types/reviews'
 import type { CreateReviewCommentAction } from './review-comment-form'
@@ -42,6 +44,8 @@ export function ReviewDiscussion({
   onCommentCreated,
 }: ReviewDiscussionProps) {
   const queryClient = useQueryClient()
+  const [replyingToId, setReplyingToId] = useState<string | null>(null)
+  const [replyAnnouncement, setReplyAnnouncement] = useState<string | null>(null)
   const queryKey = reviewCommentsQueryKey(documentId, reviewItemId)
   const comments = useQuery({
     queryKey,
@@ -55,8 +59,14 @@ export function ReviewDiscussion({
       if (currentComments?.some((current) => current.id === comment.id)) return currentComments
       return [...(currentComments ?? []), comment]
     })
+    if (comment.parentCommentId) {
+      setReplyingToId(null)
+      setReplyAnnouncement('Reply added to the discussion.')
+    }
     onCommentCreated(comment)
   }
+
+  const threads = groupReviewComments(comments.data ?? [])
 
   return (
     <section aria-labelledby={`discussion-heading-${reviewItemId}`} className="mt-4">
@@ -89,20 +99,40 @@ export function ReviewDiscussion({
               Retry
             </button>
           </div>
-        ) : comments.data.length === 0 ? (
+        ) : threads.length === 0 ? (
           <p className="rounded-lg bg-[#f3f2ed] px-3 py-2 text-xs leading-5 text-[#68726d]">
             No comments yet. Start the discussion below.
           </p>
         ) : (
           <ol aria-label="Review comments" className="grid gap-2">
-            {comments.data.map((comment) => (
-              <li key={comment.id}>
-                <ReviewCommentCard comment={comment} />
-              </li>
+            {threads.map((thread) => (
+              <ReviewCommentThread
+                canComment={canComment}
+                createReviewComment={createReviewComment}
+                documentId={documentId}
+                isReplying={replyingToId === thread.comment.id}
+                key={thread.comment.id}
+                onCancelReply={() => setReplyingToId(null)}
+                onCreated={handleCommentCreated}
+                onStartReply={() => {
+                  setReplyAnnouncement(null)
+                  setReplyingToId((current) =>
+                    current === thread.comment.id ? null : thread.comment.id,
+                  )
+                }}
+                reviewItemId={reviewItemId}
+                thread={thread}
+              />
             ))}
           </ol>
         )}
       </div>
+
+      {replyAnnouncement ? (
+        <output aria-live="polite" className="sr-only">
+          {replyAnnouncement}
+        </output>
+      ) : null}
 
       {canComment ? (
         <ReviewCommentForm

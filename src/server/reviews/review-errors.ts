@@ -18,3 +18,10 @@ export class ReviewItemNotFoundError extends Error {
     this.name = 'ReviewItemNotFoundError'
   }
 }
+
+export class ReviewCommentParentError extends Error {
+  constructor(message = 'The reply target is not available for this review proposal.') {
+    super(message)
+    this.name = 'ReviewCommentParentError'
+  }
+}

@@ -283,7 +283,9 @@ export const reviewComments = pgTable(
     reviewItemId: uuid('review_item_id')
       .notNull()
       .references(() => reviewItems.id, { onDelete: 'restrict' }),
-    parentCommentId: uuid('parent_comment_id'),
+    parentCommentId: uuid('parent_comment_id').references((): AnyPgColumn => reviewComments.id, {
+      onDelete: 'restrict',
+    }),
     authorId: text('author_id')
       .notNull()
       .references(() => user.id, { onDelete: 'restrict' }),
@@ -293,7 +295,12 @@ export const reviewComments = pgTable(
   },
   (table) => [
     index('review_comment_item_created_idx').on(table.reviewItemId, table.createdAt),
+    index('review_comment_parent_created_idx').on(table.parentCommentId, table.createdAt),
     check('review_comment_body_not_blank', sql`length(trim(${table.body})) > 0`),
+    check(
+      'review_comment_parent_not_self',
+      sql`${table.parentCommentId} is null or ${table.parentCommentId} <> ${table.id}`,
+    ),
   ],
 )
 

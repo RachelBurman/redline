@@ -39,4 +39,5 @@ export const resolveReviewItemSchema = z.object({
 
 export const createReviewCommentSchema = z.object({
   body: z.string().trim().min(1, 'Comment text is required.').max(5_000),
+  parentCommentId: z.uuid().optional(),
 })

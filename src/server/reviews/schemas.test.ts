@@ -83,6 +83,24 @@ describe('review request schemas', () => {
     })
   })
 
+  it('accepts a direct reply with a UUID parent', () => {
+    expect(
+      createReviewCommentSchema.parse({
+        body: '  I confirmed it.  ',
+        parentCommentId: '7c322e0c-d60a-4d39-b4bc-f21a7685add6',
+      }),
+    ).toEqual({
+      body: 'I confirmed it.',
+      parentCommentId: '7c322e0c-d60a-4d39-b4bc-f21a7685add6',
+    })
+  })
+
+  it('rejects a malformed reply parent', () => {
+    expect(() =>
+      createReviewCommentSchema.parse({ body: 'Reply', parentCommentId: 'not-a-uuid' }),
+    ).toThrow(/Invalid UUID/)
+  })
+
   it('rejects blank and oversized review comments', () => {
     expect(() => createReviewCommentSchema.parse({ body: '   ' })).toThrow(
       'Comment text is required.',
