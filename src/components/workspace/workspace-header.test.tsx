@@ -37,4 +37,32 @@ describe('WorkspaceHeader', () => {
     await userEvent.setup().click(screen.getByRole('button', { name: 'Sign out' }))
     expect(onSignOut).toHaveBeenCalledOnce()
   })
+
+  it('shows reviewer management only when permitted', () => {
+    const { rerender } = render(
+      <WorkspaceHeader
+        canManageReviewers
+        isSigningOut={false}
+        onSignOut={vi.fn<() => void>()}
+        organizationName="Example workspace"
+        userName="Alex Morgan"
+      />,
+    )
+
+    expect(screen.getByRole('link', { name: 'Manage reviewers' })).toHaveAttribute(
+      'href',
+      '/app/reviewers',
+    )
+
+    rerender(
+      <WorkspaceHeader
+        isSigningOut={false}
+        onSignOut={vi.fn<() => void>()}
+        organizationName="Example workspace"
+        userName="Alex Morgan"
+      />,
+    )
+
+    expect(screen.queryByRole('link', { name: 'Manage reviewers' })).not.toBeInTheDocument()
+  })
 })

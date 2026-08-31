@@ -3,6 +3,7 @@ import { FileCheck2, History, ShieldCheck } from 'lucide-react'
 
 import { AuthForm } from '#/components/auth/auth-form'
 import { BrandMark } from '#/components/brand/brand-mark'
+import { buildAuthHref, getSafeAuthRedirect } from '#/domain/auth/safe-auth-redirect'
 
 import type { AuthMode } from '#/components/auth/auth-form'
 
@@ -12,8 +13,9 @@ const assurances = [
   { icon: ShieldCheck, text: 'Roles are enforced on the server' },
 ]
 
-export function AuthPage({ mode }: { mode: AuthMode }) {
+export function AuthPage({ mode, redirectTo = '/app' }: { mode: AuthMode; redirectTo?: string }) {
   const isSignUp = mode === 'sign-up'
+  const safeRedirect = getSafeAuthRedirect(redirectTo)
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]" id="main-content">
@@ -65,16 +67,16 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
               : 'Use the email and password associated with your Redline account.'}
           </p>
 
-          <AuthForm mode={mode} />
+          <AuthForm mode={mode} redirectTo={safeRedirect} />
 
           <p className="mt-6 text-center text-sm text-[#737c78]">
             {isSignUp ? 'Already have an account?' : 'New to Redline?'}{' '}
-            <Link
+            <a
               className="font-bold text-[#9f4b36] underline-offset-4 hover:underline"
-              to={isSignUp ? '/sign-in' : '/sign-up'}
+              href={buildAuthHref(isSignUp ? '/sign-in' : '/sign-up', safeRedirect)}
             >
               {isSignUp ? 'Sign in' : 'Create an account'}
-            </Link>
+            </a>
           </p>
         </div>
       </section>

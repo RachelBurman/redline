@@ -6,6 +6,7 @@ import {
   assertCanCreateDocument,
   assertCanExportDocument,
   assertCanExportReviewQueue,
+  assertCanInviteReviewers,
   assertCanManageDocumentVersions,
   assertCanResolveReviewItem,
   assertCanReviewDocument,
@@ -22,6 +23,17 @@ describe('document permissions', () => {
 })
 
 describe('review permissions', () => {
+  it.each(['owner', 'admin'])('allows %s to invite reviewers', (role) => {
+    expect(() => assertCanInviteReviewers(role)).not.toThrow()
+  })
+
+  it.each(['editor', 'reviewer', 'viewer', 'auditor', 'member'])(
+    'prevents %s from inviting reviewers',
+    (role) => {
+      expect(() => assertCanInviteReviewers(role)).toThrow(PermissionDeniedError)
+    },
+  )
+
   it('allows reviewers to propose but not resolve changes', () => {
     expect(() => assertCanReviewDocument('reviewer')).not.toThrow()
     expect(() => assertCanResolveReviewItem('reviewer')).toThrow(PermissionDeniedError)

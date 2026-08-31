@@ -5,6 +5,7 @@ const reviewCommenters = new Set(['owner', 'admin', 'editor', 'reviewer'])
 const documentExporters = new Set(['owner', 'admin', 'editor'])
 const documentVersionManagers = new Set(['owner', 'admin', 'editor'])
 const reviewQueueExporters = new Set(['owner', 'admin', 'editor', 'reviewer', 'auditor'])
+const reviewerInviters = new Set(['owner', 'admin'])
 
 export class PermissionDeniedError extends Error {
   constructor(message = 'You do not have permission to perform this action.') {
@@ -52,5 +53,11 @@ export function assertCanExportReviewQueue(role: string) {
 export function assertCanManageDocumentVersions(role: string) {
   if (!documentVersionManagers.has(role)) {
     throw new PermissionDeniedError('Your organisation role cannot create or restore versions.')
+  }
+}
+
+export function assertCanInviteReviewers(role: string) {
+  if (!reviewerInviters.has(role)) {
+    throw new PermissionDeniedError('Your organisation role cannot invite reviewers.')
   }
 }

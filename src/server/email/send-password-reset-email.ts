@@ -1,19 +1,8 @@
-import { createTransport } from 'nodemailer'
-
-import { readEmailConfig } from './email-config'
+import { sendEmail } from './send-email'
 
 export async function sendPasswordResetEmail(input: { recipient: string; resetUrl: string }) {
-  const config = readEmailConfig(process.env)
-  const transport = createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.secure,
-    auth: config.user && config.password ? { user: config.user, pass: config.password } : undefined,
-  })
-
-  await transport.sendMail({
-    from: config.from,
-    to: input.recipient,
+  await sendEmail({
+    recipient: input.recipient,
     subject: 'Reset your Redline password',
     text: [
       'A password reset was requested for your Redline account.',

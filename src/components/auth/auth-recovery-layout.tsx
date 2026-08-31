@@ -8,10 +8,16 @@ import type { ReactNode } from 'react'
 interface AuthRecoveryLayoutProps {
   children: ReactNode
   description: string
+  eyebrow?: string
   title: string
 }
 
-export function AuthRecoveryLayout({ children, description, title }: AuthRecoveryLayoutProps) {
+export function AuthRecoveryLayout({
+  children,
+  description,
+  eyebrow = 'Account recovery',
+  title,
+}: AuthRecoveryLayoutProps) {
   return (
     <main className="min-h-screen bg-[#f3f2ed] px-5 py-8 sm:px-8 sm:py-12" id="main-content">
       <div className="mx-auto max-w-lg">
@@ -23,7 +29,7 @@ export function AuthRecoveryLayout({ children, description, title }: AuthRecover
             <KeyRound aria-hidden="true" size={20} />
           </span>
           <p className="mt-6 flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.12em] text-[#4c6d62]">
-            <ShieldCheck aria-hidden="true" size={14} /> Account recovery
+            <ShieldCheck aria-hidden="true" size={14} /> {eyebrow}
           </p>
           <h1 className="mt-2 font-serif text-3xl font-semibold tracking-[-0.035em] text-[#202b27]">
             {title}

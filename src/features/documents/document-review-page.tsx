@@ -201,6 +201,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   return (
     <div className="min-h-screen bg-[#f3f2ed]">
       <WorkspaceHeader
+        canManageReviewers={['owner', 'admin'].includes(workspace.data.organization.role)}
         isSigningOut={isSigningOut}
         onSignOut={() => void handleSignOut()}
         organizationName={workspace.data.organization.name}

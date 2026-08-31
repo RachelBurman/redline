@@ -1,4 +1,4 @@
-import { KeyRound, LogOut } from 'lucide-react'
+import { KeyRound, LogOut, Users } from 'lucide-react'
 
 import { BrandMark } from '#/components/brand/brand-mark'
 
@@ -7,6 +7,7 @@ interface WorkspaceHeaderProps {
   userName: string
   onSignOut: () => void
   isSigningOut: boolean
+  canManageReviewers?: boolean
 }
 
 export function WorkspaceHeader({
@@ -14,6 +15,7 @@ export function WorkspaceHeader({
   userName,
   onSignOut,
   isSigningOut,
+  canManageReviewers = false,
 }: WorkspaceHeaderProps) {
   return (
     <header className="border-b border-[#deddd7] bg-white">
@@ -29,6 +31,16 @@ export function WorkspaceHeader({
         </div>
         <div className="flex items-center gap-3">
           <span className="hidden text-sm text-[#65706b] sm:inline">{userName}</span>
+          {canManageReviewers ? (
+            <a
+              aria-label="Manage reviewers"
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#d7d5ce] bg-white px-3 text-sm font-semibold text-[#47514d] transition-colors hover:bg-[#f5f4ef]"
+              href="/app/reviewers"
+            >
+              <Users aria-hidden="true" size={15} />
+              <span className="hidden sm:inline">Reviewers</span>
+            </a>
+          ) : null}
           <a
             aria-label="Change password"
             className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#d7d5ce] bg-white px-3 text-sm font-semibold text-[#47514d] transition-colors hover:bg-[#f5f4ef]"

@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AcceptInvitationRouteImport } from './routes/accept-invitation'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -17,8 +18,10 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppAccountRouteImport } from './routes/app/account'
+import { Route as AppReviewersRouteImport } from './routes/app/reviewers'
 import { Route as ApiV1DocumentsRouteImport } from './routes/api/v1/documents'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
+import { Route as ApiV1ReviewersRouteImport } from './routes/api/v1/reviewers'
 import { Route as ApiV1WorkspaceRouteImport } from './routes/api/v1/workspace'
 import { Route as AppDocumentsDocumentIdRouteImport } from './routes/app/documents/$documentId'
 import { Route as ApiV1AuthSplatRouteImport } from './routes/api/v1/auth/$'
@@ -38,6 +41,11 @@ import { Route as ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRouteImport } 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcceptInvitationRoute = AcceptInvitationRouteImport.update({
+  id: '/accept-invitation',
+  path: '/accept-invitation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -75,6 +83,11 @@ const AppAccountRoute = AppAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReviewersRoute = AppReviewersRouteImport.update({
+  id: '/reviewers',
+  path: '/reviewers',
+  getParentRoute: () => AppRoute,
+} as any)
 const ApiV1DocumentsRoute = ApiV1DocumentsRouteImport.update({
   id: '/api/v1/documents',
   path: '/api/v1/documents',
@@ -83,6 +96,11 @@ const ApiV1DocumentsRoute = ApiV1DocumentsRouteImport.update({
 const ApiV1HealthRoute = ApiV1HealthRouteImport.update({
   id: '/api/v1/health',
   path: '/api/v1/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1ReviewersRoute = ApiV1ReviewersRouteImport.update({
+  id: '/api/v1/reviewers',
+  path: '/api/v1/reviewers',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1WorkspaceRoute = ApiV1WorkspaceRouteImport.update({
@@ -175,15 +193,18 @@ const ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/accept-invitation': typeof AcceptInvitationRoute
   '/app': typeof AppRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/app/account': typeof AppAccountRoute
+  '/app/reviewers': typeof AppReviewersRoute
   '/app/': typeof AppIndexRoute
   '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/reviewers': typeof ApiV1ReviewersRoute
   '/api/v1/workspace': typeof ApiV1WorkspaceRoute
   '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
@@ -202,14 +223,17 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/accept-invitation': typeof AcceptInvitationRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/app/account': typeof AppAccountRoute
+  '/app/reviewers': typeof AppReviewersRoute
   '/app': typeof AppIndexRoute
   '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/reviewers': typeof ApiV1ReviewersRoute
   '/api/v1/workspace': typeof ApiV1WorkspaceRoute
   '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
@@ -229,15 +253,18 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/accept-invitation': typeof AcceptInvitationRoute
   '/app': typeof AppRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/app/account': typeof AppAccountRoute
+  '/app/reviewers': typeof AppReviewersRoute
   '/app/': typeof AppIndexRoute
   '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/reviewers': typeof ApiV1ReviewersRoute
   '/api/v1/workspace': typeof ApiV1WorkspaceRoute
   '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
@@ -258,15 +285,18 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/accept-invitation'
     | '/app'
     | '/forgot-password'
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
     | '/app/account'
+    | '/app/reviewers'
     | '/app/'
     | '/api/v1/documents'
     | '/api/v1/health'
+    | '/api/v1/reviewers'
     | '/api/v1/workspace'
     | '/app/documents/$documentId'
     | '/api/v1/auth/$'
@@ -285,14 +315,17 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/accept-invitation'
     | '/forgot-password'
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
     | '/app/account'
+    | '/app/reviewers'
     | '/app'
     | '/api/v1/documents'
     | '/api/v1/health'
+    | '/api/v1/reviewers'
     | '/api/v1/workspace'
     | '/app/documents/$documentId'
     | '/api/v1/auth/$'
@@ -311,15 +344,18 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/accept-invitation'
     | '/app'
     | '/forgot-password'
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
     | '/app/account'
+    | '/app/reviewers'
     | '/app/'
     | '/api/v1/documents'
     | '/api/v1/health'
+    | '/api/v1/reviewers'
     | '/api/v1/workspace'
     | '/app/documents/$documentId'
     | '/api/v1/auth/$'
@@ -339,6 +375,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AcceptInvitationRoute: typeof AcceptInvitationRoute
   AppRoute: typeof AppRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -346,6 +383,7 @@ export interface RootRouteChildren {
   SignUpRoute: typeof SignUpRoute
   ApiV1DocumentsRoute: typeof ApiV1DocumentsRouteWithChildren
   ApiV1HealthRoute: typeof ApiV1HealthRoute
+  ApiV1ReviewersRoute: typeof ApiV1ReviewersRoute
   ApiV1WorkspaceRoute: typeof ApiV1WorkspaceRoute
   ApiV1AuthSplatRoute: typeof ApiV1AuthSplatRoute
 }
@@ -357,6 +395,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/accept-invitation': {
+      id: '/accept-invitation'
+      path: '/accept-invitation'
+      fullPath: '/accept-invitation'
+      preLoaderRoute: typeof AcceptInvitationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -408,6 +453,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAccountRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/reviewers': {
+      id: '/app/reviewers'
+      path: '/reviewers'
+      fullPath: '/app/reviewers'
+      preLoaderRoute: typeof AppReviewersRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/api/v1/documents': {
       id: '/api/v1/documents'
       path: '/api/v1/documents'
@@ -420,6 +472,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/health'
       fullPath: '/api/v1/health'
       preLoaderRoute: typeof ApiV1HealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/reviewers': {
+      id: '/api/v1/reviewers'
+      path: '/api/v1/reviewers'
+      fullPath: '/api/v1/reviewers'
+      preLoaderRoute: typeof ApiV1ReviewersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/workspace': {
@@ -532,12 +591,14 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppAccountRoute: typeof AppAccountRoute
+  AppReviewersRoute: typeof AppReviewersRoute
   AppIndexRoute: typeof AppIndexRoute
   AppDocumentsDocumentIdRoute: typeof AppDocumentsDocumentIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAccountRoute: AppAccountRoute,
+  AppReviewersRoute: AppReviewersRoute,
   AppIndexRoute: AppIndexRoute,
   AppDocumentsDocumentIdRoute: AppDocumentsDocumentIdRoute,
 }
@@ -638,6 +699,7 @@ const ApiV1DocumentsRouteWithChildren = ApiV1DocumentsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AcceptInvitationRoute: AcceptInvitationRoute,
   AppRoute: AppRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
@@ -645,6 +707,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignUpRoute: SignUpRoute,
   ApiV1DocumentsRoute: ApiV1DocumentsRouteWithChildren,
   ApiV1HealthRoute: ApiV1HealthRoute,
+  ApiV1ReviewersRoute: ApiV1ReviewersRoute,
   ApiV1WorkspaceRoute: ApiV1WorkspaceRoute,
   ApiV1AuthSplatRoute: ApiV1AuthSplatRoute,
 }

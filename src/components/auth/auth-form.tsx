@@ -2,11 +2,12 @@ import { useForm } from '@tanstack/react-form'
 import { ArrowRight, LoaderCircle } from 'lucide-react'
 import { useState } from 'react'
 
+import { getSafeAuthRedirect } from '#/domain/auth/safe-auth-redirect'
 import { authClient } from '#/lib/auth-client'
 
 export type AuthMode = 'sign-in' | 'sign-up'
 
-export function AuthForm({ mode }: { mode: AuthMode }) {
+export function AuthForm({ mode, redirectTo = '/app' }: { mode: AuthMode; redirectTo?: string }) {
   const [submissionError, setSubmissionError] = useState<string | null>(null)
   const form = useForm({
     defaultValues: {
@@ -16,12 +17,14 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     },
     onSubmit: async ({ value }) => {
       setSubmissionError(null)
+      const safeRedirect = getSafeAuthRedirect(redirectTo)
       const result =
         mode === 'sign-up'
           ? await authClient.signUp.email({
               name: value.name.trim(),
               email: value.email.trim(),
               password: value.password,
+              callbackURL: `${window.location.origin}${safeRedirect}`,
             })
           : await authClient.signIn.email({
               email: value.email.trim(),
@@ -33,7 +36,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         return
       }
 
-      window.location.assign('/app')
+      window.location.assign(safeRedirect)
     },
   })
 
