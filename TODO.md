@@ -20,8 +20,9 @@ audit events where appropriate, and automated tests.
 1. [ ] Add threaded discussions to review items.
    - [x] Create validated, attributable top-level comments through an organisation-scoped,
          versioned API and audit comment creation.
-   - [ ] Display comment history with author attribution and timestamps.
-   - [ ] Create replies and refresh discussions for concurrent reviewers.
+   - [x] Display comment history with author attribution and timestamps, and refresh the selected
+         discussion for concurrent reviewers.
+   - [ ] Create replies.
 2. [ ] Add review-queue filters and sorting.
    - Filter by reviewer, category, status, section, and priority.
    - Preserve an accessible table and keyboard workflow.

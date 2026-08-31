@@ -25,8 +25,8 @@ two immutable versions in a clean block-based view.
 6. Read the clean document alongside its review queue.
 7. Create a paragraph replacement, deletion, or end-of-document addition with a category,
    priority, and rationale.
-8. Add an attributable comment to a proposal; the first comment moves an open proposal under
-   discussion and is recorded in the audit chain.
+8. Add and read attributable proposal comments in chronological order; the first comment moves
+   an open proposal under discussion and is recorded in the audit chain.
 9. Accept or reject the proposal through an authorised, transactional decision.
 10. Keep accepted changes in a derived resolved preview until an authorised user explicitly
     creates the next immutable version.
@@ -39,11 +39,11 @@ two immutable versions in a clean block-based view.
 15. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
 
 Multiple participants can review the same document concurrently. The viewer shows active,
-version-bound presence and refreshes proposals in the background. Decisions are serialised
-with PostgreSQL advisory locks and guarded by an expected revision, so two competing
-decisions cannot both succeed. This is deliberately not a real-time word processor: users
-collaborate through explicit proposals and decisions rather than directly overwriting shared
-document text.
+version-bound presence and refreshes proposals and the selected discussion in the background.
+Decisions are serialised with PostgreSQL advisory locks and guarded by an expected revision, so
+two competing decisions cannot both succeed. This is deliberately not a real-time word
+processor: users collaborate through explicit proposals and decisions rather than directly
+overwriting shared document text.
 
 ## Stack
 
@@ -237,7 +237,7 @@ report is hashed and recorded in the audit log.
 | `/api/v1/documents/:documentId/versions/:versionId/exports`         | Download an immutable version            |
 | `/api/v1/documents/:documentId/review-items`                        | List or create proposals                 |
 | `/api/v1/documents/:documentId/review-items/export`                 | Download the complete review queue CSV   |
-| `/api/v1/documents/:documentId/review-items/:reviewItemId/comments` | Add a top-level review comment           |
+| `/api/v1/documents/:documentId/review-items/:reviewItemId/comments` | List or add top-level review comments    |
 | `/api/v1/documents/:documentId/review-items/:reviewItemId/resolve`  | Accept or reject a proposal              |
 | `/api/v1/documents/:documentId/presence`                            | Read or heartbeat participant presence   |
 | `/api/v1/documents/:documentId/exports`                             | Generate the current resolved `.docx`    |
@@ -260,8 +260,8 @@ of a document. It does not yet insert between existing paragraphs. The schema an
 domain leave room for questions, threaded discussion, and richer review queues, but those
 workflows are not presented as finished features. Tables and complex Word layout are
 represented explicitly as unsupported content rather than rendered inaccurately.
-Top-level comments can be submitted and audited, but displaying comment history, replies,
-editing, and resolving discussion threads remain follow-up work.
+Top-level comments can be submitted, audited, and read with author attribution and timestamps.
+Replies, editing, and resolving discussion threads remain follow-up work.
 Direct shared-text editing, CRDT/OT synchronisation, pagination, headers and footers, and
 pixel-perfect Word rendering remain outside this MVP. Version comparison is block-based; it
 does not yet calculate character-level diffs, classify moved blocks, or reproduce Word-style
