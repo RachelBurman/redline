@@ -7,7 +7,13 @@ const priorityStyles: Record<ReviewItemSummary['priority'], string> = {
   critical: 'bg-[#ffe3dd] text-[#9d3f2c]',
 }
 
-export function ReviewQueueRowContent({ item }: { item: ReviewItemSummary }) {
+export function ReviewQueueRowContent({
+  item,
+  sectionLabel,
+}: {
+  item: ReviewItemSummary
+  sectionLabel: string
+}) {
   return (
     <span className="block text-left">
       <span className="flex items-center justify-between gap-2">
@@ -29,6 +35,9 @@ export function ReviewQueueRowContent({ item }: { item: ReviewItemSummary }) {
       </span>
       <span className="mt-2 line-clamp-2 block text-xs leading-5 text-[#68726d]">
         {item.changeType === 'delete' ? item.originalContent : item.proposedContent}
+      </span>
+      <span className="mt-2 block truncate text-[10px] font-semibold text-[#65716b]">
+        Section: {sectionLabel}
       </span>
       <span className="mt-2 flex items-center justify-between text-[10px] text-[#8a918e]">
         <span>{item.author.name}</span>

@@ -11,6 +11,7 @@ interface ReviewSidebarProps {
   reviewRoundId: string
   activeBlock: DocumentDetail['blocks'][number] | null
   activeChangeType: ReviewChangeType | null
+  blocks: DocumentDetail['blocks']
   items: ReviewItemSummary[]
   selectedItemId: string | null
   canComment: boolean
@@ -28,6 +29,7 @@ export function ReviewSidebar({
   reviewRoundId,
   activeBlock,
   activeChangeType,
+  blocks,
   items,
   selectedItemId,
   canComment,
@@ -54,6 +56,7 @@ export function ReviewSidebar({
       ) : null}
       <div className={activeBlock && activeChangeType ? 'pt-5' : ''}>
         <ReviewQueue
+          blocks={blocks}
           canComment={canComment}
           canResolve={canResolve}
           documentId={documentId}

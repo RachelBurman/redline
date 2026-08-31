@@ -307,6 +307,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
               <ReviewSidebar
                 activeBlock={activeProposal?.block ?? null}
                 activeChangeType={activeProposal?.changeType ?? null}
+                blocks={displayedDocument.blocks}
                 canComment={canReview && !isViewingHistoricalVersion}
                 canResolve={canResolve && !isViewingHistoricalVersion}
                 documentId={documentId}
