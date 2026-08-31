@@ -218,9 +218,13 @@ export const reviewAssignments = pgTable(
       .references(() => user.id, { onDelete: 'restrict' }),
     assignedAt: timestamp('assigned_at', { withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp('completed_at', { withTimezone: true }),
+    revokedById: text('revoked_by_id').references(() => user.id, { onDelete: 'restrict' }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
   },
   (table) => [
-    uniqueIndex('review_assignment_round_reviewer_uq').on(table.reviewRoundId, table.reviewerId),
+    uniqueIndex('review_assignment_active_round_reviewer_uq')
+      .on(table.reviewRoundId, table.reviewerId)
+      .where(sql`${table.revokedAt} is null`),
   ],
 )
 

@@ -8,6 +8,7 @@ import { DocumentVersionComparisonWorkspace } from '#/components/documents/docum
 import { DocumentViewer } from '#/components/documents/document-viewer'
 import { ParserWarnings } from '#/components/documents/parser-warnings'
 import { VersionHistoryPanel } from '#/components/documents/version-history-panel'
+import { ReviewRoundAssignmentsPanel } from '#/components/reviewers/review-round-assignments-panel'
 import { ReviewSidebar } from '#/components/reviews/review-sidebar'
 import { WorkspaceHeader } from '#/components/workspace/workspace-header'
 import { apiRequest } from '#/lib/api-client'
@@ -245,6 +246,14 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
           versions={versions.data}
           viewedVersionId={viewedVersionId}
         />
+
+        {canResolve && !isViewingHistoricalVersion && !isComparingVersions ? (
+          <ReviewRoundAssignmentsPanel
+            documentId={documentId}
+            reviewRoundId={displayedDocument.reviewRound.id}
+            reviewRoundName={displayedDocument.reviewRound.name}
+          />
+        ) : null}
 
         {!isComparingVersions && isViewingHistoricalVersion ? (
           <section className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e0c7bd] bg-[#fff8f5] px-4 py-3">

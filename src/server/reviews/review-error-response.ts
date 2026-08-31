@@ -2,6 +2,12 @@ import { z } from 'zod'
 
 import { PermissionDeniedError } from '#/server/auth/permissions'
 import { DocumentNotFoundError } from '#/server/documents/get-document'
+import {
+  ReviewAssigneeNotFoundError,
+  ReviewAssignmentConflictError,
+  ReviewAssignmentNotFoundError,
+  ReviewRoundNotFoundError,
+} from '#/server/reviewers/review-assignment-errors'
 
 import {
   ReviewCommentParentError,
@@ -30,6 +36,30 @@ export function reviewErrorResponse(error: unknown) {
     return Response.json(
       { error: { code: 'REVIEW_ITEM_NOT_FOUND', message: error.message } },
       { status: 404 },
+    )
+  }
+  if (error instanceof ReviewRoundNotFoundError) {
+    return Response.json(
+      { error: { code: 'REVIEW_ROUND_NOT_FOUND', message: error.message } },
+      { status: 404 },
+    )
+  }
+  if (error instanceof ReviewAssigneeNotFoundError) {
+    return Response.json(
+      { error: { code: 'REVIEW_ASSIGNEE_NOT_FOUND', message: error.message } },
+      { status: 404 },
+    )
+  }
+  if (error instanceof ReviewAssignmentNotFoundError) {
+    return Response.json(
+      { error: { code: 'REVIEW_ASSIGNMENT_NOT_FOUND', message: error.message } },
+      { status: 404 },
+    )
+  }
+  if (error instanceof ReviewAssignmentConflictError) {
+    return Response.json(
+      { error: { code: 'REVIEW_ASSIGNMENT_CONFLICT', message: error.message } },
+      { status: 409 },
     )
   }
   if (error instanceof ReviewCommentParentError) {

@@ -35,8 +35,10 @@ import { Route as ApiV1DocumentsDocumentIdVersionsVersionIdRouteImport } from '.
 import { Route as ApiV1DocumentsDocumentIdVersionsCompareRouteImport } from './routes/api/v1/documents/$documentId/versions/compare'
 import { Route as ApiV1DocumentsDocumentIdReviewItemsReviewItemIdCommentsRouteImport } from './routes/api/v1/documents/$documentId/review-items/$reviewItemId/comments'
 import { Route as ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRouteImport } from './routes/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
+import { Route as ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteImport } from './routes/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments'
 import { Route as ApiV1DocumentsDocumentIdVersionsVersionIdExportsRouteImport } from './routes/api/v1/documents/$documentId/versions/$versionId/exports'
 import { Route as ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRouteImport } from './routes/api/v1/documents/$documentId/versions/$versionId/restore'
+import { Route as ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRouteImport } from './routes/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -178,6 +180,14 @@ const ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute =
     path: '/$reviewItemId/resolve',
     getParentRoute: () => ApiV1DocumentsDocumentIdReviewItemsRoute,
   } as any)
+const ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRoute =
+  ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteImport.update(
+    {
+      id: '/review-rounds/$reviewRoundId/assignments',
+      path: '/review-rounds/$reviewRoundId/assignments',
+      getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+    } as any,
+  )
 const ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute =
   ApiV1DocumentsDocumentIdVersionsVersionIdExportsRouteImport.update({
     id: '/exports',
@@ -190,6 +200,15 @@ const ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute =
     path: '/restore',
     getParentRoute: () => ApiV1DocumentsDocumentIdVersionsVersionIdRoute,
   } as any)
+const ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRoute =
+  ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRouteImport.update(
+    {
+      id: '/$assignmentId',
+      path: '/$assignmentId',
+      getParentRoute: () =>
+        ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRoute,
+    } as any,
+  )
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -218,8 +237,10 @@ export interface FileRoutesByFullPath {
   '/api/v1/documents/$documentId/versions/compare': typeof ApiV1DocumentsDocumentIdVersionsCompareRoute
   '/api/v1/documents/$documentId/review-items/$reviewItemId/comments': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdCommentsRoute
   '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
+  '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren
   '/api/v1/documents/$documentId/versions/$versionId/exports': typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute
   '/api/v1/documents/$documentId/versions/$versionId/restore': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute
+  '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -247,8 +268,10 @@ export interface FileRoutesByTo {
   '/api/v1/documents/$documentId/versions/compare': typeof ApiV1DocumentsDocumentIdVersionsCompareRoute
   '/api/v1/documents/$documentId/review-items/$reviewItemId/comments': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdCommentsRoute
   '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
+  '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren
   '/api/v1/documents/$documentId/versions/$versionId/exports': typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute
   '/api/v1/documents/$documentId/versions/$versionId/restore': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute
+  '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -278,8 +301,10 @@ export interface FileRoutesById {
   '/api/v1/documents/$documentId/versions/compare': typeof ApiV1DocumentsDocumentIdVersionsCompareRoute
   '/api/v1/documents/$documentId/review-items/$reviewItemId/comments': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdCommentsRoute
   '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
+  '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren
   '/api/v1/documents/$documentId/versions/$versionId/exports': typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute
   '/api/v1/documents/$documentId/versions/$versionId/restore': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute
+  '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -310,8 +335,10 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId/versions/compare'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/comments'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
+    | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments'
     | '/api/v1/documents/$documentId/versions/$versionId/exports'
     | '/api/v1/documents/$documentId/versions/$versionId/restore'
+    | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -339,8 +366,10 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId/versions/compare'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/comments'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
+    | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments'
     | '/api/v1/documents/$documentId/versions/$versionId/exports'
     | '/api/v1/documents/$documentId/versions/$versionId/restore'
+    | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId'
   id:
     | '__root__'
     | '/'
@@ -369,8 +398,10 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId/versions/compare'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/comments'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
+    | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments'
     | '/api/v1/documents/$documentId/versions/$versionId/exports'
     | '/api/v1/documents/$documentId/versions/$versionId/restore'
+    | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -572,6 +603,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRouteImport
       parentRoute: typeof ApiV1DocumentsDocumentIdReviewItemsRoute
     }
+    '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments': {
+      id: '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments'
+      path: '/review-rounds/$reviewRoundId/assignments'
+      fullPath: '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
     '/api/v1/documents/$documentId/versions/$versionId/exports': {
       id: '/api/v1/documents/$documentId/versions/$versionId/exports'
       path: '/exports'
@@ -585,6 +623,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/documents/$documentId/versions/$versionId/restore'
       preLoaderRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRouteImport
       parentRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdRoute
+    }
+    '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId': {
+      id: '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId'
+      path: '/$assignmentId'
+      fullPath: '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRoute
     }
   }
 }
@@ -662,11 +707,27 @@ const ApiV1DocumentsDocumentIdVersionsRouteWithChildren =
     ApiV1DocumentsDocumentIdVersionsRouteChildren,
   )
 
+interface ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteChildren {
+  ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRoute: typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRoute
+}
+
+const ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteChildren: ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteChildren =
+  {
+    ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRoute:
+      ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRoute,
+  }
+
+const ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren =
+  ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRoute._addFileChildren(
+    ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteChildren,
+  )
+
 interface ApiV1DocumentsDocumentIdRouteChildren {
   ApiV1DocumentsDocumentIdExportsRoute: typeof ApiV1DocumentsDocumentIdExportsRoute
   ApiV1DocumentsDocumentIdPresenceRoute: typeof ApiV1DocumentsDocumentIdPresenceRoute
   ApiV1DocumentsDocumentIdReviewItemsRoute: typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
   ApiV1DocumentsDocumentIdVersionsRoute: typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
+  ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRoute: typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren
 }
 
 const ApiV1DocumentsDocumentIdRouteChildren: ApiV1DocumentsDocumentIdRouteChildren =
@@ -678,6 +739,8 @@ const ApiV1DocumentsDocumentIdRouteChildren: ApiV1DocumentsDocumentIdRouteChildr
       ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren,
     ApiV1DocumentsDocumentIdVersionsRoute:
       ApiV1DocumentsDocumentIdVersionsRouteWithChildren,
+    ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRoute:
+      ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren,
   }
 
 const ApiV1DocumentsDocumentIdRouteWithChildren =
