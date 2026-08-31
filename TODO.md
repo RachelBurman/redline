@@ -24,9 +24,11 @@ audit events where appropriate, and automated tests.
          discussion for concurrent reviewers.
    - [x] Create one level of attributable replies with parent validation, audit events, and
          accessible inline reply controls.
-2. [ ] Add review-queue filters and sorting.
-   - Filter by reviewer, category, status, section, and priority.
-   - Preserve an accessible table and keyboard workflow.
+2. [x] Add review-queue filters and sorting.
+   - [x] Filter by reviewer, category, status, section, and priority.
+   - [x] Sort by date, priority, and immutable document order.
+   - [x] Preserve an accessible table, keyboard workflow, selected proposal, and complete audit
+         export.
 3. [ ] Add reviewer invitations and review-round assignments.
 4. [ ] Allow paragraph additions between existing document blocks, with immutable
        before/after anchors.

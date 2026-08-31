@@ -10,9 +10,10 @@ clutter.
 The repository contains the first complete vertical slice: an authenticated user can create
 a workspace, upload a `.docx`, review its headings and paragraphs, propose a paragraph-level
 replacement, deletion, or addition at the end of the document, accept or reject it, inspect
-attributable decisions, hold a one-level threaded discussion on a review proposal, and export
-the resolved content as a new `.docx`, download the complete review queue as an auditable CSV,
-or compare any two immutable versions in a clean block-based view.
+attributable decisions, filter and sort the review queue, hold a one-level threaded discussion
+on a review proposal, and export the resolved content as a new `.docx`, download the complete
+review queue as an auditable CSV, or compare any two immutable versions in a clean block-based
+view.
 
 ## Implemented workflow
 
@@ -22,7 +23,8 @@ or compare any two immutable versions in a clean block-based view.
 3. Create an organisation-scoped workspace and default project.
 4. Upload a `.docx` and store its immutable source bytes and SHA-256 digest.
 5. Parse headings and paragraphs into ordered, version-owned document blocks.
-6. Read the clean document alongside its review queue.
+6. Read the clean document alongside its review queue, filtered by reviewer, category, status,
+   section, or priority and sorted by date, priority, or document order.
 7. Create a paragraph replacement, deletion, or end-of-document addition with a category,
    priority, and rationale.
 8. Add and read attributable proposal comments and direct replies in chronological threads; the
@@ -221,7 +223,8 @@ Review queue export uses the same immutable export boundary. The CSV contains re
 version identifiers, original, proposed, and final text, category, priority, rationale,
 status, action state, attribution, resolution metadata, timestamps, and discussion counts.
 Potential spreadsheet formulas are neutralised before CSV encoding, and every generated
-report is hashed and recorded in the audit log.
+report is hashed and recorded in the audit log. UI filters affect only the visible queue; they
+never silently narrow this complete audit export.
 
 ## Versioned API
 
@@ -257,12 +260,14 @@ deployment-specific values belong in this repository.
 
 This slice proves the version-safe proposal workflow; it does not recreate Microsoft Word.
 The UI currently supports paragraph-level replacements, deletions, and additions at the end
-of a document. It does not yet insert between existing paragraphs. The schema and review
-domain leave room for questions and richer review queues, but those workflows are not presented
-as finished features. Tables and complex Word layout are represented explicitly as unsupported
-content rather than rendered inaccurately. Top-level comments and one level of direct replies
-can be submitted, audited, and read with author attribution and timestamps. Replies to replies,
-editing comments, and resolving discussion threads remain follow-up work.
+of a document. It does not yet insert between existing paragraphs. The visible queue can be
+filtered and sorted without changing the complete audit CSV; section labels are derived from
+the nearest preceding immutable heading. The schema and review domain leave room for questions
+and richer review assignment workflows, but those workflows are not presented as finished
+features. Tables and complex Word layout are represented explicitly as unsupported content
+rather than rendered inaccurately. Top-level comments and one level of direct replies can be
+submitted, audited, and read with author attribution and timestamps. Replies to replies, editing
+comments, and resolving discussion threads remain follow-up work.
 Direct shared-text editing, CRDT/OT synchronisation, pagination, headers and footers, and
 pixel-perfect Word rendering remain outside this MVP. Version comparison is block-based; it
 does not yet calculate character-level diffs, classify moved blocks, or reproduce Word-style
