@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -5,6 +6,8 @@ import { ReviewItemDetail } from './review-item-detail'
 
 import type { ReviewItemSummary } from '#/types/reviews'
 import type { ReviewCommentSummary } from '#/types/reviews'
+import type { ListReviewCommentsAction } from './review-discussion'
+import type { ReactElement } from 'react'
 
 const deletion: ReviewItemSummary = {
   id: 'review-1',
@@ -27,14 +30,24 @@ const deletion: ReviewItemSummary = {
 
 afterEach(cleanup)
 
+const listNoComments: ListReviewCommentsAction = async () => []
+
+function renderWithQueryClient(element: ReactElement) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  })
+  return render(<QueryClientProvider client={queryClient}>{element}</QueryClientProvider>)
+}
+
 describe('ReviewItemDetail', () => {
   it('describes a deletion without rendering crossed-out document text', () => {
-    const { container } = render(
+    const { container } = renderWithQueryClient(
       <ReviewItemDetail
         canComment={false}
         canResolve
         documentId="document-1"
         item={deletion}
+        listReviewComments={listNoComments}
         onCommentCreated={vi.fn<(comment: ReviewCommentSummary) => void>()}
         onResolve={vi.fn<
           (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
@@ -51,7 +64,7 @@ describe('ReviewItemDetail', () => {
   })
 
   it('shows a new paragraph without pretending that it replaces original text', () => {
-    render(
+    renderWithQueryClient(
       <ReviewItemDetail
         canComment={false}
         canResolve
@@ -63,6 +76,7 @@ describe('ReviewItemDetail', () => {
           originalContent: '',
           proposedContent: 'A newly proposed paragraph.',
         }}
+        listReviewComments={listNoComments}
         onCommentCreated={vi.fn<(comment: ReviewCommentSummary) => void>()}
         onResolve={vi.fn<
           (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
@@ -80,12 +94,13 @@ describe('ReviewItemDetail', () => {
   })
 
   it('offers a comment form when the user can participate in the discussion', () => {
-    render(
+    renderWithQueryClient(
       <ReviewItemDetail
         canComment
         canResolve={false}
         documentId="document-1"
         item={deletion}
+        listReviewComments={listNoComments}
         onCommentCreated={vi.fn<(comment: ReviewCommentSummary) => void>()}
         onResolve={vi.fn<
           (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>

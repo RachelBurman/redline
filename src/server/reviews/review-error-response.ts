@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { PermissionDeniedError } from '#/server/auth/permissions'
 import { DocumentNotFoundError } from '#/server/documents/get-document'
 
-import { ReviewConflictError, ReviewTargetError } from './review-errors'
+import { ReviewConflictError, ReviewItemNotFoundError, ReviewTargetError } from './review-errors'
 
 export function reviewErrorResponse(error: unknown) {
   if (error instanceof Error && error.name === 'AuthenticationRequiredError') {
@@ -18,6 +18,12 @@ export function reviewErrorResponse(error: unknown) {
   if (error instanceof DocumentNotFoundError) {
     return Response.json(
       { error: { code: 'DOCUMENT_NOT_FOUND', message: error.message } },
+      { status: 404 },
+    )
+  }
+  if (error instanceof ReviewItemNotFoundError) {
+    return Response.json(
+      { error: { code: 'REVIEW_ITEM_NOT_FOUND', message: error.message } },
       { status: 404 },
     )
   }

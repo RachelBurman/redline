@@ -1,15 +1,17 @@
 import { Check, LoaderCircle, X } from 'lucide-react'
 import { useState } from 'react'
 
-import { ReviewCommentForm } from './review-comment-form'
+import { ReviewDiscussion } from './review-discussion'
 
 import type { ReviewCommentSummary, ReviewItemSummary } from '#/types/reviews'
+import type { ListReviewCommentsAction } from './review-discussion'
 
 interface ReviewItemDetailProps {
   item: ReviewItemSummary
   documentId: string
   canComment: boolean
   canResolve: boolean
+  listReviewComments?: ListReviewCommentsAction
   onCommentCreated: (comment: ReviewCommentSummary) => void
   onResolve: (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
 }
@@ -19,6 +21,7 @@ export function ReviewItemDetail({
   documentId,
   canComment,
   canResolve,
+  listReviewComments,
   onCommentCreated,
   onResolve,
 }: ReviewItemDetailProps) {
@@ -95,14 +98,14 @@ export function ReviewItemDetail({
         </div>
       </dl>
 
-      {canComment ? (
-        <ReviewCommentForm
-          documentId={documentId}
-          key={item.id}
-          onCreated={onCommentCreated}
-          reviewItemId={item.id}
-        />
-      ) : null}
+      <ReviewDiscussion
+        canComment={canComment}
+        documentId={documentId}
+        key={item.id}
+        listReviewComments={listReviewComments}
+        onCommentCreated={onCommentCreated}
+        reviewItemId={item.id}
+      />
 
       {resolutionError ? (
         <p className="mt-3 rounded-lg bg-[#fff0eb] px-3 py-2 text-xs text-[#91452f]" role="alert">

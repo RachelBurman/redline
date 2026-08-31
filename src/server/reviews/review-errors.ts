@@ -11,3 +11,10 @@ export class ReviewConflictError extends Error {
     this.name = 'ReviewConflictError'
   }
 }
+
+export class ReviewItemNotFoundError extends Error {
+  constructor() {
+    super('The review proposal was not found in this organisation.')
+    this.name = 'ReviewItemNotFoundError'
+  }
+}
