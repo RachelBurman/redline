@@ -43,6 +43,13 @@
       "when": 1788189536732,
       "tag": "0005_hesitant_bruce_banner",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788205833376,
+      "tag": "0006_free_sunset_bain",
+      "breakpoints": true
     }
   ]
 }

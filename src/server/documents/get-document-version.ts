@@ -3,6 +3,7 @@ import { and, asc, eq } from 'drizzle-orm'
 import { db } from '#/db/index'
 import { documentBlocks, documentVersions, documents, reviewRounds } from '#/db/schema'
 
+import { buildInsertionAnchors } from './build-insertion-anchors'
 import { DocumentVersionNotFoundError } from './version-errors'
 
 import type { DocumentDetail } from '#/types/documents'
@@ -79,13 +80,7 @@ export async function getDocumentVersion(input: {
       createdAt: version.versionCreatedAt.toISOString(),
     },
     reviewRound,
-    insertionAnchor:
-      blocks.length === 0
-        ? null
-        : {
-            blockId: blocks.at(-1)!.id,
-            stableKey: blocks.at(-1)!.stableKey,
-          },
+    insertionAnchors: buildInsertionAnchors(blocks),
     blocks,
   }
 }

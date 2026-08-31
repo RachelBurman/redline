@@ -11,6 +11,8 @@ import {
 } from '#/db/schema'
 import { applyBlockChanges } from '#/domain/documents/apply-block-changes'
 
+import { buildInsertionAnchors } from './build-insertion-anchors'
+
 import type { AcceptedBlockChange } from '#/domain/documents/apply-block-changes'
 
 export class DocumentNotFoundError extends Error {
@@ -125,13 +127,7 @@ export async function getDocument(input: { documentId: string; organizationId: s
       createdAt: document.versionCreatedAt.toISOString(),
     },
     reviewRound,
-    insertionAnchor:
-      blocks.length === 0
-        ? null
-        : {
-            blockId: blocks.at(-1)!.id,
-            stableKey: blocks.at(-1)!.stableKey,
-          },
+    insertionAnchors: buildInsertionAnchors(blocks),
     blocks: applyBlockChanges(blocks, acceptedChanges),
   }
 }

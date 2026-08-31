@@ -51,6 +51,7 @@ describe('review request schemas', () => {
     const insertion = {
       ...validProposal,
       changeType: 'insert' as const,
+      beforeBlockId: '0bb68c55-1bd3-49b5-8a2c-53b89c7fbc42',
       proposedContent: 'A newly proposed paragraph.',
     }
 
@@ -62,6 +63,7 @@ describe('review request schemas', () => {
       createReviewItemSchema.parse({
         ...validProposal,
         changeType: 'insert',
+        beforeBlockId: null,
         proposedContent: '   ',
       }),
     ).toThrow('New paragraph text is required.')

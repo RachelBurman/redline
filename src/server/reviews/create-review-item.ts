@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 
-import { and, eq, inArray, sql } from 'drizzle-orm'
+import { and, asc, eq, gt, inArray, sql } from 'drizzle-orm'
 
 import { db } from '#/db/index'
 import { documentBlocks, documents, reviewItems, reviewRounds } from '#/db/schema'
@@ -8,6 +8,7 @@ import { createTextSelectionAnchor } from '#/domain/review/selection-anchor'
 import { appendAuditEvent } from '#/server/audit/append-audit-event'
 import { assertCanReviewDocument } from '#/server/auth/permissions'
 
+import { assertInsertionBoundary } from './insertion-boundary'
 import { ReviewTargetError } from './review-errors'
 
 import type { CreateReviewItemInput } from '#/types/reviews'
@@ -35,6 +36,7 @@ export async function createReviewItem(input: {
         blockId: documentBlocks.id,
         blockType: documentBlocks.blockType,
         blockText: documentBlocks.text,
+        blockOrdinal: documentBlocks.ordinal,
         currentVersionId: documents.currentVersionId,
         reviewRoundStatus: reviewRounds.status,
       })
@@ -77,6 +79,24 @@ export async function createReviewItem(input: {
       throw new ReviewTargetError(
         'Only paragraph replacement and deletion proposals are supported.',
       )
+    }
+
+    if (input.review.changeType === 'insert') {
+      const [followingBlock] = await tx
+        .select({ id: documentBlocks.id })
+        .from(documentBlocks)
+        .where(
+          and(
+            eq(documentBlocks.documentVersionId, target.documentVersionId),
+            gt(documentBlocks.ordinal, target.blockOrdinal),
+          ),
+        )
+        .orderBy(asc(documentBlocks.ordinal))
+        .limit(1)
+      assertInsertionBoundary({
+        beforeBlockId: input.review.beforeBlockId,
+        followingBlockId: followingBlock?.id ?? null,
+      })
     }
 
     if (input.review.changeType !== 'insert') {
@@ -122,6 +142,8 @@ export async function createReviewItem(input: {
         documentVersionId: input.review.documentVersionId,
         reviewRoundId: input.review.reviewRoundId,
         targetBlockId: input.review.targetBlockId,
+        insertionBeforeBlockId:
+          input.review.changeType === 'insert' ? input.review.beforeBlockId : null,
         authorId: input.context.userId,
         startOffset: anchor.startOffset,
         endOffset: anchor.endOffset,
@@ -155,6 +177,8 @@ export async function createReviewItem(input: {
         category: input.review.category,
         priority: input.review.priority,
         targetBlockId: input.review.targetBlockId,
+        insertionBeforeBlockId:
+          input.review.changeType === 'insert' ? input.review.beforeBlockId : null,
         targetContentHash: anchor.contentHash,
       },
     })

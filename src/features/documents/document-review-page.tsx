@@ -37,6 +37,7 @@ interface ComparisonSelection {
 interface ActiveProposal {
   block: DocumentDetail['blocks'][number]
   changeType: ReviewChangeType
+  beforeBlockId?: string | null
 }
 
 interface WorkspaceSummary {
@@ -288,27 +289,19 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
                 canInsert={
                   canReview &&
                   !isViewingHistoricalVersion &&
-                  displayedDocument.insertionAnchor !== null
+                  displayedDocument.insertionAnchors.length > 0
                 }
+                insertionAnchors={displayedDocument.insertionAnchors}
                 canReview={canReview && !isViewingHistoricalVersion}
                 onPropose={(block, changeType) => {
                   setActiveProposal({ block, changeType })
                   setSelectedItemId(null)
                 }}
-                onProposeInsertion={() => {
-                  const anchor = displayedDocument.insertionAnchor
-                  if (!anchor) return
+                onProposeInsertion={(anchor) => {
                   setActiveProposal({
                     changeType: 'insert',
-                    block: {
-                      id: anchor.blockId,
-                      stableKey: anchor.stableKey,
-                      ordinal: displayedDocument.blocks.length,
-                      blockType: 'paragraph',
-                      text: '',
-                      headingLevel: null,
-                      contentHash: '',
-                    },
+                    block: anchor.afterBlock,
+                    beforeBlockId: anchor.beforeBlockId,
                   })
                   setSelectedItemId(null)
                 }}
@@ -317,6 +310,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
               <ReviewSidebar
                 activeBlock={activeProposal?.block ?? null}
                 activeChangeType={activeProposal?.changeType ?? null}
+                insertionBeforeBlockId={activeProposal?.beforeBlockId}
                 blocks={displayedDocument.blocks}
                 canComment={canReview && !isViewingHistoricalVersion}
                 canResolve={canResolve && !isViewingHistoricalVersion}

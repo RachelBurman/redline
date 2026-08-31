@@ -1,0 +1,2 @@
+ALTER TABLE "review_item" ADD COLUMN "insertion_before_block_id" uuid;--> statement-breakpoint
+ALTER TABLE "review_item" ADD CONSTRAINT "review_item_insertion_before_block_id_document_block_id_fk" FOREIGN KEY ("insertion_before_block_id") REFERENCES "public"."document_block"("id") ON DELETE restrict ON UPDATE no action;

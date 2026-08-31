@@ -7,6 +7,29 @@ export interface DocumentListItem {
   createdAt: string
 }
 
+export interface DocumentBlockDetail {
+  id: string
+  stableKey: string
+  ordinal: number
+  blockType:
+    | 'heading'
+    | 'paragraph'
+    | 'list_item'
+    | 'table'
+    | 'table_row'
+    | 'table_cell'
+    | 'page_break'
+    | 'unsupported'
+  text: string
+  headingLevel: number | null
+  contentHash: string
+}
+
+export interface DocumentInsertionAnchor {
+  afterBlock: DocumentBlockDetail
+  beforeBlockId: string | null
+}
+
 export interface DocumentDetail {
   document: {
     id: string
@@ -26,27 +49,8 @@ export interface DocumentDetail {
     id: string
     name: string
   }
-  insertionAnchor: {
-    blockId: string
-    stableKey: string
-  } | null
-  blocks: Array<{
-    id: string
-    stableKey: string
-    ordinal: number
-    blockType:
-      | 'heading'
-      | 'paragraph'
-      | 'list_item'
-      | 'table'
-      | 'table_row'
-      | 'table_cell'
-      | 'page_break'
-      | 'unsupported'
-    text: string
-    headingLevel: number | null
-    contentHash: string
-  }>
+  insertionAnchors: DocumentInsertionAnchor[]
+  blocks: DocumentBlockDetail[]
 }
 
 export interface UploadedDocument {

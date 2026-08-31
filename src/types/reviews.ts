@@ -46,7 +46,7 @@ export type CreateReviewItemInput = CreateReviewItemBase &
   (
     | { changeType: 'replace'; proposedContent: string }
     | { changeType: 'delete'; proposedContent: null }
-    | { changeType: 'insert'; proposedContent: string }
+    | { changeType: 'insert'; proposedContent: string; beforeBlockId: string | null }
   )
 
 export interface ResolveReviewItemResult {

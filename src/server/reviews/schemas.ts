@@ -25,6 +25,7 @@ export const createReviewItemSchema = z.discriminatedUnion('changeType', [
   }),
   createReviewItemBaseSchema.extend({
     changeType: z.literal('insert'),
+    beforeBlockId: z.uuid().nullable(),
     proposedContent: z
       .string()
       .max(100_000)

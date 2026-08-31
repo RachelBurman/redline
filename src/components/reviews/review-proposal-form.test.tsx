@@ -152,9 +152,47 @@ describe('ReviewProposalForm', () => {
       expect(createReviewItem).toHaveBeenCalledWith(
         'b5e038f0-129b-461c-b30c-d42e4cdfd1bd',
         expect.objectContaining({
+          beforeBlockId: null,
           changeType: 'insert',
           proposedContent: 'This is a newly proposed paragraph.',
         }),
+      ),
+    )
+  })
+
+  it('sends both immutable block IDs for a between-block insertion', async () => {
+    const user = userEvent.setup()
+    const createReviewItem = vi.fn<CreateReviewItemAction>(async (_documentId, input) =>
+      createdItem(input.changeType, input.proposedContent),
+    )
+    const beforeBlockId = '0bb68c55-1bd3-49b5-8a2c-53b89c7fbc42'
+
+    render(
+      <ReviewProposalForm
+        beforeBlockId={beforeBlockId}
+        block={block}
+        changeType="insert"
+        createReviewItem={createReviewItem}
+        documentId="b5e038f0-129b-461c-b30c-d42e4cdfd1bd"
+        onCancel={vi.fn<() => void>()}
+        onCreated={vi.fn<(item: ReviewItemSummary) => void>()}
+        reviewRoundId="18ef785c-eb37-4459-9656-01147d3c0f6e"
+        versionId="8d433f1d-e71b-4e40-a5cd-032b8796bee7"
+      />,
+    )
+
+    expect(screen.getByText(`Insert after: ${block.text}`)).toBeInTheDocument()
+    await user.type(screen.getByRole('textbox', { name: 'New paragraph text' }), 'Inserted text.')
+    await user.type(
+      screen.getByRole('textbox', { name: 'Reason for change' }),
+      'This belongs between the existing requirements.',
+    )
+    await user.click(screen.getByRole('button', { name: 'Create paragraph proposal' }))
+
+    await waitFor(() =>
+      expect(createReviewItem).toHaveBeenCalledWith(
+        'b5e038f0-129b-461c-b30c-d42e4cdfd1bd',
+        expect.objectContaining({ beforeBlockId, targetBlockId: block.id }),
       ),
     )
   })

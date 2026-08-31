@@ -30,6 +30,7 @@ interface ReviewProposalFormProps {
   reviewRoundId: string
   block: DocumentDetail['blocks'][number]
   changeType: ReviewChangeType
+  beforeBlockId?: string | null
   createReviewItem?: CreateReviewItemAction
   onCancel: () => void
   onCreated: (reviewItem: ReviewItemSummary) => void
@@ -41,6 +42,7 @@ export function ReviewProposalForm({
   reviewRoundId,
   block,
   changeType,
+  beforeBlockId,
   createReviewItem = createReviewItemWithApi,
   onCancel,
   onCreated,
@@ -68,7 +70,12 @@ export function ReviewProposalForm({
           changeType === 'delete'
             ? { ...commonInput, changeType: 'delete', proposedContent: null }
             : changeType === 'insert'
-              ? { ...commonInput, changeType: 'insert', proposedContent: value.proposedContent }
+              ? {
+                  ...commonInput,
+                  changeType: 'insert',
+                  proposedContent: value.proposedContent,
+                  beforeBlockId: beforeBlockId ?? null,
+                }
               : { ...commonInput, changeType: 'replace', proposedContent: value.proposedContent }
         const item = await createReviewItem(documentId, input)
         onCreated(item)
@@ -106,7 +113,11 @@ export function ReviewProposalForm({
       </div>
 
       <p className="mt-3 line-clamp-3 rounded-lg bg-[#f2f1ec] px-3 py-2 text-xs leading-5 text-[#68716d]">
-        {changeType === 'insert' ? 'Insert at the end of the document' : block.text}
+        {changeType === 'insert'
+          ? beforeBlockId
+            ? `Insert after: ${block.text}`
+            : 'Insert at the end of the document'
+          : block.text}
       </p>
 
       <form

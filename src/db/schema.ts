@@ -244,6 +244,9 @@ export const reviewItems = pgTable(
     targetBlockId: uuid('target_block_id')
       .notNull()
       .references(() => documentBlocks.id, { onDelete: 'restrict' }),
+    insertionBeforeBlockId: uuid('insertion_before_block_id').references(() => documentBlocks.id, {
+      onDelete: 'restrict',
+    }),
     parentReviewItemId: uuid('parent_review_item_id'),
     authorId: text('author_id')
       .notNull()
