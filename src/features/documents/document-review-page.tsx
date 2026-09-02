@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 
+import { DocumentAuditPanel } from '#/components/documents/document-audit-panel'
 import { DocumentLoadingState } from '#/components/documents/document-loading-state'
 import { DocumentReviewHeader } from '#/components/documents/document-review-header'
 import { DocumentUnavailableState } from '#/components/documents/document-unavailable-state'
@@ -58,21 +59,21 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     queryKey: ['document', documentId],
     queryFn: () => apiRequest<DocumentDetail>(`/api/v1/documents/${documentId}`),
     enabled: Boolean(session.data?.user),
-    refetchInterval: 5_000,
+    refetchInterval: 15_000,
     refetchIntervalInBackground: false,
   })
   const reviewItems = useQuery({
     queryKey: ['review-items', documentId],
     queryFn: () => apiRequest<ReviewItemSummary[]>(`/api/v1/documents/${documentId}/review-items`),
     enabled: Boolean(session.data?.user),
-    refetchInterval: 3_000,
+    refetchInterval: 10_000,
     refetchIntervalInBackground: false,
   })
   const versions = useQuery({
     queryKey: ['document-versions', documentId],
     queryFn: () => apiRequest<DocumentVersionSummary[]>(`/api/v1/documents/${documentId}/versions`),
     enabled: Boolean(session.data?.user),
-    refetchInterval: 5_000,
+    refetchInterval: 30_000,
     refetchIntervalInBackground: false,
   })
   const historicalVersion = useQuery({
@@ -239,6 +240,8 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
           versions={versions.data}
           viewedVersionId={viewedVersionId}
         />
+
+        {capabilities.viewAudit ? <DocumentAuditPanel documentId={documentId} /> : null}
 
         {capabilities.manageAssignments && !isViewingHistoricalVersion && !isComparingVersions ? (
           <ReviewRoundAssignmentsPanel

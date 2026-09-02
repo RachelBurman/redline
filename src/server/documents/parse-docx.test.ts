@@ -18,6 +18,18 @@ function createDocx(documentBody: string, styles = '') {
   return zipSync(files)
 }
 
+function claimExpandedSize(bytes: Uint8Array, expandedSize: number) {
+  const copy = bytes.slice()
+  const view = new DataView(copy.buffer, copy.byteOffset, copy.byteLength)
+  for (let offset = 0; offset <= copy.byteLength - 28; offset += 1) {
+    if (view.getUint32(offset, true) === 0x02014b50) {
+      view.setUint32(offset + 24, expandedSize, true)
+      return copy
+    }
+  }
+  throw new Error('The test ZIP central directory was not found.')
+}
+
 describe('parseDocx', () => {
   it('extracts styled headings and paragraphs in document order', () => {
     const styles = `<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
@@ -67,5 +79,14 @@ describe('parseDocx', () => {
 
   it('rejects ZIP files that are not Word packages', () => {
     expect(() => parseDocx(zipSync({ 'notes.txt': strToU8('hello') }))).toThrow(DocxParseError)
+  })
+
+  it('rejects oversized declared expansion before inflating package entries', () => {
+    const bytes = createDocx('<w:p><w:r><w:t>Safe text</w:t></w:r></w:p>')
+    const oversized = claimExpandedSize(bytes, 81 * 1024 * 1024)
+
+    expect(() => parseDocx(oversized)).toThrow(
+      'The expanded Word document is too large to process safely.',
+    )
   })
 })

@@ -26,6 +26,7 @@ import { Route as ApiV1WorkspaceRouteImport } from './routes/api/v1/workspace'
 import { Route as AppDocumentsDocumentIdRouteImport } from './routes/app/documents/$documentId'
 import { Route as ApiV1AuthSplatRouteImport } from './routes/api/v1/auth/$'
 import { Route as ApiV1DocumentsDocumentIdRouteImport } from './routes/api/v1/documents/$documentId'
+import { Route as ApiV1DocumentsDocumentIdAuditEventsRouteImport } from './routes/api/v1/documents/$documentId/audit-events'
 import { Route as ApiV1DocumentsDocumentIdExportsRouteImport } from './routes/api/v1/documents/$documentId/exports'
 import { Route as ApiV1DocumentsDocumentIdPresenceRouteImport } from './routes/api/v1/documents/$documentId/presence'
 import { Route as ApiV1DocumentsDocumentIdReviewItemsRouteImport } from './routes/api/v1/documents/$documentId/review-items'
@@ -125,6 +126,12 @@ const ApiV1DocumentsDocumentIdRoute =
     id: '/$documentId',
     path: '/$documentId',
     getParentRoute: () => ApiV1DocumentsRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdAuditEventsRoute =
+  ApiV1DocumentsDocumentIdAuditEventsRouteImport.update({
+    id: '/audit-events',
+    path: '/audit-events',
+    getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
   } as any)
 const ApiV1DocumentsDocumentIdExportsRoute =
   ApiV1DocumentsDocumentIdExportsRouteImport.update({
@@ -228,6 +235,7 @@ export interface FileRoutesByFullPath {
   '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
+  '/api/v1/documents/$documentId/audit-events': typeof ApiV1DocumentsDocumentIdAuditEventsRoute
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
   '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
@@ -259,6 +267,7 @@ export interface FileRoutesByTo {
   '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
+  '/api/v1/documents/$documentId/audit-events': typeof ApiV1DocumentsDocumentIdAuditEventsRoute
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
   '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
@@ -292,6 +301,7 @@ export interface FileRoutesById {
   '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
+  '/api/v1/documents/$documentId/audit-events': typeof ApiV1DocumentsDocumentIdAuditEventsRoute
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
   '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
@@ -326,6 +336,7 @@ export interface FileRouteTypes {
     | '/app/documents/$documentId'
     | '/api/v1/auth/$'
     | '/api/v1/documents/$documentId'
+    | '/api/v1/documents/$documentId/audit-events'
     | '/api/v1/documents/$documentId/exports'
     | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
@@ -357,6 +368,7 @@ export interface FileRouteTypes {
     | '/app/documents/$documentId'
     | '/api/v1/auth/$'
     | '/api/v1/documents/$documentId'
+    | '/api/v1/documents/$documentId/audit-events'
     | '/api/v1/documents/$documentId/exports'
     | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
@@ -389,6 +401,7 @@ export interface FileRouteTypes {
     | '/app/documents/$documentId'
     | '/api/v1/auth/$'
     | '/api/v1/documents/$documentId'
+    | '/api/v1/documents/$documentId/audit-events'
     | '/api/v1/documents/$documentId/exports'
     | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
@@ -539,6 +552,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/documents/$documentId'
       preLoaderRoute: typeof ApiV1DocumentsDocumentIdRouteImport
       parentRoute: typeof ApiV1DocumentsRoute
+    }
+    '/api/v1/documents/$documentId/audit-events': {
+      id: '/api/v1/documents/$documentId/audit-events'
+      path: '/audit-events'
+      fullPath: '/api/v1/documents/$documentId/audit-events'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdAuditEventsRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
     }
     '/api/v1/documents/$documentId/exports': {
       id: '/api/v1/documents/$documentId/exports'
@@ -723,6 +743,7 @@ const ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChild
   )
 
 interface ApiV1DocumentsDocumentIdRouteChildren {
+  ApiV1DocumentsDocumentIdAuditEventsRoute: typeof ApiV1DocumentsDocumentIdAuditEventsRoute
   ApiV1DocumentsDocumentIdExportsRoute: typeof ApiV1DocumentsDocumentIdExportsRoute
   ApiV1DocumentsDocumentIdPresenceRoute: typeof ApiV1DocumentsDocumentIdPresenceRoute
   ApiV1DocumentsDocumentIdReviewItemsRoute: typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
@@ -732,6 +753,8 @@ interface ApiV1DocumentsDocumentIdRouteChildren {
 
 const ApiV1DocumentsDocumentIdRouteChildren: ApiV1DocumentsDocumentIdRouteChildren =
   {
+    ApiV1DocumentsDocumentIdAuditEventsRoute:
+      ApiV1DocumentsDocumentIdAuditEventsRoute,
     ApiV1DocumentsDocumentIdExportsRoute: ApiV1DocumentsDocumentIdExportsRoute,
     ApiV1DocumentsDocumentIdPresenceRoute:
       ApiV1DocumentsDocumentIdPresenceRoute,
@@ -779,10 +802,11 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

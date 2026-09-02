@@ -4,6 +4,7 @@ import { strFromU8, unzipSync } from 'fflate'
 import { hashText } from '#/domain/review/selection-anchor'
 
 const MAX_UNCOMPRESSED_PACKAGE_BYTES = 80 * 1024 * 1024
+const MAX_PACKAGE_ENTRIES = 2_000
 const MAX_DOCUMENT_BLOCKS = 5_000
 export const DOCX_PARSER_VERSION = 'ooxml-blocks-v1'
 
@@ -186,10 +187,29 @@ function uniqueStableKey(candidate: string, seen: Set<string>) {
 
 export function parseDocx(bytes: Uint8Array): ParsedDocx {
   let packageFiles: Record<string, Uint8Array>
+  let declaredUncompressedBytes = 0
+  let packageEntryCount = 0
 
   try {
-    packageFiles = unzipSync(bytes)
-  } catch {
+    packageFiles = unzipSync(bytes, {
+      filter(file) {
+        packageEntryCount += 1
+        if (packageEntryCount > MAX_PACKAGE_ENTRIES) {
+          throw new DocxParseError('The Word document contains too many package entries.')
+        }
+        if (!Number.isSafeInteger(file.originalSize) || file.originalSize < 0) {
+          throw new DocxParseError('The Word document contains an invalid package entry size.')
+        }
+
+        declaredUncompressedBytes += file.originalSize
+        if (declaredUncompressedBytes > MAX_UNCOMPRESSED_PACKAGE_BYTES) {
+          throw new DocxParseError('The expanded Word document is too large to process safely.')
+        }
+        return true
+      },
+    })
+  } catch (error) {
+    if (error instanceof DocxParseError) throw error
     throw new DocxParseError('The Word document ZIP package could not be opened.')
   }
 
