@@ -9,17 +9,23 @@ export async function compareDocumentVersions(input: {
   organizationId: string
   baseVersionId: string
   targetVersionId: string
+  role: string
+  userId: string
 }): Promise<DocumentVersionComparison> {
   const [baseVersion, targetVersion] = await Promise.all([
     getDocumentVersion({
       documentId: input.documentId,
       documentVersionId: input.baseVersionId,
       organizationId: input.organizationId,
+      role: input.role,
+      userId: input.userId,
     }),
     getDocumentVersion({
       documentId: input.documentId,
       documentVersionId: input.targetVersionId,
       organizationId: input.organizationId,
+      role: input.role,
+      userId: input.userId,
     }),
   ])
 

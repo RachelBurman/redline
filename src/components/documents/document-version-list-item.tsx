@@ -9,6 +9,7 @@ import type { FormEvent } from 'react'
 interface DocumentVersionListItemProps {
   access: 'manager' | 'reader'
   actionState: 'downloading' | 'idle' | 'restoring'
+  canDownload: boolean
   currentVersionNumber: number
   onDownload: (version: DocumentVersionSummary) => void
   onRestore: (versionId: string, reason: string) => Promise<boolean>
@@ -35,6 +36,7 @@ function versionOrigin(version: DocumentVersionSummary) {
 export function DocumentVersionListItem({
   access,
   actionState,
+  canDownload,
   currentVersionNumber,
   onDownload,
   onRestore,
@@ -87,20 +89,22 @@ export function DocumentVersionListItem({
           >
             {viewState === 'viewing' ? 'Viewing' : 'View'}
           </button>
-          <button
-            aria-label={`Download version ${version.versionNumber}`}
-            className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#d2cec5] bg-white px-3 text-xs font-bold text-[#4e5954] hover:bg-[#f7f5ef] disabled:opacity-50"
-            disabled={actionState !== 'idle'}
-            onClick={() => onDownload(version)}
-            type="button"
-          >
-            {actionState === 'downloading' ? (
-              <LoaderCircle aria-hidden="true" className="animate-spin" size={14} />
-            ) : (
-              <Download aria-hidden="true" size={14} />
-            )}
-            Download
-          </button>
+          {canDownload ? (
+            <button
+              aria-label={`Download version ${version.versionNumber}`}
+              className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#d2cec5] bg-white px-3 text-xs font-bold text-[#4e5954] hover:bg-[#f7f5ef] disabled:opacity-50"
+              disabled={actionState !== 'idle'}
+              onClick={() => onDownload(version)}
+              type="button"
+            >
+              {actionState === 'downloading' ? (
+                <LoaderCircle aria-hidden="true" className="animate-spin" size={14} />
+              ) : (
+                <Download aria-hidden="true" size={14} />
+              )}
+              Download
+            </button>
+          ) : null}
           {access === 'manager' && !version.isCurrent ? (
             <button
               aria-label={`Restore version ${version.versionNumber}`}

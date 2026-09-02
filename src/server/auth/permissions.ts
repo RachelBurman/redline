@@ -7,11 +7,52 @@ const documentVersionManagers = new Set(['owner', 'admin', 'editor'])
 const reviewQueueExporters = new Set(['owner', 'admin', 'editor', 'reviewer', 'auditor'])
 const reviewerInviters = new Set(['owner', 'admin'])
 const reviewRoundAssigners = new Set(['owner', 'admin', 'editor'])
+const organizationWideDocumentReaders = new Set(['owner', 'admin', 'editor'])
+
+export interface WorkspaceCapabilities {
+  createDocument: boolean
+  manageReviewers: boolean
+}
+
+export interface DocumentCapabilities {
+  comment: boolean
+  exportDocument: boolean
+  exportReviewQueue: boolean
+  manageAssignments: boolean
+  manageVersions: boolean
+  review: boolean
+  viewAudit: boolean
+  resolve: boolean
+}
 
 export class PermissionDeniedError extends Error {
   constructor(message = 'You do not have permission to perform this action.') {
     super(message)
     this.name = 'PermissionDeniedError'
+  }
+}
+
+export function hasOrganizationWideDocumentAccess(role: string) {
+  return organizationWideDocumentReaders.has(role)
+}
+
+export function getWorkspaceCapabilities(role: string): WorkspaceCapabilities {
+  return {
+    createDocument: documentCreators.has(role),
+    manageReviewers: reviewerInviters.has(role),
+  }
+}
+
+export function getDocumentCapabilities(role: string): DocumentCapabilities {
+  return {
+    comment: reviewCommenters.has(role),
+    exportDocument: documentExporters.has(role),
+    exportReviewQueue: reviewQueueExporters.has(role),
+    manageAssignments: reviewRoundAssigners.has(role),
+    manageVersions: documentVersionManagers.has(role),
+    review: documentReviewers.has(role),
+    viewAudit: reviewQueueExporters.has(role),
+    resolve: documentResolvers.has(role),
   }
 }
 

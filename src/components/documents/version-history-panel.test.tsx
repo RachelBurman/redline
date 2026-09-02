@@ -58,6 +58,7 @@ afterEach(() => {
 function renderPanel(onVersionChanged = vi.fn<(result: VersionActionResult) => Promise<void>>()) {
   render(
     <VersionHistoryPanel
+      canDownloadVersions
       canManageVersions
       currentVersionId="version-2"
       documentId="document-1"
@@ -116,6 +117,7 @@ describe('VersionHistoryPanel', () => {
     const onCompareVersions = vi.fn<(baseVersionId: string, targetVersionId: string) => void>()
     render(
       <VersionHistoryPanel
+        canDownloadVersions
         canManageVersions
         currentVersionId="version-2"
         documentId="document-1"
@@ -132,5 +134,27 @@ describe('VersionHistoryPanel', () => {
     await user.click(screen.getByRole('button', { name: 'Compare versions' }))
 
     expect(onCompareVersions).toHaveBeenCalledWith('version-1', 'version-2')
+  })
+
+  it('does not offer version downloads to readers without export permission', async () => {
+    render(
+      <VersionHistoryPanel
+        canDownloadVersions={false}
+        canManageVersions={false}
+        currentVersionId="version-2"
+        documentId="document-1"
+        onCompareVersions={vi.fn<(baseVersionId: string, targetVersionId: string) => void>()}
+        onVersionChanged={vi.fn<(result: VersionActionResult) => Promise<void>>()}
+        onViewVersion={vi.fn<(versionId: string | null) => void>()}
+        versions={versions}
+        viewedVersionId={null}
+      />,
+    )
+    const user = userEvent.setup()
+
+    await user.click(screen.getByRole('button', { name: /Version history/ }))
+
+    expect(screen.queryByRole('button', { name: /Download version/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'View version 1' })).toBeVisible()
   })
 })

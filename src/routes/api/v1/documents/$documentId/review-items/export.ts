@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 
+import { DocumentAccessDeniedError } from '#/server/auth/document-access'
 import { PermissionDeniedError } from '#/server/auth/permissions'
 import { requireWorkspaceContext } from '#/server/auth/require-workspace-context'
 import { DocumentNotFoundError } from '#/server/documents/get-document'
@@ -49,7 +50,11 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/review-items
               { status: 403 },
             )
           }
-          if (error instanceof DocumentNotFoundError || error instanceof z.ZodError) {
+          if (
+            error instanceof DocumentAccessDeniedError ||
+            error instanceof DocumentNotFoundError ||
+            error instanceof z.ZodError
+          ) {
             return Response.json(
               { error: { code: 'DOCUMENT_NOT_FOUND', message: 'The document was not found.' } },
               { status: 404 },

@@ -12,11 +12,13 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/versions/$ve
         try {
           const documentId = z.uuid().parse(params.documentId)
           const documentVersionId = z.uuid().parse(params.versionId)
-          const { workspace } = await requireWorkspaceContext(request)
+          const { session, workspace } = await requireWorkspaceContext(request)
           const version = await getDocumentVersion({
             documentId,
             documentVersionId,
             organizationId: workspace.organization.id,
+            role: workspace.organization.role,
+            userId: session.user.id,
           })
           return Response.json({ data: version })
         } catch (error) {

@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { getWorkspaceCapabilities } from '#/server/auth/permissions'
 import { requireSession } from '#/server/auth/require-session'
 import { getOrCreateWorkspace } from '#/server/workspace/get-or-create-workspace'
 
@@ -12,7 +13,12 @@ async function handleWorkspaceRequest(request: Request) {
       activeOrganizationId: session.session.activeOrganizationId,
     })
 
-    return Response.json({ data: workspace })
+    return Response.json({
+      data: {
+        ...workspace,
+        capabilities: getWorkspaceCapabilities(workspace.organization.role),
+      },
+    })
   } catch (error) {
     if (error instanceof Error && error.name === 'AuthenticationRequiredError') {
       return Response.json(

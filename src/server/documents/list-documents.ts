@@ -1,10 +1,22 @@
 import { and, asc, count, eq, isNull } from 'drizzle-orm'
 
 import { db } from '#/db/index'
-import { documentBlocks, documentVersions, documents } from '#/db/schema'
+import {
+  documentBlocks,
+  documentVersions,
+  documents,
+  reviewAssignments,
+  reviewRounds,
+} from '#/db/schema'
+import { hasOrganizationWideDocumentAccess } from '#/server/auth/permissions'
 
-export async function listDocuments(input: { organizationId: string; projectId: string }) {
-  const rows = await db
+export async function listDocuments(input: {
+  organizationId: string
+  projectId: string
+  role: string
+  userId: string
+}) {
+  const baseQuery = db
     .select({
       id: documents.id,
       title: documents.title,
@@ -15,6 +27,27 @@ export async function listDocuments(input: { organizationId: string; projectId: 
     })
     .from(documents)
     .innerJoin(documentVersions, eq(documents.currentVersionId, documentVersions.id))
+
+  const accessibleQuery = hasOrganizationWideDocumentAccess(input.role)
+    ? baseQuery
+    : baseQuery
+        .innerJoin(
+          reviewRounds,
+          and(
+            eq(reviewRounds.documentId, documents.id),
+            eq(reviewRounds.documentVersionId, documentVersions.id),
+          ),
+        )
+        .innerJoin(
+          reviewAssignments,
+          and(
+            eq(reviewAssignments.reviewRoundId, reviewRounds.id),
+            eq(reviewAssignments.reviewerId, input.userId),
+            isNull(reviewAssignments.revokedAt),
+          ),
+        )
+
+  const rows = await accessibleQuery
     .leftJoin(documentBlocks, eq(documentBlocks.documentVersionId, documentVersions.id))
     .where(
       and(

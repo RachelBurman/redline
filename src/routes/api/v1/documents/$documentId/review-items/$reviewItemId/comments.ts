@@ -17,11 +17,13 @@ export const Route = createFileRoute(
         try {
           const documentId = z.uuid().parse(params.documentId)
           const reviewItemId = z.uuid().parse(params.reviewItemId)
-          const { workspace } = await requireWorkspaceContext(request)
+          const { session, workspace } = await requireWorkspaceContext(request)
           const comments = await listReviewComments({
             documentId,
             reviewItemId,
             organizationId: workspace.organization.id,
+            role: workspace.organization.role,
+            userId: session.user.id,
           })
           return Response.json({ data: comments })
         } catch (error) {

@@ -6,6 +6,7 @@ import { db } from '#/db/index'
 import { documentBlocks, documents, reviewItems, reviewRounds } from '#/db/schema'
 import { createTextSelectionAnchor } from '#/domain/review/selection-anchor'
 import { appendAuditEvent } from '#/server/audit/append-audit-event'
+import { assertDocumentAccess } from '#/server/auth/document-access'
 import { assertCanReviewDocument } from '#/server/auth/permissions'
 
 import { assertInsertionBoundary } from './insertion-boundary'
@@ -26,6 +27,11 @@ export async function createReviewItem(input: {
   review: CreateReviewItemInput
 }) {
   assertCanReviewDocument(input.context.role)
+  await assertDocumentAccess({
+    context: input.context,
+    documentId: input.documentId,
+    documentVersionId: input.review.documentVersionId,
+  })
 
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${input.documentId}))`)

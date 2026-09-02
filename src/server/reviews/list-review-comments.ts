@@ -3,6 +3,7 @@ import { and, asc, eq } from 'drizzle-orm'
 import { user } from '#/db/auth-schema'
 import { db } from '#/db/index'
 import { documents, reviewComments, reviewItems } from '#/db/schema'
+import { assertDocumentAccess } from '#/server/auth/document-access'
 
 import { ReviewItemNotFoundError } from './review-errors'
 
@@ -35,9 +36,11 @@ export async function listReviewComments(input: {
   documentId: string
   reviewItemId: string
   organizationId: string
+  role: string
+  userId: string
 }): Promise<ReviewCommentSummary[]> {
   const [reviewItem] = await db
-    .select({ id: reviewItems.id })
+    .select({ id: reviewItems.id, documentVersionId: reviewItems.documentVersionId })
     .from(reviewItems)
     .innerJoin(documents, eq(reviewItems.documentId, documents.id))
     .where(
@@ -50,6 +53,11 @@ export async function listReviewComments(input: {
     .limit(1)
 
   if (!reviewItem) throw new ReviewItemNotFoundError()
+  await assertDocumentAccess({
+    context: input,
+    documentId: input.documentId,
+    documentVersionId: reviewItem.documentVersionId,
+  })
 
   const rows = await db
     .select({

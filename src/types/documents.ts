@@ -31,6 +31,7 @@ export interface DocumentInsertionAnchor {
 }
 
 export interface DocumentDetail {
+  capabilities: DocumentCapabilities
   document: {
     id: string
     title: string
@@ -61,3 +62,4 @@ export interface UploadedDocument {
   blockCount: number
   parserWarnings: string[]
 }
+import type { DocumentCapabilities } from '#/server/auth/permissions'

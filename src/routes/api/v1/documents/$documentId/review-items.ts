@@ -15,11 +15,18 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/review-items
       GET: async ({ request, params }) => {
         try {
           const documentId = z.uuid().parse(params.documentId)
-          const { workspace } = await requireWorkspaceContext(request)
-          await getDocument({ documentId, organizationId: workspace.organization.id })
+          const { session, workspace } = await requireWorkspaceContext(request)
+          await getDocument({
+            documentId,
+            organizationId: workspace.organization.id,
+            role: workspace.organization.role,
+            userId: session.user.id,
+          })
           const reviewItems = await listReviewItems({
             documentId,
             organizationId: workspace.organization.id,
+            role: workspace.organization.role,
+            userId: session.user.id,
           })
           return Response.json({ data: reviewItems })
         } catch (error) {
@@ -44,6 +51,8 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/review-items
           const reviewItems = await listReviewItems({
             documentId,
             organizationId: workspace.organization.id,
+            role: workspace.organization.role,
+            userId: session.user.id,
           })
           const reviewItem = reviewItems.find((item) => item.id === createdReviewItem.id)
           if (!reviewItem) throw new Error('The created proposal could not be loaded.')

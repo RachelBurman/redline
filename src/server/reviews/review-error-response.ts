@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { DocumentAccessDeniedError } from '#/server/auth/document-access'
 import { PermissionDeniedError } from '#/server/auth/permissions'
 import { DocumentNotFoundError } from '#/server/documents/get-document'
 import { RequestBodyError, requestBodyErrorResponse } from '#/server/http/read-json-body'
@@ -28,7 +29,7 @@ export function reviewErrorResponse(error: unknown) {
   if (error instanceof PermissionDeniedError) {
     return Response.json({ error: { code: 'FORBIDDEN', message: error.message } }, { status: 403 })
   }
-  if (error instanceof DocumentNotFoundError) {
+  if (error instanceof DocumentAccessDeniedError || error instanceof DocumentNotFoundError) {
     return Response.json(
       { error: { code: 'DOCUMENT_NOT_FOUND', message: error.message } },
       { status: 404 },

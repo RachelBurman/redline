@@ -51,7 +51,7 @@ export async function listReviewRoundAssignments(input: {
     .where(
       and(
         eq(member.organizationId, input.organizationId),
-        inArray(member.role, ['owner', 'admin', 'editor', 'reviewer']),
+        inArray(member.role, ['owner', 'admin', 'editor', 'reviewer', 'viewer', 'auditor']),
       ),
     )
     .orderBy(asc(user.name), asc(user.email))

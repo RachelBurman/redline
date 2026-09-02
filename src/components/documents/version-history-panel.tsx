@@ -10,6 +10,7 @@ import { VersionComparisonControls } from './version-comparison-controls'
 import type { DocumentVersionSummary, VersionActionResult } from '#/types/document-versions'
 
 interface VersionHistoryPanelProps {
+  canDownloadVersions: boolean
   canManageVersions: boolean
   currentVersionId: string
   documentId: string
@@ -21,6 +22,7 @@ interface VersionHistoryPanelProps {
 }
 
 export function VersionHistoryPanel({
+  canDownloadVersions,
   canManageVersions,
   currentVersionId,
   documentId,
@@ -159,6 +161,7 @@ export function VersionHistoryPanel({
                       : 'idle'
                 }
                 currentVersionNumber={currentVersion?.versionNumber ?? version.versionNumber}
+                canDownload={canDownloadVersions}
                 key={version.id}
                 onDownload={(selectedVersion) => void handleDownload(selectedVersion)}
                 onRestore={handleRestoreVersion}

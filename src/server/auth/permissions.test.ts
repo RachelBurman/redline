@@ -11,9 +11,40 @@ import {
   assertCanManageDocumentVersions,
   assertCanResolveReviewItem,
   assertCanReviewDocument,
+  getDocumentCapabilities,
+  getWorkspaceCapabilities,
+  hasOrganizationWideDocumentAccess,
 } from './permissions'
 
 describe('document permissions', () => {
+  it('builds UI capabilities from the same role policy as the API', () => {
+    expect(getWorkspaceCapabilities('reviewer')).toEqual({
+      createDocument: false,
+      manageReviewers: false,
+    })
+    expect(getDocumentCapabilities('reviewer')).toMatchObject({
+      comment: true,
+      exportDocument: false,
+      exportReviewQueue: true,
+      manageAssignments: false,
+      manageVersions: false,
+      review: true,
+      resolve: false,
+      viewAudit: true,
+    })
+  })
+
+  it.each(['owner', 'admin', 'editor'])('%s can read every organisation document', (role) => {
+    expect(hasOrganizationWideDocumentAccess(role)).toBe(true)
+  })
+
+  it.each(['reviewer', 'viewer', 'auditor', 'member'])(
+    '%s needs a current review-round assignment',
+    (role) => {
+      expect(hasOrganizationWideDocumentAccess(role)).toBe(false)
+    },
+  )
+
   it.each(['owner', 'admin', 'editor'])('allows %s to create documents', (role) => {
     expect(() => assertCanCreateDocument(role)).not.toThrow()
   })

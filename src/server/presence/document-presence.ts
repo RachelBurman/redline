@@ -15,12 +15,15 @@ export async function recordDocumentPresence(input: {
   documentId: string
   documentVersionId: string
   userId: string
+  role: string
   clientId: string
   selectedBlockStableKey?: string | null
 }) {
   const document = await getDocument({
     documentId: input.documentId,
     organizationId: input.organizationId,
+    role: input.role,
+    userId: input.userId,
   })
   if (document.version.id !== input.documentVersionId) {
     throw new ReviewTargetError('Presence cannot be attached to an older document version.')
@@ -58,10 +61,14 @@ export async function recordDocumentPresence(input: {
 export async function listActiveDocumentPresence(input: {
   organizationId: string
   documentId: string
+  role: string
+  userId: string
 }): Promise<PresenceParticipant[]> {
   await getDocument({
     documentId: input.documentId,
     organizationId: input.organizationId,
+    role: input.role,
+    userId: input.userId,
   })
 
   const activeAfter = new Date(Date.now() - ACTIVE_WINDOW_MS)

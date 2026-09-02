@@ -38,6 +38,8 @@ export async function exportDocumentVersion(input: {
     documentId: input.documentId,
     documentVersionId: input.documentVersionId,
     organizationId: input.context.organizationId,
+    role: input.context.role,
+    userId: input.context.userId,
   })
   const exportId = randomUUID()
 

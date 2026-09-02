@@ -10,6 +10,8 @@ import {
   reviewRounds,
 } from '#/db/schema'
 import { applyBlockChanges } from '#/domain/documents/apply-block-changes'
+import { assertDocumentAccess } from '#/server/auth/document-access'
+import { getDocumentCapabilities } from '#/server/auth/permissions'
 
 import { buildInsertionAnchors } from './build-insertion-anchors'
 
@@ -22,7 +24,17 @@ export class DocumentNotFoundError extends Error {
   }
 }
 
-export async function getDocument(input: { documentId: string; organizationId: string }) {
+export async function getDocument(input: {
+  documentId: string
+  organizationId: string
+  role: string
+  userId: string
+}) {
+  await assertDocumentAccess({
+    context: input,
+    documentId: input.documentId,
+  })
+
   const [document] = await db
     .select({
       id: documents.id,
@@ -112,6 +124,7 @@ export async function getDocument(input: { documentId: string; organizationId: s
   }
 
   return {
+    capabilities: getDocumentCapabilities(input.role),
     document: {
       id: document.id,
       title: document.title,

@@ -25,6 +25,7 @@ import type {
   ReviewItemSummary,
 } from '#/types/reviews'
 import type { ReviewChangeType } from '#/types/reviews'
+import type { WorkspaceSummary } from '#/types/workspace'
 
 const emptyPresence: PresenceParticipant[] = []
 const emptyReviewItems: ReviewItemSummary[] = []
@@ -38,11 +39,6 @@ interface ActiveProposal {
   block: DocumentDetail['blocks'][number]
   changeType: ReviewChangeType
   beforeBlockId?: string | null
-}
-
-interface WorkspaceSummary {
-  organization: { id: string; name: string; slug: string; role: string }
-  project: { id: string; name: string }
 }
 
 export function DocumentReviewPage({ documentId }: { documentId: string }) {
@@ -187,15 +183,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     return <DocumentUnavailableState message={message} />
   }
 
-  const canReview = ['owner', 'admin', 'editor', 'reviewer'].includes(
-    workspace.data.organization.role,
-  )
-  const canResolve = ['owner', 'admin', 'editor'].includes(workspace.data.organization.role)
-  const canExport = canResolve
-  const canManageVersions = canResolve
-  const canExportReviewQueue = ['owner', 'admin', 'editor', 'reviewer', 'auditor'].includes(
-    workspace.data.organization.role,
-  )
+  const capabilities = document.data.capabilities
   const displayedDocument = viewedVersionId ? historicalVersion.data! : document.data
   const isViewingHistoricalVersion = !displayedDocument.version.isCurrent
   const isComparingVersions = comparisonSelection !== null
@@ -203,7 +191,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   return (
     <div className="min-h-screen bg-[#f3f2ed]">
       <WorkspaceHeader
-        canManageReviewers={['owner', 'admin'].includes(workspace.data.organization.role)}
+        canManageReviewers={workspace.data.capabilities.manageReviewers}
         isSigningOut={isSigningOut}
         onSignOut={() => void handleSignOut()}
         organizationName={workspace.data.organization.name}
@@ -213,7 +201,10 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
         <DocumentReviewHeader
           documentId={documentId}
           documentTitle={document.data.document.title}
-          exportPermissions={{ document: canExport, reviewQueue: canExportReviewQueue }}
+          exportPermissions={{
+            document: capabilities.exportDocument,
+            reviewQueue: capabilities.exportReviewQueue,
+          }}
           participants={presence.data ?? emptyPresence}
           reviewRoundName={displayedDocument.reviewRound.name}
           userId={session.data.user.id}
@@ -228,7 +219,8 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
         />
 
         <VersionHistoryPanel
-          canManageVersions={canManageVersions}
+          canDownloadVersions={capabilities.exportDocument}
+          canManageVersions={capabilities.manageVersions}
           currentVersionId={document.data.version.id}
           documentId={documentId}
           onCompareVersions={(baseVersionId, targetVersionId) => {
@@ -248,7 +240,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
           viewedVersionId={viewedVersionId}
         />
 
-        {canResolve && !isViewingHistoricalVersion && !isComparingVersions ? (
+        {capabilities.manageAssignments && !isViewingHistoricalVersion && !isComparingVersions ? (
           <ReviewRoundAssignmentsPanel
             documentId={documentId}
             reviewRoundId={displayedDocument.reviewRound.id}
@@ -287,12 +279,12 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
               <DocumentViewer
                 blocks={displayedDocument.blocks}
                 canInsert={
-                  canReview &&
+                  capabilities.review &&
                   !isViewingHistoricalVersion &&
                   displayedDocument.insertionAnchors.length > 0
                 }
                 insertionAnchors={displayedDocument.insertionAnchors}
-                canReview={canReview && !isViewingHistoricalVersion}
+                canReview={capabilities.review && !isViewingHistoricalVersion}
                 onPropose={(block, changeType) => {
                   setActiveProposal({ block, changeType })
                   setSelectedItemId(null)
@@ -312,8 +304,8 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
                 activeChangeType={activeProposal?.changeType ?? null}
                 insertionBeforeBlockId={activeProposal?.beforeBlockId}
                 blocks={displayedDocument.blocks}
-                canComment={canReview && !isViewingHistoricalVersion}
-                canResolve={canResolve && !isViewingHistoricalVersion}
+                canComment={capabilities.comment && !isViewingHistoricalVersion}
+                canResolve={capabilities.resolve && !isViewingHistoricalVersion}
                 documentId={documentId}
                 documentVersionId={displayedDocument.version.id}
                 items={displayedReviewItems}

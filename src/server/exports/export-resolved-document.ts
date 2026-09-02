@@ -36,6 +36,8 @@ export async function exportResolvedDocument(input: {
   const document = await getDocument({
     documentId: input.documentId,
     organizationId: input.context.organizationId,
+    role: input.context.role,
+    userId: input.context.userId,
   })
   const exportId = randomUUID()
 

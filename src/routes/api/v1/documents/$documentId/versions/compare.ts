@@ -17,10 +17,12 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/versions/com
             baseVersionId: url.searchParams.get('baseVersionId'),
             targetVersionId: url.searchParams.get('targetVersionId'),
           })
-          const { workspace } = await requireWorkspaceContext(request)
+          const { session, workspace } = await requireWorkspaceContext(request)
           const comparison = await compareDocumentVersions({
             documentId,
             organizationId: workspace.organization.id,
+            role: workspace.organization.role,
+            userId: session.user.id,
             ...versions,
           })
           return Response.json({ data: comparison })
