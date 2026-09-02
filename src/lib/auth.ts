@@ -10,13 +10,17 @@ import {
   recordInvitationAccepted,
   recordInvitationCreated,
 } from '#/server/auth/organization-invitation-audit'
+import { appEnvironment } from '#/server/config/app-environment'
 import { sendEmailVerificationEmail } from '#/server/email/send-email-verification-email'
 import { sendOrganizationInvitationEmail } from '#/server/email/send-organization-invitation-email'
 import { sendPasswordResetEmail } from '#/server/email/send-password-reset-email'
 
 export const auth = betterAuth({
   appName: 'Redline',
+  baseURL: appEnvironment.authUrl,
   basePath: '/api/v1/auth',
+  secret: appEnvironment.authSecret,
+  trustedOrigins: appEnvironment.trustedOrigins,
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: authSchema,
@@ -44,6 +48,13 @@ export const auth = betterAuth({
       )
     },
   },
+  advanced: {
+    useSecureCookies: appEnvironment.isProduction,
+    ipAddress:
+      appEnvironment.trustedProxies.length > 0
+        ? { trustedProxies: appEnvironment.trustedProxies }
+        : undefined,
+  },
   plugins: [
     organization({
       ac: accessControl,
@@ -51,8 +62,7 @@ export const auth = betterAuth({
       creatorRole: 'owner',
       requireEmailVerificationOnInvitation: true,
       sendInvitationEmail: async ({ id, email, organization: invitedOrganization, inviter }) => {
-        const baseUrl = process.env.BETTER_AUTH_URL ?? 'http://localhost:3000'
-        const invitationUrl = new URL('/accept-invitation', baseUrl)
+        const invitationUrl = new URL('/accept-invitation', appEnvironment.authUrl)
         invitationUrl.searchParams.set('id', id)
         void sendOrganizationInvitationEmail({
           recipient: email,

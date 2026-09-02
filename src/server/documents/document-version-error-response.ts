@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { PermissionDeniedError } from '#/server/auth/permissions'
+import { RequestBodyError, requestBodyErrorResponse } from '#/server/http/read-json-body'
 
 import { DocumentNotFoundError } from './get-document'
 import {
@@ -10,6 +11,7 @@ import {
 } from './version-errors'
 
 export function documentVersionErrorResponse(error: unknown) {
+  if (error instanceof RequestBodyError) return requestBodyErrorResponse(error)
   if (error instanceof Error && error.name === 'AuthenticationRequiredError') {
     return Response.json(
       { error: { code: 'UNAUTHENTICATED', message: error.message } },

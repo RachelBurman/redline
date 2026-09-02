@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 import { requireWorkspaceContext } from '#/server/auth/require-workspace-context'
 import { getDocument } from '#/server/documents/get-document'
+import { readJsonBody } from '#/server/http/read-json-body'
 import { createReviewItem } from '#/server/reviews/create-review-item'
 import { listReviewItems } from '#/server/reviews/list-review-items'
 import { reviewErrorResponse } from '#/server/reviews/review-error-response'
@@ -28,7 +29,7 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/review-items
       POST: async ({ request, params }) => {
         try {
           const documentId = z.uuid().parse(params.documentId)
-          const review = createReviewItemSchema.parse(await request.json())
+          const review = await readJsonBody(request, createReviewItemSchema)
           const { session, workspace } = await requireWorkspaceContext(request)
           const createdReviewItem = await createReviewItem({
             context: {

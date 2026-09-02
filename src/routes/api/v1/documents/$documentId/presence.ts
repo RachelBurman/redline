@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 
 import { requireWorkspaceContext } from '#/server/auth/require-workspace-context'
+import { readJsonBody } from '#/server/http/read-json-body'
 import {
   listActiveDocumentPresence,
   recordDocumentPresence,
@@ -45,7 +46,7 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/presence')({
       POST: async ({ request, params }) => {
         try {
           const documentId = z.uuid().parse(params.documentId)
-          const heartbeat = presenceHeartbeatSchema.parse(await request.json())
+          const heartbeat = await readJsonBody(request, presenceHeartbeatSchema, 4 * 1024)
           const { session, workspace } = await requireWorkspaceContext(request)
           const presence = await recordDocumentPresence({
             organizationId: workspace.organization.id,

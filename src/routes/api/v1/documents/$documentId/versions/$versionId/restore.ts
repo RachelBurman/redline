@@ -5,6 +5,7 @@ import { requireWorkspaceContext } from '#/server/auth/require-workspace-context
 import { documentVersionErrorResponse } from '#/server/documents/document-version-error-response'
 import { restoreDocumentVersion } from '#/server/documents/restore-document-version'
 import { restoreDocumentVersionSchema } from '#/server/documents/version-schemas'
+import { readJsonBody } from '#/server/http/read-json-body'
 
 export const Route = createFileRoute('/api/v1/documents/$documentId/versions/$versionId/restore')({
   server: {
@@ -13,7 +14,7 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/versions/$ve
         try {
           const documentId = z.uuid().parse(params.documentId)
           const sourceVersionId = z.uuid().parse(params.versionId)
-          const restore = restoreDocumentVersionSchema.parse(await request.json())
+          const restore = await readJsonBody(request, restoreDocumentVersionSchema)
           const { session, workspace } = await requireWorkspaceContext(request)
           const restored = await restoreDocumentVersion({
             context: {

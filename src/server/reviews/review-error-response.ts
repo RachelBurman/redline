@@ -2,6 +2,7 @@ import { z } from 'zod'
 
 import { PermissionDeniedError } from '#/server/auth/permissions'
 import { DocumentNotFoundError } from '#/server/documents/get-document'
+import { RequestBodyError, requestBodyErrorResponse } from '#/server/http/read-json-body'
 import {
   ReviewAssigneeNotFoundError,
   ReviewAssignmentConflictError,
@@ -17,6 +18,7 @@ import {
 } from './review-errors'
 
 export function reviewErrorResponse(error: unknown) {
+  if (error instanceof RequestBodyError) return requestBodyErrorResponse(error)
   if (error instanceof Error && error.name === 'AuthenticationRequiredError') {
     return Response.json(
       { error: { code: 'UNAUTHENTICATED', message: error.message } },

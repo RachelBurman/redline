@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 
 import { requireWorkspaceContext } from '#/server/auth/require-workspace-context'
+import { readJsonBody } from '#/server/http/read-json-body'
 import { resolveReviewItem } from '#/server/reviews/resolve-review-item'
 import { reviewErrorResponse } from '#/server/reviews/review-error-response'
 import { resolveReviewItemSchema } from '#/server/reviews/schemas'
@@ -15,7 +16,7 @@ export const Route = createFileRoute(
         try {
           const documentId = z.uuid().parse(params.documentId)
           const reviewItemId = z.uuid().parse(params.reviewItemId)
-          const resolution = resolveReviewItemSchema.parse(await request.json())
+          const resolution = await readJsonBody(request, resolveReviewItemSchema)
           const { session, workspace } = await requireWorkspaceContext(request)
           const result = await resolveReviewItem({
             context: {
