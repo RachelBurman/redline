@@ -15,7 +15,7 @@ export function WordLevelVersionComparison({
   visibleBlocks,
 }: WordLevelVersionComparisonProps) {
   return (
-    <div aria-live="polite" className="grid gap-4" data-comparison-layout={layout}>
+    <div aria-live="polite" className="divide-y divide-[#d8dee4]" data-comparison-layout={layout}>
       {visibleBlocks.map((block) => (
         <WordLevelVersionComparisonBlock
           baseVersion={comparison.baseVersion}

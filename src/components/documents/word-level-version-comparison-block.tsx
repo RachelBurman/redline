@@ -67,18 +67,45 @@ function VersionText({
   missing: boolean
   version: 'new' | 'old'
 }) {
+  const isOldVersion = version === 'old'
+
   return (
-    <section aria-label={label} className="min-w-0 rounded-xl border border-[#d8d5cd] bg-white p-4">
-      <h4 className="mb-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#5f6c66]">
-        {label}
-      </h4>
-      {missing ? (
-        <p className="text-sm italic leading-6 text-[#66706b]">Not present in this version.</p>
-      ) : (
-        <p className="whitespace-pre-wrap break-words text-sm leading-7 text-[#25302c] [overflow-wrap:anywhere]">
-          <WordChanges changes={changes} version={version} />
-        </p>
-      )}
+    <section
+      aria-label={label}
+      className={`min-w-0 ${isOldVersion ? 'bg-[#fff8f7]' : 'bg-[#f5fbf7]'}`}
+    >
+      <div className="flex items-center gap-2 border-b border-[#d8dee4] bg-white px-3 py-2">
+        <span
+          aria-hidden="true"
+          className={`flex size-5 items-center justify-center rounded text-sm font-bold ${
+            isOldVersion ? 'bg-[#f6d8d3] text-[#8c342b]' : 'bg-[#ccebd7] text-[#216e45]'
+          }`}
+        >
+          {isOldVersion ? '−' : '+'}
+        </span>
+        <h4 className="text-[11px] font-bold uppercase tracking-[0.06em] text-[#57625d]">
+          {label}
+        </h4>
+      </div>
+      <div className="grid min-h-14 grid-cols-[2rem_minmax(0,1fr)]">
+        <span
+          aria-hidden="true"
+          className={`flex justify-center border-r border-[#d8dee4] pt-3 text-sm select-none ${
+            isOldVersion ? 'bg-[#f9e4e1] text-[#9a4b42]' : 'bg-[#daf0e2] text-[#287a55]'
+          }`}
+        >
+          {isOldVersion ? '−' : '+'}
+        </span>
+        {missing ? (
+          <p className="px-4 py-3 text-sm italic leading-7 text-[#66706b]">
+            Not present in this version.
+          </p>
+        ) : (
+          <p className="whitespace-pre-wrap break-words px-4 py-3 text-sm leading-7 text-[#25302c] [overflow-wrap:anywhere]">
+            <WordChanges changes={changes} version={version} />
+          </p>
+        )}
+      </div>
     </section>
   )
 }
@@ -124,26 +151,24 @@ export function WordLevelVersionComparisonBlock({
       <article
         aria-describedby={descriptionId}
         aria-labelledby={headingId}
-        className="rounded-2xl border border-[#cbd5df] bg-white p-4 shadow-sm"
+        className="bg-white"
         data-comparison-layout={layout}
       >
-        <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h3
-              className="text-xs font-bold uppercase tracking-[0.08em] text-[#405a73]"
-              id={headingId}
-            >
-              {rendererInput.changeLabel} {rendererInput.blockDescription}
-            </h3>
-            <p className="mt-1 text-xs leading-5 text-[#64716c]" id={descriptionId}>
-              {rendererInput.accessibleDescription}
-            </p>
-          </div>
-          <p className="text-[11px] font-semibold leading-5 text-[#55625c]">
-            Removed and added words are labelled and marked independently of colour.
+        <div className="border-b border-[#d8dee4] bg-[#eef2f5] px-3 py-2">
+          <h3 className="text-xs font-semibold text-[#40505d]" id={headingId}>
+            {rendererInput.changeLabel} {rendererInput.blockDescription}
+          </h3>
+          <p className="sr-only" id={descriptionId}>
+            {rendererInput.accessibleDescription}
           </p>
         </div>
-        <div className={layout === 'split' ? 'grid gap-3 md:grid-cols-2' : 'grid gap-3'}>
+        <div
+          className={
+            layout === 'split'
+              ? 'grid divide-y divide-[#d8dee4] md:grid-cols-2 md:divide-x md:divide-y-0'
+              : 'grid divide-y divide-[#d8dee4]'
+          }
+        >
           <VersionText
             changes={changes}
             label={`Old version ${baseVersion.versionNumber}`}

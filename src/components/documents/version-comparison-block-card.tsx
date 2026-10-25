@@ -12,7 +12,7 @@ function blockDescription(snapshot: VersionComparisonBlockSnapshot) {
 
 export function VersionComparisonBlockCard({ label, snapshot }: VersionComparisonBlockCardProps) {
   return (
-    <div className="rounded-xl border border-[#d8d5cd] bg-white p-4">
+    <div className="bg-white px-4 py-3">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#6d7772]">
         <span>{label}</span>
         <span>{blockDescription(snapshot)}</span>
