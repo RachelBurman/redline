@@ -1,6 +1,7 @@
 import { createElement } from 'react'
 
 import type { DocumentDetail } from '#/types/documents'
+import type { ReactNode } from 'react'
 
 type Block = DocumentDetail['blocks'][number]
 
@@ -8,12 +9,39 @@ interface DocumentBlockViewProps {
   block: Block
   onProposeDeletion?: () => void
   onProposeReplacement?: () => void
+  presentation?: 'normal' | 'latex-rendered'
+}
+
+function RenderedParagraphText({ text }: { text: string }) {
+  const content: ReactNode[] = []
+  let cursor = 0
+
+  for (const match of text.matchAll(/\$([^$\n]+)\$/g)) {
+    const start = match.index
+    if (start > cursor) content.push(text.slice(cursor, start))
+    const expression = match[1]!
+    content.push(
+      <button
+        aria-label={`Mathematical expression: ${expression}`}
+        className="mx-0.5 cursor-text rounded bg-[#f1efe8] px-1 font-serif italic"
+        key={`math:${start}`}
+        type="button"
+      >
+        {createElement('math', { 'aria-hidden': true }, createElement('mtext', null, expression))}
+      </button>,
+    )
+    cursor = start + match[0].length
+  }
+  if (cursor < text.length) content.push(text.slice(cursor))
+
+  return content
 }
 
 export function DocumentBlockView({
   block,
   onProposeDeletion,
   onProposeReplacement,
+  presentation = 'normal',
 }: DocumentBlockViewProps) {
   if (block.blockType === 'unsupported') {
     return (
@@ -39,7 +67,17 @@ export function DocumentBlockView({
 
   return (
     <div className="group relative">
-      <p className="pr-44 text-[15px] leading-7 text-[#303b36]">{block.text}</p>
+      <p
+        className={`pr-44 text-[15px] leading-7 text-[#303b36] ${
+          presentation === 'latex-rendered' ? 'font-serif' : ''
+        }`}
+      >
+        {presentation === 'latex-rendered' ? (
+          <RenderedParagraphText text={block.text} />
+        ) : (
+          block.text
+        )}
+      </p>
       {onProposeReplacement && onProposeDeletion ? (
         <div className="absolute top-0 right-0 flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">
           <button

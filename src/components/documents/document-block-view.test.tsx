@@ -1,6 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { DocumentBlockView } from './document-block-view'
 
@@ -15,6 +15,12 @@ const paragraph: DocumentDetail['blocks'][number] = {
   headingLevel: null,
   contentHash: 'hash',
 }
+const latexParagraph = {
+  ...paragraph,
+  text: 'Use $E = mc^2$ and <script>alert(1)</script>.',
+}
+
+afterEach(cleanup)
 
 describe('DocumentBlockView', () => {
   it('offers separate replacement and deletion proposal actions', async () => {
@@ -35,5 +41,15 @@ describe('DocumentBlockView', () => {
 
     expect(onProposeReplacement).toHaveBeenCalledOnce()
     expect(onProposeDeletion).toHaveBeenCalledOnce()
+  })
+
+  it('renders mathematical text accessibly without interpreting manuscript HTML', () => {
+    const { container } = render(
+      <DocumentBlockView block={latexParagraph} presentation="latex-rendered" />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Mathematical expression: E = mc^2' })).toBeVisible()
+    expect(screen.getByText(/<script>alert\(1\)<\/script>/)).toBeInTheDocument()
+    expect(container.querySelector('script')).toBeNull()
   })
 })

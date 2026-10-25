@@ -31,6 +31,7 @@ interface ReviewProposalFormProps {
   block: DocumentDetail['blocks'][number]
   changeType: ReviewChangeType
   beforeBlockId?: string | null
+  initialProposedContent?: string
   createReviewItem?: CreateReviewItemAction
   onCancel: () => void
   onCreated: (reviewItem: ReviewItemSummary) => void
@@ -43,6 +44,7 @@ export function ReviewProposalForm({
   block,
   changeType,
   beforeBlockId,
+  initialProposedContent,
   createReviewItem = createReviewItemWithApi,
   onCancel,
   onCreated,
@@ -50,7 +52,10 @@ export function ReviewProposalForm({
   const [submissionError, setSubmissionError] = useState<string | null>(null)
   const form = useForm({
     defaultValues: {
-      proposedContent: changeType === 'replace' ? block.text : '',
+      proposedContent:
+        changeType === 'delete'
+          ? ''
+          : (initialProposedContent ?? (changeType === 'replace' ? block.text : '')),
       category: 'Clarification' as CreateReviewItemInput['category'],
       priority: 'medium' as CreateReviewItemInput['priority'],
       rationale: '',

@@ -118,6 +118,47 @@ describe('ReviewProposalForm', () => {
     )
   })
 
+  it('submits source-projected canonical text through the same replacement operation', async () => {
+    const user = userEvent.setup()
+    const createReviewItem = vi.fn<CreateReviewItemAction>(async (_documentId, input) =>
+      createdItem(input.changeType, input.proposedContent),
+    )
+
+    render(
+      <ReviewProposalForm
+        block={block}
+        changeType="replace"
+        createReviewItem={createReviewItem}
+        documentId="b5e038f0-129b-461c-b30c-d42e4cdfd1bd"
+        initialProposedContent="Canonical text parsed from LaTeX source."
+        onCancel={vi.fn<() => void>()}
+        onCreated={vi.fn<(item: ReviewItemSummary) => void>()}
+        reviewRoundId="18ef785c-eb37-4459-9656-01147d3c0f6e"
+        versionId="8d433f1d-e71b-4e40-a5cd-032b8796bee7"
+      />,
+    )
+
+    expect(screen.getByRole('textbox', { name: 'Replacement text' })).toHaveValue(
+      'Canonical text parsed from LaTeX source.',
+    )
+    await user.type(
+      screen.getByRole('textbox', { name: 'Reason for change' }),
+      'The source edit clarifies this paragraph.',
+    )
+    await user.click(screen.getByRole('button', { name: 'Create replacement proposal' }))
+
+    await waitFor(() =>
+      expect(createReviewItem).toHaveBeenCalledWith(
+        'b5e038f0-129b-461c-b30c-d42e4cdfd1bd',
+        expect.objectContaining({
+          changeType: 'replace',
+          targetBlockId: block.id,
+          proposedContent: 'Canonical text parsed from LaTeX source.',
+        }),
+      ),
+    )
+  })
+
   it('creates a paragraph insertion proposal with required new text', async () => {
     const user = userEvent.setup()
     const createReviewItem = vi.fn<CreateReviewItemAction>(async (_documentId, input) =>

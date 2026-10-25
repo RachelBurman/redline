@@ -12,6 +12,7 @@ interface ReviewSidebarProps {
   activeBlock: DocumentDetail['blocks'][number] | null
   activeChangeType: ReviewChangeType | null
   insertionBeforeBlockId?: string | null
+  initialProposedContent?: string
   blocks: DocumentDetail['blocks']
   items: ReviewItemSummary[]
   selectedItemId: string | null
@@ -31,6 +32,7 @@ export function ReviewSidebar({
   activeBlock,
   activeChangeType,
   insertionBeforeBlockId,
+  initialProposedContent,
   blocks,
   items,
   selectedItemId,
@@ -50,7 +52,8 @@ export function ReviewSidebar({
           beforeBlockId={insertionBeforeBlockId}
           changeType={activeChangeType}
           documentId={documentId}
-          key={`${activeBlock.id}:${activeChangeType}:${insertionBeforeBlockId ?? 'end'}`}
+          initialProposedContent={initialProposedContent}
+          key={`${activeBlock.id}:${activeChangeType}:${insertionBeforeBlockId ?? 'end'}:${initialProposedContent ?? ''}`}
           onCancel={onCancelProposal}
           onCreated={onCreated}
           reviewRoundId={reviewRoundId}

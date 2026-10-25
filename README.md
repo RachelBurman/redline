@@ -46,6 +46,9 @@ versions in a locally rendered word-level or structured block view.
     and exports in the append-only audit log.
 16. Generate and download a basic resolved `.docx` from the current structured version.
 17. Export the accessible cross-version review queue as an Excel-compatible, formula-safe CSV.
+18. Choose a private normal, escaped LaTeX source, or safely rendered LaTeX presentation without
+    changing the canonical blocks, proposal semantics, immutable versions, audit history, or DOCX
+    exports.
 
 Multiple participants can review the same document concurrently. The viewer shows active,
 version-bound presence and refreshes proposals and the selected discussion in the background.
@@ -279,6 +282,33 @@ report, and audit trail rather than appearing as a permanent redline in the read
 See [`docs/adr/0001-pierre-diffs-version-comparisons.md`](./docs/adr/0001-pierre-diffs-version-comparisons.md)
 for the `@pierre/diffs` rejection decision, accessibility findings, bundle measurements,
 performance budget, and selected local alternative.
+
+### LaTeX display modes
+
+LaTeX is a per-user, per-device display preference, never a document property. Its browser storage
+key is scoped by user ID and contains only `normal`, `latex-source`, or `latex-rendered`; no
+manuscript content is copied into preferences. Two reviewers can therefore view one immutable
+version differently while seeing the same proposal IDs, statuses, and decisions.
+
+The source mode deterministically escapes canonical paragraph text and maps heading levels to
+section commands. A source replacement is parsed back to canonical paragraph text before it enters
+the ordinary immutable-anchor proposal form. Supported paragraph text, Unicode, line breaks,
+backslashes, and LaTeX-reserved characters round-trip without semantic loss. Headings, list items,
+and page breaks have read-only projections. Tables, images, and other unsupported blocks remain
+visible as explicit read-only placeholders; they are not silently dropped.
+
+This is deliberately not a TeX execution environment. Arbitrary commands, environments, comments,
+macros, file paths, remote resources, and raw HTML are outside the supported editable subset and
+receive an actionable rejection. Rendered mode uses local React text nodes only—there is no shell
+escape, package installation, server-file access, network fetch, unsafe HTML injection, or
+server-side compilation. Inline dollar-delimited mathematical text gets a keyboard-focusable text
+alternative, while the canonical string remains unchanged. Emphasis, citation/reference
+resolution, editable structured lists/tables, and image rendering require future canonical-model
+support and are not inferred from arbitrary TeX.
+
+See [`docs/adr/0002-latex-display-projection.md`](./docs/adr/0002-latex-display-projection.md)
+for the subset table, parser boundary, round-trip guarantee, unsupported-syntax behavior, and
+security decision.
 
 ### DOCX parsing and export
 
