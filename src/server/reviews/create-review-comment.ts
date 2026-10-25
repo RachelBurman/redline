@@ -5,6 +5,7 @@ import { and, eq, sql } from 'drizzle-orm'
 import { db } from '#/db/index'
 import { documents, reviewComments, reviewItems } from '#/db/schema'
 import { appendAuditEvent } from '#/server/audit/append-audit-event'
+import { assertDocumentAccess } from '#/server/auth/document-access'
 import { assertCanCommentOnReviewItem } from '#/server/auth/permissions'
 
 import { buildReviewCommentAuditPayload } from './review-comment-audit'
@@ -44,6 +45,25 @@ export async function createReviewComment(input: {
   comment: CreateReviewCommentInput
 }): Promise<ReviewCommentSummary> {
   assertCanCommentOnReviewItem(input.context.role)
+
+  const [accessibleItem] = await db
+    .select({ documentVersionId: reviewItems.documentVersionId })
+    .from(reviewItems)
+    .innerJoin(documents, eq(reviewItems.documentId, documents.id))
+    .where(
+      and(
+        eq(reviewItems.id, input.reviewItemId),
+        eq(reviewItems.documentId, input.documentId),
+        eq(documents.organizationId, input.context.organizationId),
+      ),
+    )
+    .limit(1)
+  if (!accessibleItem) throw new ReviewTargetError('The review proposal was not found.')
+  await assertDocumentAccess({
+    context: input.context,
+    documentId: input.documentId,
+    documentVersionId: accessibleItem.documentVersionId,
+  })
 
   return db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${input.documentId}))`)

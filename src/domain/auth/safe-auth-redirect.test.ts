@@ -9,12 +9,16 @@ describe('getSafeAuthRedirect', () => {
     )
   })
 
-  it.each(['https://malicious.example', '//malicious.example', '', null])(
-    'rejects unsafe redirect %s',
-    (value) => {
-      expect(getSafeAuthRedirect(value)).toBe('/app')
-    },
-  )
+  it.each([
+    'https://malicious.example',
+    '//malicious.example',
+    '/\\malicious.example',
+    '/%5cmalicious.example',
+    '',
+    null,
+  ])('rejects unsafe redirect %s', (value) => {
+    expect(getSafeAuthRedirect(value)).toBe('/app')
+  })
 
   it('encodes the redirect when building an authentication link', () => {
     expect(buildAuthHref('/sign-in', '/accept-invitation?id=invite-1')).toBe(

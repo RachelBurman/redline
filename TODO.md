@@ -14,6 +14,10 @@ audit events where appropriate, and automated tests.
 - [x] Export resolved `.docx` files and auditable review-queue CSV reports.
 - [x] Explicit immutable versions, history, restore, download, and block-based comparison.
 - [x] Version-bound participant presence and concurrency-safe review decisions.
+- [x] Assignment-enforced document access, server-issued UI capabilities, and a permission-scoped
+      in-product audit viewer.
+- [x] Cross-origin request protection, security headers, bounded JSON bodies, validated production
+      configuration, and pre-inflation DOCX expansion limits.
 
 ## Next product slices
 
@@ -66,3 +70,6 @@ audit events where appropriate, and automated tests.
 7. [ ] Add image and graph blocks with safe upload, preview, versioning, and export behavior.
 8. [ ] Improve collaboration updates beyond polling where they materially improve proposal and
        discussion workflows; do not turn this phase into unrestricted real-time word processing.
+9. [ ] Add dedicated question and comment proposal types with appropriate non-document-changing
+       resolution states.
+10. [ ] Add named proposal ownership, reassignment history, due dates, and workload reporting.

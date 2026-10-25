@@ -1,10 +1,11 @@
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 
 import { ProductPreview } from './product-preview'
 
 describe('ProductPreview', () => {
-  it('keeps the document and decision queue available as distinct landmarks', () => {
+  it('keeps the document and decision queue available as distinct interactive landmarks', async () => {
     render(<ProductPreview />)
 
     expect(screen.getByRole('article', { name: 'Example document being reviewed' })).toBeVisible()
@@ -16,5 +17,11 @@ describe('ProductPreview', () => {
     expect(within(queue).getByRole('heading', { name: 'Open reviews' })).toBeVisible()
     expect(within(queue).getByRole('button', { name: 'Accept example proposal' })).toBeEnabled()
     expect(within(queue).getByRole('button', { name: 'Reject example proposal' })).toBeEnabled()
+
+    await userEvent
+      .setup()
+      .click(within(queue).getByRole('button', { name: 'Accept example proposal' }))
+    expect(within(queue).getByText('Example proposal accepted.')).toBeVisible()
+    expect(within(queue).getByRole('button', { name: 'Reject example proposal' })).toBeDisabled()
   })
 })

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react'
 const commentTimestampFormatter = new Intl.DateTimeFormat('en-GB', {
   dateStyle: 'medium',
   timeStyle: 'short',
+  timeZone: 'Europe/London',
 })
 
 interface ReviewCommentCardProps {

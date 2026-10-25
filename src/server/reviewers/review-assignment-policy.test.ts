@@ -6,11 +6,15 @@ import {
 } from './review-assignment-policy'
 
 describe('review assignment policy', () => {
-  it.each(['owner', 'admin', 'editor', 'reviewer'])('allows %s to be assigned', (role) => {
-    expect(canBeAssignedToReview(role)).toBe(true)
-  })
+  it.each(['owner', 'admin', 'editor', 'reviewer', 'viewer', 'auditor'])(
+    'allows %s to be assigned',
+    (role) => {
+      expect(canBeAssignedToReview(role)).toBe(true)
+    },
+  )
 
-  it.each(['viewer', 'auditor', 'member'])('does not assign %s review work', (role) => {
+  it('does not assign members without a document role', () => {
+    const role = 'member'
     expect(canBeAssignedToReview(role)).toBe(false)
   })
 

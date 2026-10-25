@@ -3,12 +3,14 @@ import { ArrowRight, LoaderCircle } from 'lucide-react'
 import { useState } from 'react'
 
 import { getSafeAuthRedirect } from '#/domain/auth/safe-auth-redirect'
+import { useHasHydrated } from '#/hooks/use-has-hydrated'
 import { authClient } from '#/lib/auth-client'
 
 export type AuthMode = 'sign-in' | 'sign-up'
 
 export function AuthForm({ mode, redirectTo = '/app' }: { mode: AuthMode; redirectTo?: string }) {
   const [submissionError, setSubmissionError] = useState<string | null>(null)
+  const hasHydrated = useHasHydrated()
   const form = useForm({
     defaultValues: {
       name: '',
@@ -43,6 +45,7 @@ export function AuthForm({ mode, redirectTo = '/app' }: { mode: AuthMode; redire
   return (
     <form
       className="mt-8 space-y-5"
+      method="post"
       onSubmit={(event) => {
         event.preventDefault()
         event.stopPropagation()
@@ -57,6 +60,7 @@ export function AuthForm({ mode, redirectTo = '/app' }: { mode: AuthMode; redire
               <input
                 autoComplete="name"
                 className="h-12 w-full rounded-xl border border-[#d7d5ce] bg-white px-4 text-sm text-[#18201d] shadow-sm transition-colors placeholder:text-[#a1a6a3] hover:border-[#b9beb9] focus:border-[#e86648] focus:outline-none"
+                disabled={!hasHydrated}
                 minLength={2}
                 name={field.name}
                 onBlur={field.handleBlur}
@@ -78,6 +82,7 @@ export function AuthForm({ mode, redirectTo = '/app' }: { mode: AuthMode; redire
             <input
               autoComplete="email"
               className="h-12 w-full rounded-xl border border-[#d7d5ce] bg-white px-4 text-sm text-[#18201d] shadow-sm transition-colors placeholder:text-[#a1a6a3] hover:border-[#b9beb9] focus:border-[#e86648] focus:outline-none"
+              disabled={!hasHydrated}
               name={field.name}
               onBlur={field.handleBlur}
               onChange={(event) => field.handleChange(event.target.value)}
@@ -97,6 +102,7 @@ export function AuthForm({ mode, redirectTo = '/app' }: { mode: AuthMode; redire
             <input
               autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
               className="h-12 w-full rounded-xl border border-[#d7d5ce] bg-white px-4 text-sm text-[#18201d] shadow-sm transition-colors placeholder:text-[#a1a6a3] hover:border-[#b9beb9] focus:border-[#e86648] focus:outline-none"
+              disabled={!hasHydrated}
               minLength={8}
               name={field.name}
               onBlur={field.handleBlur}
@@ -132,7 +138,7 @@ export function AuthForm({ mode, redirectTo = '/app' }: { mode: AuthMode; redire
         {([canSubmit, isSubmitting]) => (
           <button
             className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#18201d] px-5 text-sm font-bold text-white shadow-[0_10px_28px_rgba(24,32,29,0.18)] transition-colors hover:bg-[#29332f] disabled:cursor-not-allowed disabled:opacity-55"
-            disabled={!canSubmit || isSubmitting}
+            disabled={!hasHydrated || !canSubmit || isSubmitting}
             type="submit"
           >
             {isSubmitting ? (

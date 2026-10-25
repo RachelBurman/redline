@@ -20,9 +20,28 @@ jobs:
     name: Verify repository
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: redline_ci
+          POSTGRES_PASSWORD: redline_ci
+          POSTGRES_USER: redline_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U redline_ci -d redline_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      mailpit:
+        image: axllent/mailpit:v1.31.0
+        ports:
+          - 1025:1025
+          - 8025:8025
     env:
       CI: true
-      DATABASE_URL: postgresql://redline_ci@127.0.0.1:5432/redline_ci
+      DATABASE_URL: postgresql://redline_ci:redline_ci@127.0.0.1:5432/redline_ci
       BETTER_AUTH_URL: http://localhost:3000
 
     steps:
@@ -47,6 +66,18 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Apply database migrations
+        run: pnpm db:migrate
+
+      - name: Run database integration tests
+        run: pnpm test:integration
+
+      - name: Install end-to-end browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run end-to-end tests
+        run: pnpm test:e2e
 
       - name: Verify repository
         run: pnpm verify

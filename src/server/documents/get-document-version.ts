@@ -2,6 +2,8 @@ import { and, asc, eq } from 'drizzle-orm'
 
 import { db } from '#/db/index'
 import { documentBlocks, documentVersions, documents, reviewRounds } from '#/db/schema'
+import { assertDocumentAccess } from '#/server/auth/document-access'
+import { getDocumentCapabilities } from '#/server/auth/permissions'
 
 import { buildInsertionAnchors } from './build-insertion-anchors'
 import { DocumentVersionNotFoundError } from './version-errors'
@@ -12,7 +14,15 @@ export async function getDocumentVersion(input: {
   documentId: string
   documentVersionId: string
   organizationId: string
+  role: string
+  userId: string
 }): Promise<DocumentDetail> {
+  await assertDocumentAccess({
+    context: input,
+    documentId: input.documentId,
+    documentVersionId: input.documentVersionId,
+  })
+
   const [version] = await db
     .select({
       documentId: documents.id,
@@ -65,6 +75,7 @@ export async function getDocumentVersion(input: {
   if (!reviewRound) throw new Error('The document review round is missing.')
 
   return {
+    capabilities: getDocumentCapabilities(input.role),
     document: {
       id: version.documentId,
       title: version.documentTitle,

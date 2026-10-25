@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 
 import { requireWorkspaceContext } from '#/server/auth/require-workspace-context'
+import { readJsonBody } from '#/server/http/read-json-body'
 import { createReviewComment } from '#/server/reviews/create-review-comment'
 import { listReviewComments } from '#/server/reviews/list-review-comments'
 import { reviewErrorResponse } from '#/server/reviews/review-error-response'
@@ -16,11 +17,13 @@ export const Route = createFileRoute(
         try {
           const documentId = z.uuid().parse(params.documentId)
           const reviewItemId = z.uuid().parse(params.reviewItemId)
-          const { workspace } = await requireWorkspaceContext(request)
+          const { session, workspace } = await requireWorkspaceContext(request)
           const comments = await listReviewComments({
             documentId,
             reviewItemId,
             organizationId: workspace.organization.id,
+            role: workspace.organization.role,
+            userId: session.user.id,
           })
           return Response.json({ data: comments })
         } catch (error) {
@@ -31,7 +34,7 @@ export const Route = createFileRoute(
         try {
           const documentId = z.uuid().parse(params.documentId)
           const reviewItemId = z.uuid().parse(params.reviewItemId)
-          const comment = createReviewCommentSchema.parse(await request.json())
+          const comment = await readJsonBody(request, createReviewCommentSchema)
           const { session, workspace } = await requireWorkspaceContext(request)
           const created = await createReviewComment({
             context: {

@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
 
 import { requireWorkspaceContext } from '#/server/auth/require-workspace-context'
+import { readJsonBody } from '#/server/http/read-json-body'
 import {
   listActiveDocumentPresence,
   recordDocumentPresence,
@@ -32,10 +33,12 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/presence')({
       GET: async ({ request, params }) => {
         try {
           const documentId = z.uuid().parse(params.documentId)
-          const { workspace } = await requireWorkspaceContext(request)
+          const { session, workspace } = await requireWorkspaceContext(request)
           const participants = await listActiveDocumentPresence({
             organizationId: workspace.organization.id,
             documentId,
+            role: workspace.organization.role,
+            userId: session.user.id,
           })
           return Response.json({ data: participants })
         } catch (error) {
@@ -45,13 +48,14 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/presence')({
       POST: async ({ request, params }) => {
         try {
           const documentId = z.uuid().parse(params.documentId)
-          const heartbeat = presenceHeartbeatSchema.parse(await request.json())
+          const heartbeat = await readJsonBody(request, presenceHeartbeatSchema, 4 * 1024)
           const { session, workspace } = await requireWorkspaceContext(request)
           const presence = await recordDocumentPresence({
             organizationId: workspace.organization.id,
             documentId,
             documentVersionId: heartbeat.documentVersionId,
             userId: session.user.id,
+            role: workspace.organization.role,
             clientId: heartbeat.clientId,
             selectedBlockStableKey: heartbeat.selectedBlockStableKey,
           })

@@ -1,56 +1,91 @@
-import { and, desc, eq, gte } from 'drizzle-orm'
+import { and, desc, eq, gte, lt } from 'drizzle-orm'
 
 import { user } from '#/db/auth-schema'
 import { db } from '#/db/index'
-import { documentPresence } from '#/db/schema'
-import { getDocument } from '#/server/documents/get-document'
+import { documentBlocks, documentPresence, documents } from '#/db/schema'
+import { assertDocumentAccess } from '#/server/auth/document-access'
 import { ReviewTargetError } from '#/server/reviews/review-errors'
 
 import type { PresenceParticipant } from '#/types/presence'
 
 const ACTIVE_WINDOW_MS = 30_000
+const STALE_PRESENCE_RETENTION_MS = 24 * 60 * 60 * 1_000
 
 export async function recordDocumentPresence(input: {
   organizationId: string
   documentId: string
   documentVersionId: string
   userId: string
+  role: string
   clientId: string
   selectedBlockStableKey?: string | null
 }) {
-  const document = await getDocument({
-    documentId: input.documentId,
-    organizationId: input.organizationId,
-  })
-  if (document.version.id !== input.documentVersionId) {
+  const [, currentDocuments, selectedBlocks] = await Promise.all([
+    assertDocumentAccess({
+      context: input,
+      documentId: input.documentId,
+      documentVersionId: input.documentVersionId,
+    }),
+    db
+      .select({ id: documents.id })
+      .from(documents)
+      .where(
+        and(
+          eq(documents.id, input.documentId),
+          eq(documents.organizationId, input.organizationId),
+          eq(documents.currentVersionId, input.documentVersionId),
+        ),
+      )
+      .limit(1),
+    input.selectedBlockStableKey
+      ? db
+          .select({ id: documentBlocks.id })
+          .from(documentBlocks)
+          .where(
+            and(
+              eq(documentBlocks.documentVersionId, input.documentVersionId),
+              eq(documentBlocks.stableKey, input.selectedBlockStableKey),
+            ),
+          )
+          .limit(1)
+      : Promise.resolve([{ id: 'no-selection' }]),
+  ])
+  if (!currentDocuments[0]) {
     throw new ReviewTargetError('Presence cannot be attached to an older document version.')
   }
-  if (
-    input.selectedBlockStableKey &&
-    !document.blocks.some((block) => block.stableKey === input.selectedBlockStableKey)
-  ) {
+  if (!selectedBlocks[0]) {
     throw new ReviewTargetError('The selected presence block is not part of this document version.')
   }
 
   const now = new Date()
-  await db
-    .insert(documentPresence)
-    .values({
-      documentId: input.documentId,
-      documentVersionId: input.documentVersionId,
-      userId: input.userId,
-      clientId: input.clientId,
-      selectedBlockStableKey: input.selectedBlockStableKey ?? null,
-      lastSeenAt: now,
-    })
-    .onConflictDoUpdate({
-      target: [documentPresence.documentId, documentPresence.userId, documentPresence.clientId],
-      set: {
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(documentPresence)
+      .where(
+        and(
+          eq(documentPresence.documentId, input.documentId),
+          lt(documentPresence.lastSeenAt, new Date(now.getTime() - STALE_PRESENCE_RETENTION_MS)),
+        ),
+      )
+    await tx
+      .insert(documentPresence)
+      .values({
+        documentId: input.documentId,
         documentVersionId: input.documentVersionId,
+        userId: input.userId,
+        clientId: input.clientId,
         selectedBlockStableKey: input.selectedBlockStableKey ?? null,
         lastSeenAt: now,
-      },
-    })
+      })
+      .onConflictDoUpdate({
+        target: [documentPresence.documentId, documentPresence.userId, documentPresence.clientId],
+        set: {
+          documentVersionId: input.documentVersionId,
+          selectedBlockStableKey: input.selectedBlockStableKey ?? null,
+          lastSeenAt: now,
+        },
+      })
+  })
 
   return { lastSeenAt: now.toISOString() }
 }
@@ -58,30 +93,30 @@ export async function recordDocumentPresence(input: {
 export async function listActiveDocumentPresence(input: {
   organizationId: string
   documentId: string
+  role: string
+  userId: string
 }): Promise<PresenceParticipant[]> {
-  await getDocument({
-    documentId: input.documentId,
-    organizationId: input.organizationId,
-  })
-
   const activeAfter = new Date(Date.now() - ACTIVE_WINDOW_MS)
-  const rows = await db
-    .select({
-      userId: user.id,
-      name: user.name,
-      image: user.image,
-      selectedBlockStableKey: documentPresence.selectedBlockStableKey,
-      lastSeenAt: documentPresence.lastSeenAt,
-    })
-    .from(documentPresence)
-    .innerJoin(user, eq(documentPresence.userId, user.id))
-    .where(
-      and(
-        eq(documentPresence.documentId, input.documentId),
-        gte(documentPresence.lastSeenAt, activeAfter),
-      ),
-    )
-    .orderBy(desc(documentPresence.lastSeenAt))
+  const [, rows] = await Promise.all([
+    assertDocumentAccess({ context: input, documentId: input.documentId }),
+    db
+      .select({
+        userId: user.id,
+        name: user.name,
+        image: user.image,
+        selectedBlockStableKey: documentPresence.selectedBlockStableKey,
+        lastSeenAt: documentPresence.lastSeenAt,
+      })
+      .from(documentPresence)
+      .innerJoin(user, eq(documentPresence.userId, user.id))
+      .where(
+        and(
+          eq(documentPresence.documentId, input.documentId),
+          gte(documentPresence.lastSeenAt, activeAfter),
+        ),
+      )
+      .orderBy(desc(documentPresence.lastSeenAt)),
+  ])
 
   const participants = new Map<string, PresenceParticipant>()
   for (const row of rows) {

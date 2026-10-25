@@ -6,6 +6,7 @@ import { createDocumentVersion } from '#/server/documents/create-document-versio
 import { documentVersionErrorResponse } from '#/server/documents/document-version-error-response'
 import { listDocumentVersions } from '#/server/documents/list-document-versions'
 import { createDocumentVersionSchema } from '#/server/documents/version-schemas'
+import { readJsonBody } from '#/server/http/read-json-body'
 
 export const Route = createFileRoute('/api/v1/documents/$documentId/versions')({
   server: {
@@ -13,10 +14,12 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/versions')({
       GET: async ({ request, params }) => {
         try {
           const documentId = z.uuid().parse(params.documentId)
-          const { workspace } = await requireWorkspaceContext(request)
+          const { session, workspace } = await requireWorkspaceContext(request)
           const versions = await listDocumentVersions({
             documentId,
             organizationId: workspace.organization.id,
+            role: workspace.organization.role,
+            userId: session.user.id,
           })
           return Response.json({ data: versions })
         } catch (error) {
@@ -26,7 +29,7 @@ export const Route = createFileRoute('/api/v1/documents/$documentId/versions')({
       POST: async ({ request, params }) => {
         try {
           const documentId = z.uuid().parse(params.documentId)
-          const version = createDocumentVersionSchema.parse(await request.json())
+          const version = await readJsonBody(request, createDocumentVersionSchema)
           const { session, workspace } = await requireWorkspaceContext(request)
           const created = await createDocumentVersion({
             context: {

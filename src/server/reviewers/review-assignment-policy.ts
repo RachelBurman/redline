@@ -1,4 +1,11 @@
-const assignableOrganizationRoles = new Set(['owner', 'admin', 'editor', 'reviewer'])
+const assignableOrganizationRoles = new Set([
+  'owner',
+  'admin',
+  'editor',
+  'reviewer',
+  'viewer',
+  'auditor',
+])
 
 export function canBeAssignedToReview(role: string) {
   return assignableOrganizationRoles.has(role)

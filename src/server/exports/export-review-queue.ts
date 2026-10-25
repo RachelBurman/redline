@@ -16,6 +16,7 @@ import {
   reviewRounds,
 } from '#/db/schema'
 import { appendAuditEvent } from '#/server/audit/append-audit-event'
+import { listAccessibleDocumentVersionIds } from '#/server/auth/document-access'
 import { assertCanExportReviewQueue } from '#/server/auth/permissions'
 import { getDocument } from '#/server/documents/get-document'
 import { localObjectStore } from '#/server/storage/local-object-store'
@@ -44,7 +45,11 @@ function downloadFilename(title: string) {
   return `${safeTitle || 'document'}-review-queue.csv`
 }
 
-async function listExportRows(input: { documentId: string; organizationId: string }) {
+async function listExportRows(input: {
+  accessibleVersionIds: Set<string> | null
+  documentId: string
+  organizationId: string
+}) {
   const rows = await db
     .select({
       reviewItemId: reviewItems.id,
@@ -90,6 +95,9 @@ async function listExportRows(input: { documentId: string; organizationId: strin
       and(
         eq(reviewItems.documentId, input.documentId),
         eq(documents.organizationId, input.organizationId),
+        input.accessibleVersionIds === null
+          ? undefined
+          : inArray(reviewItems.documentVersionId, [...input.accessibleVersionIds]),
       ),
     )
     .orderBy(asc(documentVersions.versionNumber), asc(reviewItems.createdAt))
@@ -133,6 +141,8 @@ export async function exportReviewQueue(input: { context: ExportContext; documen
   const document = await getDocument({
     documentId: input.documentId,
     organizationId: input.context.organizationId,
+    role: input.context.role,
+    userId: input.context.userId,
   })
   const exportId = randomUUID()
 
@@ -146,7 +156,12 @@ export async function exportReviewQueue(input: { context: ExportContext; documen
   })
 
   try {
+    const accessibleVersionIds = await listAccessibleDocumentVersionIds({
+      context: input.context,
+      documentId: input.documentId,
+    })
     const rows = await listExportRows({
+      accessibleVersionIds,
       documentId: input.documentId,
       organizationId: input.context.organizationId,
     })

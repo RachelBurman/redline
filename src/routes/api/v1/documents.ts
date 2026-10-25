@@ -50,10 +50,12 @@ export const Route = createFileRoute('/api/v1/documents')({
     handlers: {
       GET: async ({ request }) => {
         try {
-          const { workspace } = await requireWorkspaceContext(request)
+          const { session, workspace } = await requireWorkspaceContext(request)
           const documents = await listDocuments({
             organizationId: workspace.organization.id,
             projectId: workspace.project.id,
+            role: workspace.organization.role,
+            userId: session.user.id,
           })
           return Response.json({ data: documents })
         } catch (error) {

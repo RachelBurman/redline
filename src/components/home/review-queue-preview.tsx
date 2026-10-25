@@ -1,6 +1,11 @@
 import { Check, MessageSquareText, X } from 'lucide-react'
+import { useState } from 'react'
+
+import { useHasHydrated } from '#/hooks/use-has-hydrated'
 
 export function ReviewQueuePreview() {
+  const [decision, setDecision] = useState<'accepted' | 'rejected' | null>(null)
+  const hasHydrated = useHasHydrated()
   return (
     <aside
       aria-label="Example review decision queue"
@@ -23,7 +28,9 @@ export function ReviewQueuePreview() {
           <div className="flex items-center gap-2 text-[9px] font-bold tracking-[0.08em] uppercase">
             <span className="size-2 rounded-full bg-[#d35c3f]" />
             <span className="text-[#8c4b3a]">Statistical issue</span>
-            <span className="ml-auto rounded-full bg-[#fff0ea] px-2 py-1 text-[#a44d35]">High</span>
+            <span className="ml-auto rounded-full bg-[#fff0ea] px-2 py-1 text-[#a44d35]">
+              {decision ? (decision === 'accepted' ? 'Accepted' : 'Rejected') : 'High'}
+            </span>
           </div>
           <div className="mt-4 flex items-center gap-2 text-[11px]">
             <span className="grid size-7 place-items-center rounded-full bg-[#dcebe5] font-bold text-[#2d6955]">
@@ -59,20 +66,30 @@ export function ReviewQueuePreview() {
             <div className="flex gap-1.5" aria-label="Example decision actions">
               <button
                 aria-label="Reject example proposal"
-                className="grid size-8 place-items-center rounded-lg border border-[#ddd9d2] text-[#8a5145] transition-colors hover:bg-[#fff5f1]"
+                className="grid size-8 place-items-center rounded-lg border border-[#ddd9d2] text-[#8a5145] transition-colors hover:bg-[#fff5f1] disabled:cursor-default disabled:opacity-50"
+                disabled={!hasHydrated || decision !== null}
+                onClick={() => setDecision('rejected')}
                 type="button"
               >
                 <X aria-hidden="true" size={15} />
               </button>
               <button
                 aria-label="Accept example proposal"
-                className="grid size-8 place-items-center rounded-lg bg-[#27634f] text-white transition-colors hover:bg-[#1e503f]"
+                className="grid size-8 place-items-center rounded-lg bg-[#27634f] text-white transition-colors hover:bg-[#1e503f] disabled:cursor-default disabled:opacity-50"
+                disabled={!hasHydrated || decision !== null}
+                onClick={() => setDecision('accepted')}
                 type="button"
               >
                 <Check aria-hidden="true" size={15} />
               </button>
             </div>
           </div>
+          <output
+            aria-live="polite"
+            className="mt-2 block min-h-4 text-right text-[9px] font-bold text-[#557068]"
+          >
+            {decision ? `Example proposal ${decision}.` : ''}
+          </output>
         </article>
       </div>
     </aside>

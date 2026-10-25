@@ -37,11 +37,18 @@ export async function appendAuditEvent(tx: DatabaseTransaction, input: AuditEven
   const eventHash = createHash('sha256')
     .update(
       JSON.stringify({
+        hashVersion: 2,
         id,
         organizationId: input.organizationId,
+        projectId: input.projectId ?? null,
+        documentId: input.documentId ?? null,
+        documentVersionId: input.documentVersionId ?? null,
+        reviewRoundId: input.reviewRoundId ?? null,
+        reviewItemId: input.reviewItemId ?? null,
         actorId: input.actorId,
         eventType: input.eventType,
         payload,
+        requestId: input.requestId ?? null,
         previousHash,
         occurredAt: occurredAt.toISOString(),
       }),

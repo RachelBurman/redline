@@ -37,6 +37,21 @@ export function EmptyProject({ projectName, children }: EmptyProjectProps) {
           Next, upload a Word document. Redline will preserve the source file and extract headings
           and paragraphs into a version-safe review copy.
         </p>
+        <ol className="mt-6 grid gap-3 text-sm text-[#53605a] sm:grid-cols-3">
+          <li className="rounded-xl bg-[#f6f4ee] p-4">
+            <strong className="block text-[#27332e]">1. Upload</strong>
+            The original stays immutable while Redline creates a review copy.
+          </li>
+          <li className="rounded-xl bg-[#f6f4ee] p-4">
+            <strong className="block text-[#27332e]">2. Review</strong>
+            Proposals can be discussed, accepted, or rejected without overwriting the source.
+          </li>
+          <li className="rounded-xl bg-[#f6f4ee] p-4">
+            <strong className="block text-[#27332e]">3. Publish</strong>
+            Accepted proposals affect the resolved preview; creating a version makes a new immutable
+            checkpoint.
+          </li>
+        </ol>
         <div className="mt-6">{children}</div>
       </div>
     </section>

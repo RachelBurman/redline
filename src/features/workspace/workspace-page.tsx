@@ -10,11 +10,7 @@ import { ApiClientError, apiRequest } from '#/lib/api-client'
 import { authClient } from '#/lib/auth-client'
 
 import type { DocumentListItem, UploadedDocument } from '#/types/documents'
-
-interface WorkspaceSummary {
-  organization: { id: string; name: string; slug: string; role: string }
-  project: { id: string; name: string }
-}
+import type { WorkspaceSummary } from '#/types/workspace'
 
 function handleUploaded(document: UploadedDocument) {
   window.location.assign(`/app/documents/${document.documentId}`)
@@ -37,10 +33,10 @@ export function WorkspacePage() {
   })
 
   useEffect(() => {
-    if (!session.isPending && !session.data?.user) {
+    if (!isSigningOut && !session.isPending && !session.data?.user) {
       window.location.replace('/sign-in')
     }
-  }, [session.data?.user, session.isPending])
+  }, [isSigningOut, session.data?.user, session.isPending])
 
   async function handleSignOut() {
     setIsSigningOut(true)
@@ -97,7 +93,7 @@ export function WorkspacePage() {
   return (
     <div className="min-h-screen bg-[#f7f6f1]">
       <WorkspaceHeader
-        canManageReviewers={['owner', 'admin'].includes(workspace.data.organization.role)}
+        canManageReviewers={workspace.data.capabilities.manageReviewers}
         isSigningOut={isSigningOut}
         onSignOut={() => void handleSignOut()}
         organizationName={workspace.data.organization.name}
@@ -107,13 +103,13 @@ export function WorkspacePage() {
         {documents.data.length === 0 ? (
           <EmptyProject projectName={workspace.data.project.name}>
             <DocumentUploadForm
-              canUpload={['owner', 'admin', 'editor'].includes(workspace.data.organization.role)}
+              canUpload={workspace.data.capabilities.createDocument}
               onUploaded={handleUploaded}
             />
           </EmptyProject>
         ) : (
           <ProjectDocuments
-            canUpload={['owner', 'admin', 'editor'].includes(workspace.data.organization.role)}
+            canUpload={workspace.data.capabilities.createDocument}
             documents={documents.data}
             onUploaded={handleUploaded}
             projectName={workspace.data.project.name}

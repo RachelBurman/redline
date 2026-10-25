@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 import { assertCanAssignReviewers } from '#/server/auth/permissions'
 import { requireWorkspaceContext } from '#/server/auth/require-workspace-context'
+import { readJsonBody } from '#/server/http/read-json-body'
 import { createReviewAssignment } from '#/server/reviewers/create-review-assignment'
 import { listReviewRoundAssignments } from '#/server/reviewers/list-review-round-assignments'
 import { reviewErrorResponse } from '#/server/reviews/review-error-response'
@@ -34,7 +35,7 @@ export const Route = createFileRoute(
         try {
           const documentId = z.uuid().parse(params.documentId)
           const reviewRoundId = z.uuid().parse(params.reviewRoundId)
-          const assignment = createAssignmentSchema.parse(await request.json())
+          const assignment = await readJsonBody(request, createAssignmentSchema)
           const { session, workspace } = await requireWorkspaceContext(request)
           const createdAssignment = await createReviewAssignment({
             context: {

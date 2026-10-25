@@ -6,6 +6,10 @@ allowBuilds:
 overrides:
   '@emnapi/core': 2.0.0-alpha.3
   '@emnapi/runtime': 2.0.0-alpha.3
+  'esbuild@<=0.24.2': 0.25.12
+  'js-yaml@>=4.0.0 <4.3.2': 4.3.2
+  'nanoid@>=3.0.0 <3.3.18': 3.3.18
+  'source-map-js@>=1.0.0 <1.2.2': 1.2.2
 minimumReleaseAge: 10080
 trustPolicy: no-downgrade
 trustPolicyExclude:

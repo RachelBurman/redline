@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
+import { DocumentAccessDeniedError } from '#/server/auth/document-access'
 import { PermissionDeniedError } from '#/server/auth/permissions'
+import { RequestBodyError, requestBodyErrorResponse } from '#/server/http/read-json-body'
 
 import { DocumentNotFoundError } from './get-document'
 import {
@@ -10,6 +12,7 @@ import {
 } from './version-errors'
 
 export function documentVersionErrorResponse(error: unknown) {
+  if (error instanceof RequestBodyError) return requestBodyErrorResponse(error)
   if (error instanceof Error && error.name === 'AuthenticationRequiredError') {
     return Response.json(
       { error: { code: 'UNAUTHENTICATED', message: error.message } },
@@ -19,7 +22,11 @@ export function documentVersionErrorResponse(error: unknown) {
   if (error instanceof PermissionDeniedError) {
     return Response.json({ error: { code: 'FORBIDDEN', message: error.message } }, { status: 403 })
   }
-  if (error instanceof DocumentNotFoundError || error instanceof DocumentVersionNotFoundError) {
+  if (
+    error instanceof DocumentAccessDeniedError ||
+    error instanceof DocumentNotFoundError ||
+    error instanceof DocumentVersionNotFoundError
+  ) {
     return Response.json(
       { error: { code: 'DOCUMENT_VERSION_NOT_FOUND', message: error.message } },
       { status: 404 },

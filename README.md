@@ -7,13 +7,14 @@ version safety, and a defensible audit trail. It keeps a clean document beside a
 queue, so accepted, rejected, and unresolved proposals do not become tracked-change
 clutter.
 
-The repository contains the first complete vertical slice: an authenticated user can create
+The repository contains a working vertical slice, not a finished production product: an authenticated user can create
 a workspace, upload a `.docx`, review its headings and paragraphs, propose a paragraph-level
 replacement, deletion, or addition at a chosen block boundary, accept or reject it, inspect
 attributable decisions, filter and sort the review queue, hold a one-level threaded discussion
 on a review proposal, securely invite reviewers, assign organisation members to an exact review
-round, and export the resolved content as a new `.docx`, download the complete review queue as an
-auditable CSV, or compare any two immutable versions in a clean block-based view.
+round, inspect the permission-scoped audit trail, and export the resolved content as a new `.docx`,
+download an auditable CSV for every version they may access, or compare assigned immutable
+versions in a clean block-based view.
 
 ## Implemented workflow
 
@@ -44,7 +45,7 @@ auditable CSV, or compare any two immutable versions in a clean block-based view
 15. Record invitations, assignments, uploads, proposals, comments, decisions, versions, restores,
     and exports in the append-only audit log.
 16. Generate and download a basic resolved `.docx` from the current structured version.
-17. Export the complete cross-version review queue as an Excel-compatible, formula-safe CSV.
+17. Export the accessible cross-version review queue as an Excel-compatible, formula-safe CSV.
 
 Multiple participants can review the same document concurrently. The viewer shows active,
 version-bound presence and refreshes proposals and the selected discussion in the background.
@@ -55,15 +56,18 @@ overwriting shared document text.
 
 ## Current product status
 
-The version-safe review foundation and the first five follow-on product slices are complete:
+The version-safe review foundation and the first five follow-on product slices are implemented:
 threaded proposal discussions, review-queue filters and sorting, reviewer invitations and
 exact-round assignments, paragraph additions at immutable block boundaries, and an accessible
 application-owned modal/dialog system.
 
-The next planned slice is evaluating `@pierre/diffs` for richer document-version comparisons.
-After that, the roadmap covers adding safely versioned image and graph blocks and improving
-collaboration updates beyond polling without expanding the MVP into unrestricted real-time word
-processing.
+The review workspace adapts to smaller screens with explicit document/review panes, and first-run
+guidance now explains the upload, review, and immutable publishing workflow without implying that
+accepting a proposal silently creates a new version.
+
+The roadmap still includes dedicated question/comment proposal types, named proposal ownership,
+richer document-version comparisons, safely versioned image and graph blocks, and collaboration
+updates beyond polling without expanding the MVP into unrestricted real-time word processing.
 
 See [`TODO.md`](./TODO.md) for the detailed, checked product roadmap.
 
@@ -121,7 +125,8 @@ written as accessible, composable React components; there is no component-kit de
    ```
 
 The application runs at `http://localhost:3000`; the health endpoint is
-`http://localhost:3000/api/v1/health`. In local development, password-reset, email-verification,
+`http://localhost:3000/api/v1/health`, and the database-backed readiness endpoint is
+`http://localhost:3000/api/v1/ready`. In local development, password-reset, email-verification,
 and reviewer-invitation messages are captured by Mailpit at `http://localhost:8025`; they are
 never delivered to the public internet. The default SMTP settings in `.env.example` target that
 loopback-only service.
@@ -137,35 +142,53 @@ without changing the document or export workflows.
 
 ## Commands
 
-| Command             | Purpose                                                 |
-| ------------------- | ------------------------------------------------------- |
-| `pnpm dev`          | Run the development server                              |
-| `pnpm build`        | Create the production client and server bundles         |
-| `pnpm verify`       | Run format, lint, types, tests, React Doctor, and build |
-| `pnpm format:check` | Check repository formatting with Oxfmt                  |
-| `pnpm lint`         | Run Oxlint, React Doctor, and accessibility rules       |
-| `pnpm typecheck`    | Type-check without emitting files                       |
-| `pnpm test`         | Run unit and component tests once                       |
-| `pnpm react-doctor` | Scan the React codebase and block on warnings           |
-| `pnpm db:generate`  | Generate SQL from the Drizzle schema                    |
-| `pnpm db:migrate`   | Apply committed migrations                              |
-| `pnpm db:studio`    | Open Drizzle Studio                                     |
+| Command                 | Purpose                                                          |
+| ----------------------- | ---------------------------------------------------------------- |
+| `pnpm dev`              | Run the development server                                       |
+| `pnpm build`            | Create the production client and server bundles                  |
+| `pnpm verify`           | Run all local and CI quality, security, build, and test gates    |
+| `pnpm format:check`     | Check repository formatting with Oxfmt                           |
+| `pnpm lint`             | Run Oxlint, React Doctor, and accessibility rules                |
+| `pnpm typecheck`        | Type-check without emitting files                                |
+| `pnpm test`             | Run unit and component tests once                                |
+| `pnpm test:e2e`         | Run browser journeys against the local application               |
+| `pnpm test:integration` | Run live PostgreSQL integration tests                            |
+| `pnpm test:coverage`    | Run tests and enforce repository coverage thresholds             |
+| `pnpm react-doctor`     | Scan the React codebase and block on warnings                    |
+| `pnpm audit:prod`       | Fail when production dependencies have known security advisories |
+| `pnpm db:generate`      | Generate SQL from the Drizzle schema                             |
+| `pnpm db:migrate`       | Apply committed migrations                                       |
+| `pnpm db:studio`        | Open Drizzle Studio                                              |
 
 ## Quality gates and CI
 
 Lefthook checks staged-file formatting, lints staged source files with warnings denied, scans
 staged React code, and runs the test suite before a commit. Oxlint includes its native React and
 `jsx-a11y` rules plus React Doctor's recommended, TanStack Start, and TanStack Query rules. Before a
-push it runs the complete `pnpm verify` gate. The repo-local `$pre-pr-verification` skill in
+push it runs the complete `pnpm verify` gate, including coverage and a production dependency audit.
+The production build runs before the full React Doctor scan so TanStack Start can generate its
+convention-based entry-point type links. The repo-local `$pre-pr-verification` skill in
 `.agents/skills/` requires the same gate before opening or updating a pull request. Commits follow
 Conventional Commits.
 
-The GitHub Actions workflow in `.github/workflows/ci.yml` runs `pnpm verify` for pull requests
+The GitHub Actions workflow in `.github/workflows/ci.yml` starts an isolated PostgreSQL 17 service,
+applies every committed migration, runs a cross-tenant assignment integration test, and runs
+`pnpm verify` for pull requests
 targeting `main` and for pushes to `main`. Third-party actions are pinned to full release
 commit SHAs. CI generates an ephemeral Better Auth secret for each run and uses a
 non-production PostgreSQL URL; it never reads or stores local development credentials. The
-current suite does not connect to a live CI database, so database integration tests remain a
-future quality-gate increment.
+database credentials exist only for the lifetime of that CI job.
+
+Locally, start PostgreSQL with `docker compose up -d postgres`, apply migrations with
+`pnpm db:migrate`, and then run `pnpm test:integration`. The integration test configuration loads
+`.env.local` while CI continues to inject its ephemeral database URL directly.
+
+Install the browser once with `pnpm exec playwright install chromium`. Start the local test
+dependencies with `docker compose up -d postgres mailpit`, apply migrations with
+`pnpm db:migrate`, and then run `pnpm test:e2e`. The Playwright suite starts Redline, exercises
+the public experience at desktop and phone widths, creates a real account and authenticated
+workspace, checks liveness/readiness, and removes its database fixture after the run. CI installs
+Chromium and runs this suite against isolated PostgreSQL and Mailpit services.
 
 ## Architecture
 
@@ -274,6 +297,7 @@ never silently narrow this complete audit export.
 | `/api/v1/reviewers`                                                              | List members and pending invitations     |
 | `/api/v1/documents`                                                              | List documents or upload a `.docx`       |
 | `/api/v1/documents/:documentId`                                                  | Read the structured current version      |
+| `/api/v1/documents/:documentId/audit-events`                                     | Read permission-scoped audit activity    |
 | `/api/v1/documents/:documentId/versions`                                         | List or explicitly create versions       |
 | `/api/v1/documents/:documentId/versions/compare`                                 | Compare two immutable versions by block  |
 | `/api/v1/documents/:documentId/versions/:versionId`                              | Read one immutable historical version    |
@@ -288,6 +312,7 @@ never silently narrow this complete audit export.
 | `/api/v1/documents/:documentId/presence`                                         | Read or heartbeat participant presence   |
 | `/api/v1/documents/:documentId/exports`                                          | Generate the current resolved `.docx`    |
 | `/api/v1/health`                                                                 | Service health                           |
+| `/api/v1/ready`                                                                  | Database-backed service readiness        |
 
 ## Deployment status
 
@@ -297,6 +322,9 @@ the application needs a managed PostgreSQL database, private S3-compatible objec
 environment-managed secrets, HTTPS and trusted-origin configuration, a migration release
 step, backups, monitoring, and a documented recovery process. No production credentials or
 deployment-specific values belong in this repository.
+
+See [`docs/production-readiness.md`](./docs/production-readiness.md) for the explicit release,
+backup, recovery, monitoring, and security gates.
 
 ## Current boundaries
 
@@ -328,7 +356,14 @@ redlines.
 - Password changes require the current password, enforce the configured 8–128 character
   boundary, use Better Auth's password hashing, and revoke every session except the current
   one.
-- Upload type, size, archive expansion, and block-count limits are enforced on the server.
+- Upload type, size, pre-inflation archive expansion, entry-count, and block-count limits are
+  enforced on the server.
+- Custom mutation endpoints reject cross-origin requests and bounded JSON readers reject
+  unsupported or oversized bodies.
+- Production configuration validates secrets, HTTPS origin settings, trusted origins, and
+  trusted proxies before serving requests.
+- Responses apply CSP, clickjacking, MIME-sniffing, referrer, permissions, transport-security,
+  and private no-store protections where appropriate.
 - Source files and exports live outside the web root under opaque object keys.
 - Foreign keys use restrictive deletion for review and audit records.
 - Audit events form a hash chain and PostgreSQL rejects updates or deletes.
@@ -339,6 +374,8 @@ redlines.
   their audit events.
 - Review assignments are tenant-checked, restricted to eligible organisation members, serialised
   per round, and retained after revocation with corresponding immutable audit events.
+- Owners, administrators, and editors can access organisation documents; reviewer, viewer, and
+  auditor access is limited to active assignments on the requested review version.
 - Dependency installation enforces a seven-day release maturity window and trust-downgrade
   checks, with narrow documented exceptions for established transitive packages.
 

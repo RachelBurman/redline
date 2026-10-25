@@ -6,23 +6,19 @@ import { DocumentUnavailableState } from '#/components/documents/document-unavai
 import { apiRequest } from '#/lib/api-client'
 import { authClient } from '#/lib/auth-client'
 
-import { DocumentReviewWorkspace } from './document-review-workspace'
+import { DocumentReviewPageContent, type ComparisonSelection } from './document-review-page-content'
 import { useDocumentPresence } from './use-document-presence'
 
+import type { ActiveReviewProposal } from '#/components/documents/document-review-workspace'
 import type { DocumentVersionSummary, VersionActionResult } from '#/types/document-versions'
-import type { DocumentDetail, DocumentInsertionAnchor } from '#/types/documents'
+import type { DocumentDetail } from '#/types/documents'
 import type { PresenceParticipant } from '#/types/presence'
 import type {
   ResolveReviewItemResult,
   ReviewCommentSummary,
   ReviewItemSummary,
 } from '#/types/reviews'
-import type { ReviewChangeType } from '#/types/reviews'
-import type {
-  ActiveProposal,
-  ComparisonSelection,
-  WorkspaceSummary,
-} from './document-review-workspace'
+import type { WorkspaceSummary } from '#/types/workspace'
 
 const emptyPresence: PresenceParticipant[] = []
 const emptyReviewItems: ReviewItemSummary[] = []
@@ -93,8 +89,9 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   const session = authClient.useSession()
   const queryClient = useQueryClient()
   const [isSigningOut, setIsSigningOut] = useState(false)
-  const [activeProposal, setActiveProposal] = useState<ActiveProposal | null>(null)
+  const [activeProposal, setActiveProposal] = useState<ActiveReviewProposal | null>(null)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [mobilePane, setMobilePane] = useState<'document' | 'reviews'>('document')
   const [viewedVersionId, setViewedVersionId] = useState<string | null>(null)
   const [comparisonSelection, setComparisonSelection] = useState<ComparisonSelection | null>(null)
   const workspace = useQuery({
@@ -106,21 +103,21 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     queryKey: ['document', documentId],
     queryFn: () => apiRequest<DocumentDetail>(`/api/v1/documents/${documentId}`),
     enabled: Boolean(session.data?.user),
-    refetchInterval: 5_000,
+    refetchInterval: 15_000,
     refetchIntervalInBackground: false,
   })
   const reviewItems = useQuery({
     queryKey: ['review-items', documentId],
     queryFn: () => apiRequest<ReviewItemSummary[]>(`/api/v1/documents/${documentId}/review-items`),
     enabled: Boolean(session.data?.user),
-    refetchInterval: 3_000,
+    refetchInterval: 10_000,
     refetchIntervalInBackground: false,
   })
   const versions = useQuery({
     queryKey: ['document-versions', documentId],
     queryFn: () => apiRequest<DocumentVersionSummary[]>(`/api/v1/documents/${documentId}/versions`),
     enabled: Boolean(session.data?.user),
-    refetchInterval: 5_000,
+    refetchInterval: 30_000,
     refetchIntervalInBackground: false,
   })
   const historicalVersion = useQuery({
@@ -163,6 +160,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   function handleCreated(item: ReviewItemSummary) {
     setActiveProposal(null)
     setSelectedItemId(item.id)
+    setMobilePane('reviews')
     void queryClient.invalidateQueries({ queryKey: ['review-items', documentId] })
   }
 
@@ -215,23 +213,16 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     setSelectedItemId(null)
   }
 
-  function handlePropose(block: DocumentDetail['blocks'][number], changeType: ReviewChangeType) {
-    setActiveProposal({ block, changeType })
-    setSelectedItemId(null)
-  }
-
-  function handleProposeInsertion(anchor: DocumentInsertionAnchor) {
-    setActiveProposal({
-      changeType: 'insert',
-      block: anchor.afterBlock,
-      beforeBlockId: anchor.beforeBlockId,
-    })
-    setSelectedItemId(null)
-  }
-
-  function handleSelect(item: ReviewItemSummary) {
+  function handleSelectItem(item: ReviewItemSummary) {
     setActiveProposal(null)
     setSelectedItemId(item.id)
+    setMobilePane('reviews')
+  }
+
+  function handleStartProposal(proposal: ActiveReviewProposal) {
+    setActiveProposal(proposal)
+    setSelectedItemId(null)
+    setMobilePane('reviews')
   }
 
   const loading = isPageLoading({
@@ -271,7 +262,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   const displayedDocument = viewedVersionId ? historicalVersion.data! : document.data!
 
   return (
-    <DocumentReviewWorkspace
+    <DocumentReviewPageContent
       activeProposal={activeProposal}
       comparisonSelection={comparisonSelection}
       displayedDocument={displayedDocument}
@@ -279,20 +270,21 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
       document={document.data!}
       documentId={documentId}
       isSigningOut={isSigningOut}
+      mobilePane={mobilePane}
       onCancelProposal={() => setActiveProposal(null)}
       onCloseComparison={() => setComparisonSelection(null)}
       onCommentCreated={handleCommentCreated}
       onCompareVersions={handleCompareVersions}
       onCreated={handleCreated}
-      onPropose={handlePropose}
-      onProposeInsertion={handleProposeInsertion}
+      onMobilePaneChange={setMobilePane}
       onResolve={handleResolve}
       onReturnToCurrentVersion={() => setViewedVersionId(null)}
-      onSelect={handleSelect}
+      onSelectItem={handleSelectItem}
       onSignOut={handleSignOut}
+      onStartProposal={handleStartProposal}
       onVersionChanged={handleVersionChanged}
       onViewVersion={handleViewVersion}
-      presence={presence.data ?? emptyPresence}
+      participants={presence.data ?? emptyPresence}
       selectedItemId={selectedItemId}
       selectedStableKey={selectedStableKey}
       user={session.data.user}
