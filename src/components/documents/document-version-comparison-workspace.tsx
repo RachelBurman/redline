@@ -12,6 +12,7 @@ interface DocumentVersionComparisonWorkspaceProps {
   documentId: string
   onClose: () => void
   targetVersionId: string
+  userId: string
 }
 
 export function DocumentVersionComparisonWorkspace({
@@ -19,6 +20,7 @@ export function DocumentVersionComparisonWorkspace({
   documentId,
   onClose,
   targetVersionId,
+  userId,
 }: DocumentVersionComparisonWorkspaceProps) {
   const comparison = useQuery({
     queryKey: ['document-version-comparison', documentId, baseVersionId, targetVersionId],
@@ -56,5 +58,5 @@ export function DocumentVersionComparisonWorkspace({
     )
   }
 
-  return <VersionComparisonView comparison={comparison.data} onClose={onClose} />
+  return <VersionComparisonView comparison={comparison.data} onClose={onClose} userId={userId} />
 }
