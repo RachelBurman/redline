@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { VersionComparisonView } from './version-comparison-view'
 
@@ -64,12 +64,18 @@ const comparison: DocumentVersionComparison = {
 }
 
 afterEach(cleanup)
+beforeEach(() => window.localStorage.clear())
 
 describe('VersionComparisonView', () => {
-  it('shows removed content as a neutral record without redline markup', () => {
+  it('shows removed content as a neutral record without redline markup', async () => {
     const { container } = render(
-      <VersionComparisonView comparison={comparison} onClose={vi.fn<() => void>()} />,
+      <VersionComparisonView
+        comparison={comparison}
+        onClose={vi.fn<() => void>()}
+        userId="user-1"
+      />,
     )
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Use structured view' }))
 
     expect(
       screen.getByRole('article', { name: 'Absent from later version document block' }),
@@ -81,13 +87,56 @@ describe('VersionComparisonView', () => {
 
   it('can reveal unchanged blocks and return to the document', async () => {
     const onClose = vi.fn<() => void>()
-    render(<VersionComparisonView comparison={comparison} onClose={onClose} />)
+    render(<VersionComparisonView comparison={comparison} onClose={onClose} userId="user-1" />)
     const user = userEvent.setup()
 
     await user.click(screen.getByLabelText('Show unchanged blocks'))
-    expect(screen.getByText('Unchanged content')).toBeInTheDocument()
+    expect(await screen.findByText('Unchanged content')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: 'Return to document' }))
     expect(onClose).toHaveBeenCalledOnce()
+  })
+
+  it('switches the lazy word-level view to the saved split layout', async () => {
+    const { container } = render(
+      <VersionComparisonView
+        comparison={comparison}
+        onClose={vi.fn<() => void>()}
+        userId="layout-user"
+      />,
+    )
+    const user = userEvent.setup()
+
+    expect(await screen.findByRole('article', { name: 'Changed paragraph' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Split' }))
+
+    expect(container.querySelector('[data-comparison-layout="split"]')).toBeInTheDocument()
+    expect(window.localStorage.getItem('redline:version-comparison-layout:layout-user')).toBe(
+      'split',
+    )
+  })
+
+  it('uses the structured fallback above the changed-block budget', () => {
+    const blocks = Array.from({ length: 201 }, (_, index) => ({
+      ...comparison.blocks[0],
+      stableKey: `changed-${index}`,
+      base: { ...comparison.blocks[0].base!, stableKey: `changed-${index}` },
+      target: { ...comparison.blocks[0].target!, stableKey: `changed-${index}` },
+    }))
+    render(
+      <VersionComparisonView
+        comparison={{
+          ...comparison,
+          blocks,
+          summary: { added: 0, modified: 201, removed: 0, unchanged: 0, totalChanges: 201 },
+        }}
+        onClose={vi.fn<() => void>()}
+        userId="large-document-user"
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: 'Word-level view unavailable' })).toBeDisabled()
+    expect(screen.getByText(/This comparison has 201 changed blocks/)).toBeInTheDocument()
+    expect(screen.getAllByRole('article', { name: 'Changed document block' })).toHaveLength(201)
   })
 })

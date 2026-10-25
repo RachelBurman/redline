@@ -58,15 +58,17 @@ audit events where appropriate, and automated tests.
          review processing inline.
    - [x] Add keyboard, focus, backdrop, scroll-lock, and accessibility-focused component and
          integration tests.
-6. [ ] Evaluate and integrate [`@pierre/diffs`](https://diffs.com/) for document-version
-       comparison.
-   - Prototype split and unified prose comparisons with word-level inline changes.
-   - Confirm screen-reader semantics, keyboard behavior, wrapping, theming, Shadow DOM
-     integration, bundle cost, and performance on long documents.
-   - Preserve the existing structured block comparison as a fallback until the prototype meets
-     accessibility and document-review requirements.
-   - Keep accept/reject decisions in Redline's review engine and audit model rather than making
-     the rendering library a source of truth.
+6. [x] Evaluate [`@pierre/diffs`](https://diffs.com/) for document-version comparison and deliver
+       the required accessible comparison without adopting it when the spike criteria fail.
+   - [x] Prototype split and unified prose comparisons with word-level inline changes.
+   - [x] Confirm screen-reader semantics, keyboard behavior, wrapping, theming, Shadow DOM
+         integration, bundle cost, and performance on long documents.
+   - [x] Preserve the existing structured block comparison as an automatic and user-selectable
+         fallback.
+   - [x] Keep accept/reject decisions in Redline's review engine and audit model rather than
+         making the rendering library a source of truth.
+   - [x] Reject the dependency after provenance and real-browser rendering failures, record the
+         evidence in an ADR, and retain the locally rendered accessible alternative.
 7. [ ] Add image and graph blocks with safe upload, preview, versioning, and export behavior.
 8. [ ] Improve collaboration updates beyond polling where they materially improve proposal and
        discussion workflows; do not turn this phase into unrestricted real-time word processing.

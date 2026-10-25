@@ -159,6 +159,7 @@ export function DocumentReviewPageContent({
             documentId={documentId}
             onClose={onCloseComparison}
             targetVersionId={comparisonSelection.targetVersionId}
+            userId={user.id}
           />
         ) : (
           <DocumentReviewWorkspace

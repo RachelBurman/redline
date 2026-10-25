@@ -14,7 +14,7 @@ attributable decisions, filter and sort the review queue, hold a one-level threa
 on a review proposal, securely invite reviewers, assign organisation members to an exact review
 round, inspect the permission-scoped audit trail, and export the resolved content as a new `.docx`,
 download an auditable CSV for every version they may access, or compare assigned immutable
-versions in a clean block-based view.
+versions in a locally rendered word-level or structured block view.
 
 ## Implemented workflow
 
@@ -40,8 +40,8 @@ versions in a clean block-based view.
     creates the next immutable version.
 13. Browse and download historical versions, or restore one through a focused, accessible
     confirmation dialog without deleting or rewriting history.
-14. Compare any two versions by logical block, with added, changed, absent, and unchanged
-    content clearly separated from the readable document.
+14. Compare any two versions by logical block, with locally rendered word-level changes in a
+    per-user unified or split layout and an application-owned structured fallback.
 15. Record invitations, assignments, uploads, proposals, comments, decisions, versions, restores,
     and exports in the append-only audit log.
 16. Generate and download a basic resolved `.docx` from the current structured version.
@@ -56,18 +56,18 @@ overwriting shared document text.
 
 ## Current product status
 
-The version-safe review foundation and the first five follow-on product slices are implemented:
+The version-safe review foundation and the first six follow-on product slices are implemented:
 threaded proposal discussions, review-queue filters and sorting, reviewer invitations and
 exact-round assignments, paragraph additions at immutable block boundaries, and an accessible
-application-owned modal/dialog system.
+application-owned modal/dialog system, followed by accessible word-level version comparison.
 
 The review workspace adapts to smaller screens with explicit document/review panes, and first-run
 guidance now explains the upload, review, and immutable publishing workflow without implying that
 accepting a proposal silently creates a new version.
 
 The roadmap still includes dedicated question/comment proposal types, named proposal ownership,
-richer document-version comparisons, safely versioned image and graph blocks, and collaboration
-updates beyond polling without expanding the MVP into unrestricted real-time word processing.
+safely versioned image and graph blocks, and collaboration updates beyond polling without
+expanding the MVP into unrestricted real-time word processing.
 
 See [`TODO.md`](./TODO.md) for the detailed, checked product roadmap.
 
@@ -80,6 +80,7 @@ See [`TODO.md`](./TODO.md) for the detailed, checked product roadmap.
 - Better Auth with organisation-scoped RBAC
 - `fflate` and `fast-xml-parser` for isolated OOXML extraction
 - `docx` for resolved-document generation
+- `diff` for local, read-only word-level version-comparison tokenisation
 - Vitest and Testing Library
 - Oxlint and Oxfmt (OXC), React Doctor, Lefthook, and GitHub Actions CI
 
@@ -259,15 +260,25 @@ accessible name and description, moves focus to the required reason, contains fo
 browser's modal top layer, closes with Escape or the backdrop, locks background scrolling, and
 returns focus to the triggering control. Routine proposal processing remains inline.
 
-Version comparison uses the stable key stored with each version-owned block. Matching keys
-are classified as unchanged or changed; keys present in only one selected version are added
-or absent. The result is a read-only comparison and does not modify either version or create
-audit noise. Absent content is shown as a neutral, labelled record—not red text, a
-strikethrough, or tracked-change markup. The same clean-document rule is the contract for the
-deletion workflow: an accepted deletion is absent from the resolved preview and every
-materialised successor version. Its original text, rationale, decision, attribution, and
-content hash remain in the review queue, CSV report, and audit trail rather than appearing as
-a permanent redline in the readable document.
+Version comparison uses the stable key stored with each version-owned block. Matching keys are
+classified as unchanged or changed; keys present in only one selected version are added or
+absent. The result is a read-only comparison and does not modify either version or create audit
+noise. A client-only, lazy application renderer presents supported changes with wrapped semantic
+word-level additions and deletions and a per-user unified or split layout. Old/new labels, named
+changed regions, and explicit non-colour change text remain in the light DOM for browser find,
+selection, printing, and assistive technology. Unsupported blocks, renderer failures, and
+comparisons above the enhanced-rendering budget automatically use the application-owned structured
+block view, which users can also select directly. No document content leaves the application
+boundary.
+
+Absent content is shown as a labelled comparison record rather than permanent tracked-change
+markup. The same clean-document rule is the contract for the deletion workflow: an accepted
+deletion is absent from the resolved preview and every materialised successor version. Its
+original text, rationale, decision, attribution, and content hash remain in the review queue, CSV
+report, and audit trail rather than appearing as a permanent redline in the readable document.
+See [`docs/adr/0001-pierre-diffs-version-comparisons.md`](./docs/adr/0001-pierre-diffs-version-comparisons.md)
+for the `@pierre/diffs` rejection decision, accessibility findings, bundle measurements,
+performance budget, and selected local alternative.
 
 ### DOCX parsing and export
 
@@ -340,9 +351,8 @@ inaccurately. Top-level comments and one level of direct replies can be submitte
 read with author attribution and timestamps. Replies to replies, editing comments, and resolving
 discussion threads remain follow-up work.
 Direct shared-text editing, CRDT/OT synchronisation, pagination, headers and footers, and
-pixel-perfect Word rendering remain outside this MVP. Version comparison is block-based; it
-does not yet calculate character-level diffs, classify moved blocks, or reproduce Word-style
-redlines.
+pixel-perfect Word rendering remain outside this MVP. Version comparison provides word-level
+changes for supported blocks but does not classify moved blocks or reproduce Word-style redlines.
 
 ## Security and data safety
 
@@ -378,5 +388,8 @@ redlines.
   auditor access is limited to active assignments on the requested review version.
 - Dependency installation enforces a seven-day release maturity window and trust-downgrade
   checks, with narrow documented exceptions for established transitive packages.
+- Version comparison runs locally and never sends unpublished text to a third-party service. The
+  evaluated `@pierre/diffs` dependency is not shipped because current releases fail the repository's
+  provenance policy and the newest installable candidate failed real-browser rendering.
 
 Do not commit `.env.local`, uploaded documents, database volumes, or generated exports.
