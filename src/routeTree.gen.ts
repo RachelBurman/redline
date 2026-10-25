@@ -21,6 +21,7 @@ import { Route as AppAccountRouteImport } from './routes/app/account'
 import { Route as AppReviewersRouteImport } from './routes/app/reviewers'
 import { Route as ApiV1DocumentsRouteImport } from './routes/api/v1/documents'
 import { Route as ApiV1HealthRouteImport } from './routes/api/v1/health'
+import { Route as ApiV1ReadyRouteImport } from './routes/api/v1/ready'
 import { Route as ApiV1ReviewersRouteImport } from './routes/api/v1/reviewers'
 import { Route as ApiV1WorkspaceRouteImport } from './routes/api/v1/workspace'
 import { Route as AppDocumentsDocumentIdRouteImport } from './routes/app/documents/$documentId'
@@ -99,6 +100,11 @@ const ApiV1DocumentsRoute = ApiV1DocumentsRouteImport.update({
 const ApiV1HealthRoute = ApiV1HealthRouteImport.update({
   id: '/api/v1/health',
   path: '/api/v1/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1ReadyRoute = ApiV1ReadyRouteImport.update({
+  id: '/api/v1/ready',
+  path: '/api/v1/ready',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1ReviewersRoute = ApiV1ReviewersRouteImport.update({
@@ -230,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/app/': typeof AppIndexRoute
   '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/ready': typeof ApiV1ReadyRoute
   '/api/v1/reviewers': typeof ApiV1ReviewersRoute
   '/api/v1/workspace': typeof ApiV1WorkspaceRoute
   '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
@@ -262,6 +269,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppIndexRoute
   '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/ready': typeof ApiV1ReadyRoute
   '/api/v1/reviewers': typeof ApiV1ReviewersRoute
   '/api/v1/workspace': typeof ApiV1WorkspaceRoute
   '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
@@ -296,6 +304,7 @@ export interface FileRoutesById {
   '/app/': typeof AppIndexRoute
   '/api/v1/documents': typeof ApiV1DocumentsRouteWithChildren
   '/api/v1/health': typeof ApiV1HealthRoute
+  '/api/v1/ready': typeof ApiV1ReadyRoute
   '/api/v1/reviewers': typeof ApiV1ReviewersRoute
   '/api/v1/workspace': typeof ApiV1WorkspaceRoute
   '/app/documents/$documentId': typeof AppDocumentsDocumentIdRoute
@@ -331,6 +340,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/api/v1/documents'
     | '/api/v1/health'
+    | '/api/v1/ready'
     | '/api/v1/reviewers'
     | '/api/v1/workspace'
     | '/app/documents/$documentId'
@@ -363,6 +373,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/api/v1/documents'
     | '/api/v1/health'
+    | '/api/v1/ready'
     | '/api/v1/reviewers'
     | '/api/v1/workspace'
     | '/app/documents/$documentId'
@@ -396,6 +407,7 @@ export interface FileRouteTypes {
     | '/app/'
     | '/api/v1/documents'
     | '/api/v1/health'
+    | '/api/v1/ready'
     | '/api/v1/reviewers'
     | '/api/v1/workspace'
     | '/app/documents/$documentId'
@@ -427,6 +439,7 @@ export interface RootRouteChildren {
   SignUpRoute: typeof SignUpRoute
   ApiV1DocumentsRoute: typeof ApiV1DocumentsRouteWithChildren
   ApiV1HealthRoute: typeof ApiV1HealthRoute
+  ApiV1ReadyRoute: typeof ApiV1ReadyRoute
   ApiV1ReviewersRoute: typeof ApiV1ReviewersRoute
   ApiV1WorkspaceRoute: typeof ApiV1WorkspaceRoute
   ApiV1AuthSplatRoute: typeof ApiV1AuthSplatRoute
@@ -516,6 +529,13 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/health'
       fullPath: '/api/v1/health'
       preLoaderRoute: typeof ApiV1HealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/ready': {
+      id: '/api/v1/ready'
+      path: '/api/v1/ready'
+      fullPath: '/api/v1/ready'
+      preLoaderRoute: typeof ApiV1ReadyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/v1/reviewers': {
@@ -793,6 +813,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignUpRoute: SignUpRoute,
   ApiV1DocumentsRoute: ApiV1DocumentsRouteWithChildren,
   ApiV1HealthRoute: ApiV1HealthRoute,
+  ApiV1ReadyRoute: ApiV1ReadyRoute,
   ApiV1ReviewersRoute: ApiV1ReviewersRoute,
   ApiV1WorkspaceRoute: ApiV1WorkspaceRoute,
   ApiV1AuthSplatRoute: ApiV1AuthSplatRoute,

@@ -17,6 +17,7 @@
     "lint:fix": "oxlint --fix .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --maxWorkers=4",
+    "test:integration": "vitest run --config vitest.integration.config.ts --maxWorkers=1",
     "test:watch": "vitest --maxWorkers=4",
     "test:coverage": "vitest run --coverage --maxWorkers=4",
     "react-doctor": "react-doctor --blocking warning",
