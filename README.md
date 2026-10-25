@@ -61,6 +61,10 @@ threaded proposal discussions, review-queue filters and sorting, reviewer invita
 exact-round assignments, paragraph additions at immutable block boundaries, and an accessible
 application-owned modal/dialog system.
 
+The review workspace adapts to smaller screens with explicit document/review panes, and first-run
+guidance now explains the upload, review, and immutable publishing workflow without implying that
+accepting a proposal silently creates a new version.
+
 The roadmap still includes dedicated question/comment proposal types, named proposal ownership,
 richer document-version comparisons, safely versioned image and graph blocks, and collaboration
 updates beyond polling without expanding the MVP into unrestricted real-time word processing.

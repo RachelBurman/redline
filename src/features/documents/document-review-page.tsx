@@ -4,13 +4,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { DocumentAuditPanel } from '#/components/documents/document-audit-panel'
 import { DocumentLoadingState } from '#/components/documents/document-loading-state'
 import { DocumentReviewHeader } from '#/components/documents/document-review-header'
+import {
+  DocumentReviewWorkspace,
+  type ActiveReviewProposal,
+} from '#/components/documents/document-review-workspace'
 import { DocumentUnavailableState } from '#/components/documents/document-unavailable-state'
 import { DocumentVersionComparisonWorkspace } from '#/components/documents/document-version-comparison-workspace'
-import { DocumentViewer } from '#/components/documents/document-viewer'
-import { ParserWarnings } from '#/components/documents/parser-warnings'
 import { VersionHistoryPanel } from '#/components/documents/version-history-panel'
 import { ReviewRoundAssignmentsPanel } from '#/components/reviewers/review-round-assignments-panel'
-import { ReviewSidebar } from '#/components/reviews/review-sidebar'
 import { WorkspaceHeader } from '#/components/workspace/workspace-header'
 import { apiRequest } from '#/lib/api-client'
 import { authClient } from '#/lib/auth-client'
@@ -25,7 +26,6 @@ import type {
   ReviewCommentSummary,
   ReviewItemSummary,
 } from '#/types/reviews'
-import type { ReviewChangeType } from '#/types/reviews'
 import type { WorkspaceSummary } from '#/types/workspace'
 
 const emptyPresence: PresenceParticipant[] = []
@@ -36,18 +36,13 @@ interface ComparisonSelection {
   targetVersionId: string
 }
 
-interface ActiveProposal {
-  block: DocumentDetail['blocks'][number]
-  changeType: ReviewChangeType
-  beforeBlockId?: string | null
-}
-
 export function DocumentReviewPage({ documentId }: { documentId: string }) {
   const session = authClient.useSession()
   const queryClient = useQueryClient()
   const [isSigningOut, setIsSigningOut] = useState(false)
-  const [activeProposal, setActiveProposal] = useState<ActiveProposal | null>(null)
+  const [activeProposal, setActiveProposal] = useState<ActiveReviewProposal | null>(null)
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null)
+  const [mobilePane, setMobilePane] = useState<'document' | 'reviews'>('document')
   const [viewedVersionId, setViewedVersionId] = useState<string | null>(null)
   const [comparisonSelection, setComparisonSelection] = useState<ComparisonSelection | null>(null)
   const workspace = useQuery({
@@ -116,6 +111,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   function handleCreated(item: ReviewItemSummary) {
     setActiveProposal(null)
     setSelectedItemId(item.id)
+    setMobilePane('reviews')
     void queryClient.invalidateQueries({ queryKey: ['review-items', documentId] })
   }
 
@@ -275,56 +271,31 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
             targetVersionId={comparisonSelection.targetVersionId}
           />
         ) : (
-          <>
-            <ParserWarnings warnings={displayedDocument.version.parserWarnings} />
-
-            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-              <DocumentViewer
-                blocks={displayedDocument.blocks}
-                canInsert={
-                  capabilities.review &&
-                  !isViewingHistoricalVersion &&
-                  displayedDocument.insertionAnchors.length > 0
-                }
-                insertionAnchors={displayedDocument.insertionAnchors}
-                canReview={capabilities.review && !isViewingHistoricalVersion}
-                onPropose={(block, changeType) => {
-                  setActiveProposal({ block, changeType })
-                  setSelectedItemId(null)
-                }}
-                onProposeInsertion={(anchor) => {
-                  setActiveProposal({
-                    changeType: 'insert',
-                    block: anchor.afterBlock,
-                    beforeBlockId: anchor.beforeBlockId,
-                  })
-                  setSelectedItemId(null)
-                }}
-                selectedStableKey={selectedStableKey}
-              />
-              <ReviewSidebar
-                activeBlock={activeProposal?.block ?? null}
-                activeChangeType={activeProposal?.changeType ?? null}
-                insertionBeforeBlockId={activeProposal?.beforeBlockId}
-                blocks={displayedDocument.blocks}
-                canComment={capabilities.comment && !isViewingHistoricalVersion}
-                canResolve={capabilities.resolve && !isViewingHistoricalVersion}
-                documentId={documentId}
-                documentVersionId={displayedDocument.version.id}
-                items={displayedReviewItems}
-                onCancelProposal={() => setActiveProposal(null)}
-                onCreated={handleCreated}
-                onCommentCreated={handleCommentCreated}
-                onResolve={handleResolve}
-                onSelect={(item) => {
-                  setActiveProposal(null)
-                  setSelectedItemId(item.id)
-                }}
-                reviewRoundId={displayedDocument.reviewRound.id}
-                selectedItemId={selectedItemId}
-              />
-            </div>
-          </>
+          <DocumentReviewWorkspace
+            activeProposal={activeProposal}
+            document={displayedDocument}
+            documentId={documentId}
+            isViewingHistoricalVersion={isViewingHistoricalVersion}
+            items={displayedReviewItems}
+            mobilePane={mobilePane}
+            onCancelProposal={() => setActiveProposal(null)}
+            onCommentCreated={handleCommentCreated}
+            onCreated={handleCreated}
+            onMobilePaneChange={setMobilePane}
+            onResolve={handleResolve}
+            onSelectItem={(item) => {
+              setActiveProposal(null)
+              setSelectedItemId(item.id)
+              setMobilePane('reviews')
+            }}
+            onStartProposal={(proposal) => {
+              setActiveProposal(proposal)
+              setSelectedItemId(null)
+              setMobilePane('reviews')
+            }}
+            selectedItemId={selectedItemId}
+            selectedStableKey={selectedStableKey}
+          />
         )}
       </main>
     </div>

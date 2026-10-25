@@ -11,7 +11,7 @@ const principles = [
     icon: ListChecks,
     number: '02',
     title: 'Every change becomes a decision',
-    copy: 'Replacement, insertion, deletion, question, and comment proposals carry a reason, category, priority, owner, and status.',
+    copy: 'Today, replacement, insertion, and deletion proposals carry a reason, category, priority, author, and status. Dedicated question/comment proposals and named owners are planned next.',
   },
   {
     icon: GitBranch,

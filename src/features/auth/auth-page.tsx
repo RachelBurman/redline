@@ -27,9 +27,9 @@ export function AuthPage({ mode, redirectTo = '/app' }: { mode: AuthMode; redire
           <p className="text-xs font-bold tracking-[0.16em] text-[#9fc2b3] uppercase">
             A clearer record of review
           </p>
-          <h1 className="mt-5 font-serif text-6xl leading-[1.02] font-medium tracking-[-0.05em]">
+          <h2 className="mt-5 font-serif text-6xl leading-[1.02] font-medium tracking-[-0.05em]">
             Make each change explain itself.
-          </h1>
+          </h2>
           <p className="mt-6 max-w-lg text-base leading-8 text-[#c2cec8]">
             Keep the document readable while proposals, discussions, decisions, and versions remain
             fully attributable.
@@ -58,9 +58,9 @@ export function AuthPage({ mode, redirectTo = '/app' }: { mode: AuthMode; redire
           <p className="text-[11px] font-bold tracking-[0.14em] text-[#b4543c] uppercase">
             {isSignUp ? 'Create an account' : 'Welcome back'}
           </p>
-          <h2 className="mt-3 font-serif text-4xl font-semibold tracking-[-0.04em] text-[#1d2824]">
+          <h1 className="mt-3 font-serif text-4xl font-semibold tracking-[-0.04em] text-[#1d2824]">
             {isSignUp ? 'Start your first review.' : 'Continue your reviews.'}
-          </h2>
+          </h1>
           <p className="mt-3 text-sm leading-6 text-[#6b7570]">
             {isSignUp
               ? 'Your organisation and first project will be prepared automatically.'

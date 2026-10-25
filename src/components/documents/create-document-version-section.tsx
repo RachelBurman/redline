@@ -38,6 +38,10 @@ export function CreateDocumentVersionSection({
               ? 'Accept at least one proposal before creating the next immutable version.'
               : `${currentVersion.acceptedChangeCount} accepted ${currentVersion.acceptedChangeCount === 1 ? 'change is' : 'changes are'} ready. ${currentVersion.unresolvedReviewItemCount} unresolved ${currentVersion.unresolvedReviewItemCount === 1 ? 'item' : 'items'} will be superseded.`}
           </p>
+          <p className="mt-1 max-w-2xl text-[11px] leading-5 text-[#7a655e]">
+            Accepting changes updates the resolved preview. Publishing creates a permanent,
+            downloadable checkpoint and starts the next review round.
+          </p>
         </div>
         <button
           className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#1f4d42] px-4 text-xs font-bold text-white hover:bg-[#183d34] disabled:cursor-not-allowed disabled:opacity-50"
