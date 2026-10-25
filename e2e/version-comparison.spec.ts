@@ -189,6 +189,7 @@ for (const viewport of [
     await page.getByRole('button', { name: 'Compare versions' }).click()
 
     await expect(page.getByRole('heading', { name: 'Version 1 to version 2' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Version history/ })).toHaveCount(0)
     const changedRegion = page.getByRole('article', { name: 'Changed paragraph' })
     await expect(changedRegion).toHaveAccessibleDescription(
       'Changed paragraph. Version 1 is the old version and version 2 is the new version.',

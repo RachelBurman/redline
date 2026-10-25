@@ -115,19 +115,23 @@ export function DocumentReviewPageContent({
           versionNumber={displayedDocument.version.versionNumber}
         />
 
-        <VersionHistoryPanel
-          canDownloadVersions={capabilities.exportDocument}
-          canManageVersions={capabilities.manageVersions}
-          currentVersionId={document.version.id}
-          documentId={documentId}
-          onCompareVersions={onCompareVersions}
-          onVersionChanged={onVersionChanged}
-          onViewVersion={onViewVersion}
-          versions={versions}
-          viewedVersionId={viewedVersionId}
-        />
+        {!isComparingVersions ? (
+          <VersionHistoryPanel
+            canDownloadVersions={capabilities.exportDocument}
+            canManageVersions={capabilities.manageVersions}
+            currentVersionId={document.version.id}
+            documentId={documentId}
+            onCompareVersions={onCompareVersions}
+            onVersionChanged={onVersionChanged}
+            onViewVersion={onViewVersion}
+            versions={versions}
+            viewedVersionId={viewedVersionId}
+          />
+        ) : null}
 
-        {capabilities.viewAudit ? <DocumentAuditPanel documentId={documentId} /> : null}
+        {capabilities.viewAudit && !isComparingVersions ? (
+          <DocumentAuditPanel documentId={documentId} />
+        ) : null}
 
         {capabilities.manageAssignments && !isViewingHistoricalVersion && !isComparingVersions ? (
           <ReviewRoundAssignmentsPanel
