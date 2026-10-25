@@ -151,6 +151,7 @@ without changing the document or export workflows.
 | `pnpm lint`             | Lint with Oxlint and deny warnings                               |
 | `pnpm typecheck`        | Type-check without emitting files                                |
 | `pnpm test`             | Run unit and component tests once                                |
+| `pnpm test:e2e`         | Run browser journeys against the local application               |
 | `pnpm test:integration` | Run live PostgreSQL integration tests                            |
 | `pnpm test:coverage`    | Run tests and enforce repository coverage thresholds             |
 | `pnpm react-doctor`     | Scan the React codebase and block on warnings                    |
@@ -178,6 +179,13 @@ database credentials exist only for the lifetime of that CI job.
 Locally, start PostgreSQL with `docker compose up -d postgres`, apply migrations with
 `pnpm db:migrate`, and then run `pnpm test:integration`. The integration test configuration loads
 `.env.local` while CI continues to inject its ephemeral database URL directly.
+
+Install the browser once with `pnpm exec playwright install chromium`. Start the local test
+dependencies with `docker compose up -d postgres mailpit`, apply migrations with
+`pnpm db:migrate`, and then run `pnpm test:e2e`. The Playwright suite starts Redline, exercises
+the public experience at desktop and phone widths, creates a real account and authenticated
+workspace, checks liveness/readiness, and removes its database fixture after the run. CI installs
+Chromium and runs this suite against isolated PostgreSQL and Mailpit services.
 
 ## Architecture
 

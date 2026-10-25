@@ -1,8 +1,11 @@
 import { Check, MessageSquareText, X } from 'lucide-react'
 import { useState } from 'react'
 
+import { useHasHydrated } from '#/hooks/use-has-hydrated'
+
 export function ReviewQueuePreview() {
   const [decision, setDecision] = useState<'accepted' | 'rejected' | null>(null)
+  const hasHydrated = useHasHydrated()
   return (
     <aside
       aria-label="Example review decision queue"
@@ -64,7 +67,7 @@ export function ReviewQueuePreview() {
               <button
                 aria-label="Reject example proposal"
                 className="grid size-8 place-items-center rounded-lg border border-[#ddd9d2] text-[#8a5145] transition-colors hover:bg-[#fff5f1] disabled:cursor-default disabled:opacity-50"
-                disabled={decision !== null}
+                disabled={!hasHydrated || decision !== null}
                 onClick={() => setDecision('rejected')}
                 type="button"
               >
@@ -73,7 +76,7 @@ export function ReviewQueuePreview() {
               <button
                 aria-label="Accept example proposal"
                 className="grid size-8 place-items-center rounded-lg bg-[#27634f] text-white transition-colors hover:bg-[#1e503f] disabled:cursor-default disabled:opacity-50"
-                disabled={decision !== null}
+                disabled={!hasHydrated || decision !== null}
                 onClick={() => setDecision('accepted')}
                 type="button"
               >

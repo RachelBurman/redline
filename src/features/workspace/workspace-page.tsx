@@ -33,10 +33,10 @@ export function WorkspacePage() {
   })
 
   useEffect(() => {
-    if (!session.isPending && !session.data?.user) {
+    if (!isSigningOut && !session.isPending && !session.data?.user) {
       window.location.replace('/sign-in')
     }
-  }, [session.data?.user, session.isPending])
+  }, [isSigningOut, session.data?.user, session.isPending])
 
   async function handleSignOut() {
     setIsSigningOut(true)
