@@ -148,7 +148,7 @@ without changing the document or export workflows.
 | `pnpm build`            | Create the production client and server bundles                  |
 | `pnpm verify`           | Run all local and CI quality, security, build, and test gates    |
 | `pnpm format:check`     | Check repository formatting with Oxfmt                           |
-| `pnpm lint`             | Lint with Oxlint and deny warnings                               |
+| `pnpm lint`             | Run Oxlint, React Doctor, and accessibility rules                |
 | `pnpm typecheck`        | Type-check without emitting files                                |
 | `pnpm test`             | Run unit and component tests once                                |
 | `pnpm test:e2e`         | Run browser journeys against the local application               |
@@ -162,11 +162,14 @@ without changing the document or export workflows.
 
 ## Quality gates and CI
 
-Lefthook checks staged-file formatting, lints staged source files, scans staged React code,
-and runs the test suite before a commit. Before a push it runs the complete `pnpm verify`
-gate, including a production dependency audit. The production build runs before the full
-React Doctor scan so TanStack Start can generate its convention-based entry-point type links.
-Commits follow Conventional Commits.
+Lefthook checks staged-file formatting, lints staged source files with warnings denied, scans
+staged React code, and runs the test suite before a commit. Oxlint includes its native React and
+`jsx-a11y` rules plus React Doctor's recommended, TanStack Start, and TanStack Query rules. Before a
+push it runs the complete `pnpm verify` gate, including coverage and a production dependency audit.
+The production build runs before the full React Doctor scan so TanStack Start can generate its
+convention-based entry-point type links. The repo-local `$pre-pr-verification` skill in
+`.agents/skills/` requires the same gate before opening or updating a pull request. Commits follow
+Conventional Commits.
 
 The GitHub Actions workflow in `.github/workflows/ci.yml` starts an isolated PostgreSQL 17 service,
 applies every committed migration, runs a cross-tenant assignment integration test, and runs

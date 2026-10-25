@@ -1,7 +1,8 @@
-import { Check, LoaderCircle, X } from 'lucide-react'
 import { useState } from 'react'
 
 import { ReviewDiscussion } from './review-discussion'
+import { ReviewItemChangeSummary } from './review-item-change-summary'
+import { ReviewResolutionControls } from './review-resolution-controls'
 
 import type { ReviewCommentSummary, ReviewItemSummary } from '#/types/reviews'
 import type { ListReviewCommentsAction } from './review-discussion'
@@ -16,6 +17,12 @@ interface ReviewItemDetailProps {
   onResolve: (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
 }
 
+const changeTypeLabels = {
+  delete: 'Deletion',
+  insert: 'New paragraph',
+  replace: 'Replacement',
+} as const
+
 export function ReviewItemDetail({
   item,
   documentId,
@@ -27,7 +34,6 @@ export function ReviewItemDetail({
 }: ReviewItemDetailProps) {
   const [pendingDecision, setPendingDecision] = useState<'accept' | 'reject' | null>(null)
   const [resolutionError, setResolutionError] = useState<string | null>(null)
-  const isOpen = ['open', 'under_discussion'].includes(item.status)
 
   async function handleResolve(decision: 'accept' | 'reject') {
     setPendingDecision(decision)
@@ -51,47 +57,11 @@ export function ReviewItemDetail({
         Selected proposal
       </p>
       <h3 className="mt-1 text-sm font-bold text-[#303b36]" id="review-detail-heading">
-        {item.changeType === 'delete'
-          ? 'Deletion'
-          : item.changeType === 'insert'
-            ? 'New paragraph'
-            : 'Replacement'}{' '}
-        · {item.category}
+        {changeTypeLabels[item.changeType]} · {item.category}
       </h3>
 
       <dl className="mt-3 grid gap-3 text-xs">
-        {item.changeType === 'insert' ? (
-          <div>
-            <dt className="font-bold text-[#68716d]">Insertion point</dt>
-            <dd className="mt-1 rounded-lg bg-[#f1f0eb] px-3 py-2 leading-5 text-[#5f6964]">
-              End of document
-            </dd>
-          </div>
-        ) : (
-          <div>
-            <dt className="font-bold text-[#68716d]">Original</dt>
-            <dd className="mt-1 rounded-lg bg-[#f1f0eb] px-3 py-2 leading-5 text-[#5f6964]">
-              {item.originalContent}
-            </dd>
-          </div>
-        )}
-        {item.changeType === 'delete' ? (
-          <div>
-            <dt className="font-bold text-[#68716d]">Proposed action</dt>
-            <dd className="mt-1 rounded-lg border border-[#e5d6bd] bg-[#fff9ee] px-3 py-2 leading-5 text-[#6f542b]">
-              Remove this paragraph from the clean resolved document.
-            </dd>
-          </div>
-        ) : (
-          <div>
-            <dt className="font-bold text-[#68716d]">
-              {item.changeType === 'insert' ? 'New paragraph' : 'Proposed'}
-            </dt>
-            <dd className="mt-1 rounded-lg bg-[#edf5f0] px-3 py-2 leading-5 text-[#315845]">
-              {item.proposedContent}
-            </dd>
-          </div>
-        )}
+        <ReviewItemChangeSummary item={item} />
         <div>
           <dt className="font-bold text-[#68716d]">Rationale</dt>
           <dd className="mt-1 leading-5 text-[#4e5954]">{item.rationale}</dd>
@@ -113,46 +83,12 @@ export function ReviewItemDetail({
         </p>
       ) : null}
 
-      {isOpen && canResolve ? (
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          <button
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#d7d4cc] bg-white text-xs font-bold text-[#59635f] disabled:opacity-55"
-            disabled={pendingDecision !== null}
-            onClick={() => void handleResolve('reject')}
-            type="button"
-          >
-            {pendingDecision === 'reject' ? (
-              <LoaderCircle aria-hidden="true" className="animate-spin" size={14} />
-            ) : (
-              <X aria-hidden="true" size={14} />
-            )}
-            Reject
-          </button>
-          <button
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-[#1f684b] text-xs font-bold text-white disabled:opacity-55"
-            disabled={pendingDecision !== null}
-            onClick={() => void handleResolve('accept')}
-            type="button"
-          >
-            {pendingDecision === 'accept' ? (
-              <LoaderCircle aria-hidden="true" className="animate-spin" size={14} />
-            ) : (
-              <Check aria-hidden="true" size={14} />
-            )}
-            {item.changeType === 'delete'
-              ? 'Accept deletion'
-              : item.changeType === 'insert'
-                ? 'Accept paragraph'
-                : 'Accept'}
-          </button>
-        </div>
-      ) : null}
-
-      {isOpen && !canResolve ? (
-        <p className="mt-4 rounded-lg bg-[#f3f2ed] px-3 py-2 text-xs text-[#707974]">
-          Only an owner, administrator, or editor can resolve this proposal.
-        </p>
-      ) : null}
+      <ReviewResolutionControls
+        canResolve={canResolve}
+        item={item}
+        onResolve={(decision) => void handleResolve(decision)}
+        pendingDecision={pendingDecision}
+      />
     </section>
   )
 }

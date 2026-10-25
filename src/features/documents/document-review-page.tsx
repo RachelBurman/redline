@@ -1,23 +1,15 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 
-import { DocumentAuditPanel } from '#/components/documents/document-audit-panel'
 import { DocumentLoadingState } from '#/components/documents/document-loading-state'
-import { DocumentReviewHeader } from '#/components/documents/document-review-header'
-import {
-  DocumentReviewWorkspace,
-  type ActiveReviewProposal,
-} from '#/components/documents/document-review-workspace'
 import { DocumentUnavailableState } from '#/components/documents/document-unavailable-state'
-import { DocumentVersionComparisonWorkspace } from '#/components/documents/document-version-comparison-workspace'
-import { VersionHistoryPanel } from '#/components/documents/version-history-panel'
-import { ReviewRoundAssignmentsPanel } from '#/components/reviewers/review-round-assignments-panel'
-import { WorkspaceHeader } from '#/components/workspace/workspace-header'
 import { apiRequest } from '#/lib/api-client'
 import { authClient } from '#/lib/auth-client'
 
+import { DocumentReviewPageContent, type ComparisonSelection } from './document-review-page-content'
 import { useDocumentPresence } from './use-document-presence'
 
+import type { ActiveReviewProposal } from '#/components/documents/document-review-workspace'
 import type { DocumentVersionSummary, VersionActionResult } from '#/types/document-versions'
 import type { DocumentDetail } from '#/types/documents'
 import type { PresenceParticipant } from '#/types/presence'
@@ -31,9 +23,66 @@ import type { WorkspaceSummary } from '#/types/workspace'
 const emptyPresence: PresenceParticipant[] = []
 const emptyReviewItems: ReviewItemSummary[] = []
 
-interface ComparisonSelection {
-  baseVersionId: string
-  targetVersionId: string
+interface LoadingChecks {
+  documentIsPending: boolean
+  hasDocument: boolean
+  hasHistoricalVersion: boolean
+  hasReviewItems: boolean
+  hasVersions: boolean
+  hasWorkspace: boolean
+  historicalVersionIsPending: boolean
+  reviewItemsIsPending: boolean
+  sessionIsPending: boolean
+  versionsIsPending: boolean
+  viewingHistoricalVersion: boolean
+  workspaceIsPending: boolean
+}
+
+function isPageLoading(checks: LoadingChecks) {
+  return (
+    checks.sessionIsPending ||
+    (!checks.hasWorkspace && checks.workspaceIsPending) ||
+    (!checks.hasDocument && checks.documentIsPending) ||
+    (!checks.hasReviewItems && checks.reviewItemsIsPending) ||
+    (!checks.hasVersions && checks.versionsIsPending) ||
+    (checks.viewingHistoricalVersion &&
+      !checks.hasHistoricalVersion &&
+      checks.historicalVersionIsPending)
+  )
+}
+
+interface ErrorChecks {
+  document?: DocumentDetail
+  documentError?: string
+  historicalVersion?: DocumentDetail
+  historicalVersionError?: string
+  reviewItems?: ReviewItemSummary[]
+  reviewItemsError?: string
+  versions?: DocumentVersionSummary[]
+  versionsError?: string
+  viewedVersionId: string | null
+  workspace?: WorkspaceSummary
+  workspaceError?: string
+}
+
+function getPageError(checks: ErrorChecks) {
+  const dataIsMissing =
+    !checks.workspace ||
+    !checks.document ||
+    !checks.reviewItems ||
+    !checks.versions ||
+    (checks.viewedVersionId !== null && !checks.historicalVersion)
+
+  if (!dataIsMissing) return null
+
+  return (
+    checks.workspaceError ??
+    checks.documentError ??
+    checks.reviewItemsError ??
+    checks.versionsError ??
+    checks.historicalVersionError ??
+    'The document could not be loaded.'
+  )
 }
 
 export function DocumentReviewPage({ documentId }: { documentId: string }) {
@@ -150,154 +199,98 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     ])
   }
 
-  if (
-    session.isPending ||
-    (!workspace.data && workspace.isPending) ||
-    (!document.data && document.isPending) ||
-    (!reviewItems.data && reviewItems.isPending) ||
-    (!versions.data && versions.isPending) ||
-    (viewedVersionId !== null && !historicalVersion.data && historicalVersion.isPending)
-  ) {
-    return <DocumentLoadingState />
+  function handleCompareVersions(baseVersionId: string, targetVersionId: string) {
+    setComparisonSelection({ baseVersionId, targetVersionId })
+    setViewedVersionId(null)
+    setActiveProposal(null)
+    setSelectedItemId(null)
   }
 
+  function handleViewVersion(versionId: string | null) {
+    setViewedVersionId(versionId)
+    setComparisonSelection(null)
+    setActiveProposal(null)
+    setSelectedItemId(null)
+  }
+
+  function handleSelectItem(item: ReviewItemSummary) {
+    setActiveProposal(null)
+    setSelectedItemId(item.id)
+    setMobilePane('reviews')
+  }
+
+  function handleStartProposal(proposal: ActiveReviewProposal) {
+    setActiveProposal(proposal)
+    setSelectedItemId(null)
+    setMobilePane('reviews')
+  }
+
+  const loading = isPageLoading({
+    sessionIsPending: session.isPending,
+    hasWorkspace: Boolean(workspace.data),
+    workspaceIsPending: workspace.isPending,
+    hasDocument: Boolean(document.data),
+    documentIsPending: document.isPending,
+    hasReviewItems: Boolean(reviewItems.data),
+    reviewItemsIsPending: reviewItems.isPending,
+    hasVersions: Boolean(versions.data),
+    versionsIsPending: versions.isPending,
+    viewingHistoricalVersion: viewedVersionId !== null,
+    hasHistoricalVersion: Boolean(historicalVersion.data),
+    historicalVersionIsPending: historicalVersion.isPending,
+  })
+
+  if (loading) return <DocumentLoadingState />
   if (!session.data?.user) return null
 
-  if (
-    !workspace.data ||
-    !document.data ||
-    !reviewItems.data ||
-    !versions.data ||
-    (viewedVersionId !== null && !historicalVersion.data)
-  ) {
-    const message =
-      workspace.error?.message ??
-      document.error?.message ??
-      reviewItems.error?.message ??
-      versions.error?.message ??
-      historicalVersion.error?.message ??
-      'The document could not be loaded.'
-    return <DocumentUnavailableState message={message} />
-  }
+  const errorMessage = getPageError({
+    workspace: workspace.data,
+    workspaceError: workspace.error?.message,
+    document: document.data,
+    documentError: document.error?.message,
+    reviewItems: reviewItems.data,
+    reviewItemsError: reviewItems.error?.message,
+    versions: versions.data,
+    versionsError: versions.error?.message,
+    viewedVersionId,
+    historicalVersion: historicalVersion.data,
+    historicalVersionError: historicalVersion.error?.message,
+  })
 
-  const capabilities = document.data.capabilities
-  const displayedDocument = viewedVersionId ? historicalVersion.data! : document.data
-  const isViewingHistoricalVersion = !displayedDocument.version.isCurrent
-  const isComparingVersions = comparisonSelection !== null
+  if (errorMessage) return <DocumentUnavailableState message={errorMessage} />
+
+  const displayedDocument = viewedVersionId ? historicalVersion.data! : document.data!
 
   return (
-    <div className="min-h-screen bg-[#f3f2ed]">
-      <WorkspaceHeader
-        canManageReviewers={workspace.data.capabilities.manageReviewers}
-        isSigningOut={isSigningOut}
-        onSignOut={() => void handleSignOut()}
-        organizationName={workspace.data.organization.name}
-        userName={session.data.user.name}
-      />
-      <main className="mx-auto max-w-[1500px] px-4 py-6 sm:px-7" id="main-content">
-        <DocumentReviewHeader
-          documentId={documentId}
-          documentTitle={document.data.document.title}
-          exportPermissions={{
-            document: capabilities.exportDocument,
-            reviewQueue: capabilities.exportReviewQueue,
-          }}
-          participants={presence.data ?? emptyPresence}
-          reviewRoundName={displayedDocument.reviewRound.name}
-          userId={session.data.user.id}
-          viewMode={
-            isComparingVersions
-              ? 'comparison'
-              : isViewingHistoricalVersion
-                ? 'historical'
-                : 'current'
-          }
-          versionNumber={displayedDocument.version.versionNumber}
-        />
-
-        <VersionHistoryPanel
-          canDownloadVersions={capabilities.exportDocument}
-          canManageVersions={capabilities.manageVersions}
-          currentVersionId={document.data.version.id}
-          documentId={documentId}
-          onCompareVersions={(baseVersionId, targetVersionId) => {
-            setComparisonSelection({ baseVersionId, targetVersionId })
-            setViewedVersionId(null)
-            setActiveProposal(null)
-            setSelectedItemId(null)
-          }}
-          onVersionChanged={handleVersionChanged}
-          onViewVersion={(versionId) => {
-            setViewedVersionId(versionId)
-            setComparisonSelection(null)
-            setActiveProposal(null)
-            setSelectedItemId(null)
-          }}
-          versions={versions.data}
-          viewedVersionId={viewedVersionId}
-        />
-
-        {capabilities.viewAudit ? <DocumentAuditPanel documentId={documentId} /> : null}
-
-        {capabilities.manageAssignments && !isViewingHistoricalVersion && !isComparingVersions ? (
-          <ReviewRoundAssignmentsPanel
-            documentId={documentId}
-            reviewRoundId={displayedDocument.reviewRound.id}
-            reviewRoundName={displayedDocument.reviewRound.name}
-          />
-        ) : null}
-
-        {!isComparingVersions && isViewingHistoricalVersion ? (
-          <section className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#e0c7bd] bg-[#fff8f5] px-4 py-3">
-            <p className="text-xs font-semibold text-[#754b3f]">
-              You are viewing immutable version {displayedDocument.version.versionNumber}. Review
-              actions are disabled.
-            </p>
-            <button
-              className="min-h-9 rounded-lg bg-[#754b3f] px-3 text-xs font-bold text-white"
-              onClick={() => setViewedVersionId(null)}
-              type="button"
-            >
-              Return to current version
-            </button>
-          </section>
-        ) : null}
-
-        {comparisonSelection ? (
-          <DocumentVersionComparisonWorkspace
-            baseVersionId={comparisonSelection.baseVersionId}
-            documentId={documentId}
-            onClose={() => setComparisonSelection(null)}
-            targetVersionId={comparisonSelection.targetVersionId}
-          />
-        ) : (
-          <DocumentReviewWorkspace
-            activeProposal={activeProposal}
-            document={displayedDocument}
-            documentId={documentId}
-            isViewingHistoricalVersion={isViewingHistoricalVersion}
-            items={displayedReviewItems}
-            mobilePane={mobilePane}
-            onCancelProposal={() => setActiveProposal(null)}
-            onCommentCreated={handleCommentCreated}
-            onCreated={handleCreated}
-            onMobilePaneChange={setMobilePane}
-            onResolve={handleResolve}
-            onSelectItem={(item) => {
-              setActiveProposal(null)
-              setSelectedItemId(item.id)
-              setMobilePane('reviews')
-            }}
-            onStartProposal={(proposal) => {
-              setActiveProposal(proposal)
-              setSelectedItemId(null)
-              setMobilePane('reviews')
-            }}
-            selectedItemId={selectedItemId}
-            selectedStableKey={selectedStableKey}
-          />
-        )}
-      </main>
-    </div>
+    <DocumentReviewPageContent
+      activeProposal={activeProposal}
+      comparisonSelection={comparisonSelection}
+      displayedDocument={displayedDocument}
+      displayedReviewItems={displayedReviewItems}
+      document={document.data!}
+      documentId={documentId}
+      isSigningOut={isSigningOut}
+      mobilePane={mobilePane}
+      onCancelProposal={() => setActiveProposal(null)}
+      onCloseComparison={() => setComparisonSelection(null)}
+      onCommentCreated={handleCommentCreated}
+      onCompareVersions={handleCompareVersions}
+      onCreated={handleCreated}
+      onMobilePaneChange={setMobilePane}
+      onResolve={handleResolve}
+      onReturnToCurrentVersion={() => setViewedVersionId(null)}
+      onSelectItem={handleSelectItem}
+      onSignOut={handleSignOut}
+      onStartProposal={handleStartProposal}
+      onVersionChanged={handleVersionChanged}
+      onViewVersion={handleViewVersion}
+      participants={presence.data ?? emptyPresence}
+      selectedItemId={selectedItemId}
+      selectedStableKey={selectedStableKey}
+      user={session.data.user}
+      versions={versions.data!}
+      viewedVersionId={viewedVersionId}
+      workspace={workspace.data!}
+    />
   )
 }
