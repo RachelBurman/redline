@@ -19,12 +19,11 @@ minimumReleaseAgeExclude:
   - '@tailwindcss/*'
   - '@tanstack/*'
   - '@vitejs/*'
+  - better-call
   - better-auth
   - deslop-js@0.9.4
   - oxfmt
   - oxlint
-  - oxlint-plugin-react-doctor@0.9.4
-  - react-doctor@0.9.4
   - tailwindcss
   - typescript
   - vite

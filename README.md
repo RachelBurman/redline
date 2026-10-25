@@ -143,7 +143,7 @@ without changing the document or export workflows.
 | `pnpm build`        | Create the production client and server bundles         |
 | `pnpm verify`       | Run format, lint, types, tests, React Doctor, and build |
 | `pnpm format:check` | Check repository formatting with Oxfmt                  |
-| `pnpm lint`         | Lint with Oxlint and deny warnings                      |
+| `pnpm lint`         | Run Oxlint, React Doctor, and accessibility rules       |
 | `pnpm typecheck`    | Type-check without emitting files                       |
 | `pnpm test`         | Run unit and component tests once                       |
 | `pnpm react-doctor` | Scan the React codebase and block on warnings           |
@@ -153,9 +153,12 @@ without changing the document or export workflows.
 
 ## Quality gates and CI
 
-Lefthook checks staged-file formatting, lints staged source files, scans staged React code,
-and runs the test suite before a commit. Before a push it runs the complete `pnpm verify`
-gate. Commits follow Conventional Commits.
+Lefthook checks staged-file formatting, lints staged source files with warnings denied, scans
+staged React code, and runs the test suite before a commit. Oxlint includes its native React and
+`jsx-a11y` rules plus React Doctor's recommended, TanStack Start, and TanStack Query rules. Before a
+push it runs the complete `pnpm verify` gate. The repo-local `$pre-pr-verification` skill in
+`.agents/skills/` requires the same gate before opening or updating a pull request. Commits follow
+Conventional Commits.
 
 The GitHub Actions workflow in `.github/workflows/ci.yml` runs `pnpm verify` for pull requests
 targeting `main` and for pushes to `main`. Third-party actions are pinned to full release
