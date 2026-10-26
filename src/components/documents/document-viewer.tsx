@@ -15,6 +15,7 @@ interface DocumentViewerProps {
   selectedStableKey?: string
   onPropose: (block: DocumentDetail['blocks'][number], changeType: ReviewChangeType) => void
   onProposeInsertion: (anchor: DocumentInsertionAnchor) => void
+  presentation?: 'normal' | 'latex-rendered'
 }
 
 export function DocumentViewer({
@@ -25,6 +26,7 @@ export function DocumentViewer({
   selectedStableKey,
   onPropose,
   onProposeInsertion,
+  presentation = 'normal',
 }: DocumentViewerProps) {
   const scrollElementRef = useRef<HTMLDivElement>(null)
   const virtualizer = useVirtualizer({
@@ -42,6 +44,12 @@ export function DocumentViewer({
 
   return (
     <section className="flex h-[calc(100vh-12rem)] min-h-[520px] flex-col overflow-hidden rounded-2xl border border-[#dedbd3] bg-white shadow-[0_18px_50px_rgba(36,45,41,0.07)]">
+      {presentation === 'latex-rendered' ? (
+        <div className="border-b border-[#e7e4dd] bg-[#faf9f5] px-4 py-2.5 text-xs leading-5 text-[#59645f] sm:px-6">
+          Safe local presentation · mathematical expressions are keyboard-focusable and include text
+          alternatives. No TeX compiler is invoked.
+        </div>
+      ) : null}
       {canInsert ? (
         <div className="flex items-center justify-end border-b border-[#e7e4dd] bg-[#faf9f5] px-4 py-3 sm:px-6">
           <button
@@ -105,6 +113,7 @@ export function DocumentViewer({
                         ? () => onPropose(block, 'replace')
                         : undefined
                     }
+                    presentation={presentation}
                   />
                   {canInsert && insertionAnchor ? (
                     <div className="mt-3 flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100">

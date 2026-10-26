@@ -182,6 +182,7 @@ export function DocumentReviewPageContent({
             onStartProposal={onStartProposal}
             selectedItemId={selectedItemId}
             selectedStableKey={selectedStableKey}
+            userId={user.id}
           />
         )}
       </main>

@@ -1,5 +1,8 @@
+import { DocumentDisplayModeControl } from '#/components/documents/document-display-mode-control'
 import { DocumentViewer } from '#/components/documents/document-viewer'
+import { LatexSourceViewer } from '#/components/documents/latex-source-viewer'
 import { ParserWarnings } from '#/components/documents/parser-warnings'
+import { useDocumentDisplayMode } from '#/components/documents/use-document-display-mode'
 import { ReviewSidebar } from '#/components/reviews/review-sidebar'
 
 import type { DocumentBlockDetail, DocumentDetail } from '#/types/documents'
@@ -9,6 +12,7 @@ export interface ActiveReviewProposal {
   block: DocumentBlockDetail
   changeType: ReviewChangeType
   beforeBlockId?: string | null
+  initialProposedContent?: string
 }
 
 interface DocumentReviewWorkspaceProps {
@@ -27,6 +31,7 @@ interface DocumentReviewWorkspaceProps {
   onStartProposal: (proposal: ActiveReviewProposal) => void
   selectedItemId: string | null
   selectedStableKey?: string
+  userId: string
 }
 
 export function DocumentReviewWorkspace({
@@ -45,12 +50,17 @@ export function DocumentReviewWorkspace({
   onStartProposal,
   selectedItemId,
   selectedStableKey,
+  userId,
 }: DocumentReviewWorkspaceProps) {
   const { capabilities } = document
+  const [displayMode, setDisplayMode] = useDocumentDisplayMode(userId)
+  const canReview = capabilities.review && !isViewingHistoricalVersion
 
   return (
     <>
       <ParserWarnings warnings={document.version.parserWarnings} />
+
+      <DocumentDisplayModeControl mode={displayMode} onChange={setDisplayMode} />
 
       <div
         aria-label="Review workspace view"
@@ -96,25 +106,48 @@ export function DocumentReviewWorkspace({
           id="document-workspace-pane"
           role="tabpanel"
         >
-          <DocumentViewer
-            blocks={document.blocks}
-            canInsert={
-              capabilities.review &&
-              !isViewingHistoricalVersion &&
-              document.insertionAnchors.length > 0
-            }
-            canReview={capabilities.review && !isViewingHistoricalVersion}
-            insertionAnchors={document.insertionAnchors}
-            onPropose={(block, changeType) => onStartProposal({ block, changeType })}
-            onProposeInsertion={(anchor) =>
-              onStartProposal({
-                changeType: 'insert',
-                block: anchor.afterBlock,
-                beforeBlockId: anchor.beforeBlockId,
-              })
-            }
-            selectedStableKey={selectedStableKey}
-          />
+          {displayMode === 'latex-source' ? (
+            <LatexSourceViewer
+              blocks={document.blocks}
+              canInsert={canReview && document.insertionAnchors.length > 0}
+              canReview={canReview}
+              insertionAnchors={document.insertionAnchors}
+              onPropose={(block, proposedContent) =>
+                onStartProposal({
+                  block,
+                  changeType: 'replace',
+                  initialProposedContent: proposedContent,
+                })
+              }
+              onProposeDeletion={(block) => onStartProposal({ block, changeType: 'delete' })}
+              onProposeInsertion={(anchor, proposedContent) =>
+                onStartProposal({
+                  block: anchor.afterBlock,
+                  beforeBlockId: anchor.beforeBlockId,
+                  changeType: 'insert',
+                  initialProposedContent: proposedContent,
+                })
+              }
+              selectedStableKey={selectedStableKey}
+            />
+          ) : (
+            <DocumentViewer
+              blocks={document.blocks}
+              canInsert={canReview && document.insertionAnchors.length > 0}
+              canReview={canReview}
+              insertionAnchors={document.insertionAnchors}
+              onPropose={(block, changeType) => onStartProposal({ block, changeType })}
+              onProposeInsertion={(anchor) =>
+                onStartProposal({
+                  changeType: 'insert',
+                  block: anchor.afterBlock,
+                  beforeBlockId: anchor.beforeBlockId,
+                })
+              }
+              presentation={displayMode === 'latex-rendered' ? 'latex-rendered' : 'normal'}
+              selectedStableKey={selectedStableKey}
+            />
+          )}
         </div>
         <div
           aria-labelledby="review-workspace-tab"
@@ -131,6 +164,7 @@ export function DocumentReviewWorkspace({
             documentId={documentId}
             documentVersionId={document.version.id}
             insertionBeforeBlockId={activeProposal?.beforeBlockId}
+            initialProposedContent={activeProposal?.initialProposedContent}
             items={items}
             onCancelProposal={onCancelProposal}
             onCommentCreated={onCommentCreated}

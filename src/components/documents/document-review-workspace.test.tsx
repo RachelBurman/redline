@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { DocumentReviewWorkspace, type ActiveReviewProposal } from './document-review-workspace'
 
@@ -47,6 +47,9 @@ const document: DocumentDetail = {
 }
 const emptyItems: ReviewItemSummary[] = []
 
+beforeEach(() => window.localStorage.clear())
+afterEach(cleanup)
+
 function WorkspaceHarness() {
   const [mobilePane, setMobilePane] = useState<'document' | 'reviews'>('document')
 
@@ -66,6 +69,7 @@ function WorkspaceHarness() {
       onSelectItem={vi.fn<(item: ReviewItemSummary) => void>()}
       onStartProposal={vi.fn<(proposal: ActiveReviewProposal) => void>()}
       selectedItemId={null}
+      userId="user-1"
     />
   )
 }
@@ -88,5 +92,24 @@ describe('DocumentReviewWorkspace', () => {
     expect(reviewsTab).toHaveAttribute('aria-selected', 'true')
     expect(documentPane).toHaveClass('hidden', 'xl:block')
     expect(reviewPane).toHaveClass('block')
+  })
+
+  it('switches display projections without changing the document data', async () => {
+    const user = userEvent.setup()
+    render(<WorkspaceHarness />)
+
+    await user.click(screen.getByRole('radio', { name: 'LaTeX source' }))
+
+    expect(screen.getByRole('region', { name: 'LaTeX source projection' })).toBeVisible()
+    expect(screen.queryByText('Document viewer')).not.toBeInTheDocument()
+    expect(window.localStorage.getItem('redline:document-display-mode:user-1')).toBe('latex-source')
+    expect(document.version.id).toBe('version-1')
+
+    await user.click(screen.getByRole('radio', { name: 'Rendered LaTeX' }))
+
+    expect(screen.getByText('Document viewer')).toBeVisible()
+    expect(window.localStorage.getItem('redline:document-display-mode:user-1')).toBe(
+      'latex-rendered',
+    )
   })
 })
