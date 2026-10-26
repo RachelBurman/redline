@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, FileCheck2, LoaderCircle, Users } from 'lucide-react'
 import { useState } from 'react'
 
+import { useLiveUpdatesConnected } from '#/features/documents/document-live-updates-context'
 import { apiRequest } from '#/lib/api-client'
 import { DEFAULT_SIGNATURE_PURPOSE } from '#/server/signatures/signature-policy'
 
@@ -27,6 +28,7 @@ export function SignaturePanel({
   versionNumber: number
 }) {
   const queryClient = useQueryClient()
+  const liveUpdatesConnected = useLiveUpdatesConnected()
   const [signingRequest, setSigningRequest] = useState<SignatureRequestSummary | null>(null)
   const [decliningRequest, setDecliningRequest] = useState<SignatureRequestSummary | null>(null)
   const [declineReason, setDeclineReason] = useState('')
@@ -38,7 +40,7 @@ export function SignaturePanel({
       apiRequest<SignatureRequestList>(
         `${endpoint}?documentVersionId=${encodeURIComponent(documentVersionId)}`,
       ),
-    refetchInterval: 10_000,
+    refetchInterval: liveUpdatesConnected ? false : 10_000,
     refetchIntervalInBackground: false,
   })
   const invalidate = () => queryClient.invalidateQueries({ queryKey })

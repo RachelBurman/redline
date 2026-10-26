@@ -59,7 +59,8 @@ versions in a locally rendered word-level or structured block view.
     events. A new version supersedes pending requests without transferring signatures.
 
 Multiple participants can review the same document concurrently. The viewer shows active,
-version-bound presence and refreshes proposals and the selected discussion in the background.
+version-bound presence and uses an authenticated, resumable live channel to refresh proposals,
+discussions, assignments, versions, and signatures promptly, with polling retained as a fallback.
 Decisions are serialised with PostgreSQL advisory locks and guarded by an expected revision, so
 two competing decisions cannot both succeed. This is deliberately not a real-time word
 processor: users collaborate through explicit proposals and decisions rather than directly
@@ -76,9 +77,9 @@ The review workspace adapts to smaller screens with explicit document/review pan
 guidance now explains the upload, review, and immutable publishing workflow without implying that
 accepting a proposal silently creates a new version.
 
-The roadmap still includes dedicated question/comment proposal types, named proposal ownership,
-safely versioned image and graph blocks, and collaboration updates beyond polling without
-expanding the MVP into unrestricted real-time word processing.
+The roadmap still includes dedicated question/comment proposal types and named proposal ownership.
+Targeted live invalidations deliberately do not expand the product into unrestricted real-time word
+processing; see [`ADR 0004`](./docs/adr/0004-targeted-live-updates-over-sse.md).
 
 Electronic sign-off in this repository is deliberately described as a baseline application-level
 workflow. It does not issue or validate signing certificates and makes no Advanced Electronic
@@ -176,6 +177,7 @@ without changing the document or export workflows.
 | `pnpm test`             | Run unit and component tests once                                |
 | `pnpm test:e2e`         | Run browser journeys against the local application               |
 | `pnpm test:integration` | Run live PostgreSQL integration tests                            |
+| `pnpm test:live-load`   | Run the authenticated 50-connection live-update load harness     |
 | `pnpm test:coverage`    | Run tests and enforce repository coverage thresholds             |
 | `pnpm react-doctor`     | Scan the React codebase and block on warnings                    |
 | `pnpm audit:prod`       | Fail when production dependencies have known security advisories |
@@ -228,6 +230,7 @@ src/server/documents/    Upload validation, parsing, and document reads
 src/server/reviews/      Proposal, queue, and transactional decision workflows
 src/server/exports/      Resolved-document generation and persistence
 src/server/presence/     Ephemeral version-bound participant presence
+src/server/live/         Metadata-only live events and resumable delivery
 src/server/reviewers/    Exact-round review assignment workflows
 src/server/email/        Environment-backed transactional email delivery
 src/server/storage/      Replaceable private object-store interface and local adapter
@@ -381,6 +384,7 @@ flow layout (no desktop-publishing positioning or pixel-perfect wrapping).
 | `/api/v1/documents`                                                              | List documents or upload a `.docx`       |
 | `/api/v1/documents/:documentId`                                                  | Read the structured current version      |
 | `/api/v1/documents/:documentId/audit-events`                                     | Read permission-scoped audit activity    |
+| `/api/v1/documents/:documentId/events`                                           | Subscribe to live invalidation events    |
 | `/api/v1/documents/:documentId/versions`                                         | List or explicitly create versions       |
 | `/api/v1/documents/:documentId/versions/compare`                                 | Compare two immutable versions by block  |
 | `/api/v1/documents/:documentId/versions/:versionId`                              | Read one immutable historical version    |

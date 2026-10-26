@@ -4,6 +4,7 @@ import { desc, eq, sql } from 'drizzle-orm'
 
 import { db } from '#/db/index'
 import { auditEvents } from '#/db/schema'
+import { appendLiveEvent, isBroadcastAuditEvent } from '#/server/live/live-events'
 
 type DatabaseTransaction = Parameters<Parameters<typeof db.transaction>[0]>[0]
 
@@ -77,6 +78,18 @@ export async function appendAuditEvent(tx: DatabaseTransaction, input: AuditEven
 
   if (!event) {
     throw new Error('The audit event could not be recorded.')
+  }
+
+  if (isBroadcastAuditEvent(input)) {
+    await appendLiveEvent(tx, {
+      organizationId: input.organizationId,
+      documentId: input.documentId,
+      documentVersionId: input.documentVersionId,
+      reviewRoundId: input.reviewRoundId,
+      reviewItemId: input.reviewItemId,
+      actorId: input.actorId,
+      eventType: input.eventType,
+    })
   }
 
   return event

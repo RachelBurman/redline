@@ -78,6 +78,13 @@
       "when": 1793024563283,
       "tag": "0010_media_preview_hash",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793052005337,
+      "tag": "0011_targeted_live_updates",
+      "breakpoints": true
     }
   ]
 }

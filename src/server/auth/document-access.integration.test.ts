@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto'
 import { Pool } from 'pg'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { assertLiveSubscriptionAccess } from '#/server/live/live-subscription-access'
+
 import { DocumentAccessDeniedError, assertDocumentAccess } from './document-access'
 
 const databaseUrl = process.env.DATABASE_URL ?? ''
@@ -130,6 +132,13 @@ describe('document access database integration', () => {
         context: { organizationId: otherOrganizationId, role: 'reviewer', userId: reviewerId },
         documentId,
         documentVersionId,
+      }),
+    ).rejects.toBeInstanceOf(DocumentAccessDeniedError)
+
+    await expect(
+      assertLiveSubscriptionAccess({
+        context: { organizationId: otherOrganizationId, role: 'owner', userId: ownerId },
+        documentId,
       }),
     ).rejects.toBeInstanceOf(DocumentAccessDeniedError)
   })

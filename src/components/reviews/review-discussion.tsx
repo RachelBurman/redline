@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle, RefreshCw } from 'lucide-react'
 import { useState } from 'react'
 
+import { useLiveUpdatesConnected } from '#/features/documents/document-live-updates-context'
 import { apiRequest } from '#/lib/api-client'
 
 import { groupReviewComments } from './group-review-comments'
@@ -44,13 +45,14 @@ export function ReviewDiscussion({
   onCommentCreated,
 }: ReviewDiscussionProps) {
   const queryClient = useQueryClient()
+  const liveUpdatesConnected = useLiveUpdatesConnected()
   const [replyingToId, setReplyingToId] = useState<string | null>(null)
   const [replyAnnouncement, setReplyAnnouncement] = useState<string | null>(null)
   const queryKey = reviewCommentsQueryKey(documentId, reviewItemId)
   const comments = useQuery({
     queryKey,
     queryFn: () => listReviewComments(documentId, reviewItemId),
-    refetchInterval: 3_000,
+    refetchInterval: liveUpdatesConnected ? false : 3_000,
     refetchIntervalInBackground: false,
   })
 

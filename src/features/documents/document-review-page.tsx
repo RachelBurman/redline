@@ -6,7 +6,9 @@ import { DocumentUnavailableState } from '#/components/documents/document-unavai
 import { apiRequest } from '#/lib/api-client'
 import { authClient } from '#/lib/auth-client'
 
+import { DocumentLiveUpdatesProvider } from './document-live-updates'
 import { DocumentReviewPageContent, type ComparisonSelection } from './document-review-page-content'
+import { useDocumentLiveUpdates } from './use-document-live-updates'
 import { useDocumentPresence } from './use-document-presence'
 
 import type { ActiveReviewProposal } from '#/components/documents/document-review-workspace'
@@ -94,6 +96,10 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   const [mobilePane, setMobilePane] = useState<'document' | 'reviews'>('document')
   const [viewedVersionId, setViewedVersionId] = useState<string | null>(null)
   const [comparisonSelection, setComparisonSelection] = useState<ComparisonSelection | null>(null)
+  const liveUpdates = useDocumentLiveUpdates({
+    documentId,
+    enabled: Boolean(session.data?.user),
+  })
   const workspace = useQuery({
     queryKey: ['workspace'],
     queryFn: () => apiRequest<WorkspaceSummary>('/api/v1/workspace'),
@@ -103,21 +109,21 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     queryKey: ['document', documentId],
     queryFn: () => apiRequest<DocumentDetail>(`/api/v1/documents/${documentId}`),
     enabled: Boolean(session.data?.user),
-    refetchInterval: 15_000,
+    refetchInterval: liveUpdates.connected ? false : 15_000,
     refetchIntervalInBackground: false,
   })
   const reviewItems = useQuery({
     queryKey: ['review-items', documentId],
     queryFn: () => apiRequest<ReviewItemSummary[]>(`/api/v1/documents/${documentId}/review-items`),
     enabled: Boolean(session.data?.user),
-    refetchInterval: 10_000,
+    refetchInterval: liveUpdates.connected ? false : 10_000,
     refetchIntervalInBackground: false,
   })
   const versions = useQuery({
     queryKey: ['document-versions', documentId],
     queryFn: () => apiRequest<DocumentVersionSummary[]>(`/api/v1/documents/${documentId}/versions`),
     enabled: Boolean(session.data?.user),
-    refetchInterval: 30_000,
+    refetchInterval: liveUpdates.connected ? false : 30_000,
     refetchIntervalInBackground: false,
   })
   const historicalVersion = useQuery({
@@ -145,6 +151,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     documentVersionId: document.data?.version.id,
     selectedBlockStableKey: selectedStableKey,
     enabled: Boolean(session.data?.user && document.data),
+    liveUpdatesConnected: liveUpdates.connected,
   })
 
   useEffect(() => {
@@ -271,36 +278,41 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   const displayedDocument = viewedVersionId ? historicalVersion.data! : document.data!
 
   return (
-    <DocumentReviewPageContent
-      activeProposal={activeProposal}
-      comparisonSelection={comparisonSelection}
-      displayedDocument={displayedDocument}
-      displayedReviewItems={displayedReviewItems}
-      document={document.data!}
-      documentId={documentId}
-      isSigningOut={isSigningOut}
-      mobilePane={mobilePane}
-      onCancelProposal={() => setActiveProposal(null)}
-      onCloseComparison={() => setComparisonSelection(null)}
-      onCommentCreated={handleCommentCreated}
-      onCompareVersions={handleCompareVersions}
-      onCreated={handleCreated}
-      onMobilePaneChange={setMobilePane}
-      onMediaProposalCreated={handleMediaProposalCreated}
-      onResolve={handleResolve}
-      onReturnToCurrentVersion={() => setViewedVersionId(null)}
-      onSelectItem={handleSelectItem}
-      onSignOut={handleSignOut}
-      onStartProposal={handleStartProposal}
-      onVersionChanged={handleVersionChanged}
-      onViewVersion={handleViewVersion}
-      participants={presence.data ?? emptyPresence}
-      selectedItemId={selectedItemId}
-      selectedStableKey={selectedStableKey}
-      user={session.data.user}
-      versions={versions.data!}
-      viewedVersionId={viewedVersionId}
-      workspace={workspace.data!}
-    />
+    <DocumentLiveUpdatesProvider
+      announcement={liveUpdates.announcement}
+      connected={liveUpdates.connected}
+    >
+      <DocumentReviewPageContent
+        activeProposal={activeProposal}
+        comparisonSelection={comparisonSelection}
+        displayedDocument={displayedDocument}
+        displayedReviewItems={displayedReviewItems}
+        document={document.data!}
+        documentId={documentId}
+        isSigningOut={isSigningOut}
+        mobilePane={mobilePane}
+        onCancelProposal={() => setActiveProposal(null)}
+        onCloseComparison={() => setComparisonSelection(null)}
+        onCommentCreated={handleCommentCreated}
+        onCompareVersions={handleCompareVersions}
+        onCreated={handleCreated}
+        onMobilePaneChange={setMobilePane}
+        onMediaProposalCreated={handleMediaProposalCreated}
+        onResolve={handleResolve}
+        onReturnToCurrentVersion={() => setViewedVersionId(null)}
+        onSelectItem={handleSelectItem}
+        onSignOut={handleSignOut}
+        onStartProposal={handleStartProposal}
+        onVersionChanged={handleVersionChanged}
+        onViewVersion={handleViewVersion}
+        participants={presence.data ?? emptyPresence}
+        selectedItemId={selectedItemId}
+        selectedStableKey={selectedStableKey}
+        user={session.data.user}
+        versions={versions.data!}
+        viewedVersionId={viewedVersionId}
+        workspace={workspace.data!}
+      />
+    </DocumentLiveUpdatesProvider>
   )
 }

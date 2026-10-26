@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircle, UserPlus, Users, X } from 'lucide-react'
 
+import { useLiveUpdatesConnected } from '#/features/documents/document-live-updates-context'
 import { apiRequest } from '#/lib/api-client'
 
 import type { ReviewRoundAssignmentSummary } from '#/types/review-assignments'
@@ -15,11 +16,12 @@ export function ReviewRoundAssignmentsPanel({
   reviewRoundName: string
 }) {
   const queryClient = useQueryClient()
+  const liveUpdatesConnected = useLiveUpdatesConnected()
   const endpoint = `/api/v1/documents/${documentId}/review-rounds/${reviewRoundId}/assignments`
   const assignments = useQuery({
     queryKey: ['review-round-assignments', documentId, reviewRoundId],
     queryFn: () => apiRequest<ReviewRoundAssignmentSummary>(endpoint),
-    refetchInterval: 5_000,
+    refetchInterval: liveUpdatesConnected ? false : 5_000,
     refetchIntervalInBackground: false,
   })
   const assign = useMutation({

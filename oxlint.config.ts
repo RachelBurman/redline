@@ -47,5 +47,13 @@ export default defineConfig({
       // useVirtualizer intentionally returns functions that the React Compiler cannot memoize.
       rules: { 'react/incompatible-library': 'off' },
     },
+    {
+      files: ['src/routes/api/v1/documents/$documentId/events.ts', 'scripts/live-updates-load.ts'],
+      // Streaming protocols intentionally await ordered reads inside bounded connection loops.
+      rules: {
+        'eslint/no-await-in-loop': 'off',
+        'eslint/no-unmodified-loop-condition': 'off',
+      },
+    },
   ],
 })
