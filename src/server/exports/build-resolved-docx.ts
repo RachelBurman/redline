@@ -1,4 +1,4 @@
-import { Document, HeadingLevel, Packer, Paragraph, TextRun } from 'docx'
+import { Document, HeadingLevel, ImageRun, Packer, Paragraph, TextRun } from 'docx'
 
 import type { DocumentDetail } from '#/types/documents'
 
@@ -15,21 +15,95 @@ export async function buildResolvedDocx(input: {
   title: string
   blocks: DocumentDetail['blocks']
   signatureStatus?: string
+  loadMedia?: (assetId: string) => Promise<Uint8Array>
 }) {
-  const content = input.blocks.map((block) => {
+  const mediaAssets = input.blocks.flatMap((block) =>
+    block.blockType === 'rich_media' && block.media?.processingStatus === 'ready'
+      ? [block.media]
+      : [],
+  )
+  const mediaBytes = new Map(
+    input.loadMedia
+      ? await Promise.all(
+          mediaAssets.map(
+            async (media) => [media.assetId, await input.loadMedia!(media.assetId)] as const,
+          ),
+        )
+      : [],
+  )
+  const content: Paragraph[] = []
+  for (const block of input.blocks) {
     if (block.blockType === 'heading') {
       const index = Math.min(5, Math.max(0, (block.headingLevel ?? 2) - 1))
-      return new Paragraph({ text: block.text, heading: headingLevels[index] })
+      content.push(new Paragraph({ text: block.text, heading: headingLevels[index] }))
+      continue
     }
 
     if (block.blockType === 'unsupported') {
-      return new Paragraph({
-        children: [new TextRun({ text: block.text, italics: true, color: '80584C' })],
-      })
+      content.push(
+        new Paragraph({
+          children: [new TextRun({ text: block.text, italics: true, color: '80584C' })],
+        }),
+      )
+      continue
     }
 
-    return new Paragraph({ text: block.text })
-  })
+    if (block.blockType === 'rich_media') {
+      const media = block.media
+      const bytes = media ? mediaBytes.get(media.assetId) : undefined
+      if (!media || media.processingStatus !== 'ready' || !bytes) {
+        content.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `[Image unavailable: ${media?.altText ?? 'missing media metadata'}]`,
+                italics: true,
+                color: '80584C',
+              }),
+            ],
+          }),
+        )
+        continue
+      }
+      const scale = Math.min(1, 624 / media.width, 720 / media.height)
+      content.push(
+        new Paragraph({
+          children: [
+            new ImageRun({
+              type: media.mimeType === 'image/png' ? 'png' : 'jpg',
+              data: bytes,
+              transformation: {
+                width: Math.max(1, Math.round(media.width * scale)),
+                height: Math.max(1, Math.round(media.height * scale)),
+              },
+              altText: {
+                name: `media-${media.assetId}`,
+                title: media.caption ?? 'Document image',
+                description: media.altText,
+              },
+            }),
+          ],
+        }),
+      )
+      if (media.caption) {
+        content.push(
+          new Paragraph({
+            children: [new TextRun({ text: media.caption, italics: true, color: '46514C' })],
+          }),
+        )
+      }
+      if (media.source) {
+        content.push(
+          new Paragraph({
+            children: [new TextRun({ text: `Source: ${media.source}`, size: 18, color: '68726D' })],
+          }),
+        )
+      }
+      continue
+    }
+
+    content.push(new Paragraph({ text: block.text }))
+  }
   const children = input.signatureStatus
     ? [
         new Paragraph({

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createReviewCommentSchema,
   createReviewItemSchema,
+  createMediaMetadataProposalSchema,
   resolveReviewItemSchema,
 } from './schemas'
 
@@ -77,6 +78,23 @@ describe('review request schemas', () => {
     expect(() =>
       resolveReviewItemSchema.parse({ decision: 'accept', expectedRevision: 0 }),
     ).toThrow(/Too small/)
+  })
+
+  it('requires accessible descriptions for media alt-text proposals', () => {
+    const proposal = {
+      documentVersionId: validProposal.documentVersionId,
+      reviewRoundId: validProposal.reviewRoundId,
+      targetBlockId: validProposal.targetBlockId,
+      category: validProposal.category,
+      priority: validProposal.priority,
+      rationale: validProposal.rationale,
+      changeType: 'media_alt_text' as const,
+      altText: 'A bar graph comparing response rates.',
+    }
+    expect(createMediaMetadataProposalSchema.parse(proposal)).toMatchObject(proposal)
+    expect(() => createMediaMetadataProposalSchema.parse({ ...proposal, altText: ' ' })).toThrow(
+      'An accessible description is required.',
+    )
   })
 
   it('trims and accepts a review comment', () => {

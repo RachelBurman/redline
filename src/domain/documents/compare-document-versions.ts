@@ -15,11 +15,28 @@ function blockChangeType(
   base: VersionComparisonBlockSnapshot,
   target: VersionComparisonBlockSnapshot,
 ): VersionComparisonChangeType {
+  if (base.blockType === 'rich_media' && target.blockType === 'rich_media') {
+    return JSON.stringify(base.media ?? null) === JSON.stringify(target.media ?? null)
+      ? 'unchanged'
+      : 'modified'
+  }
   return base.blockType === target.blockType &&
     base.text === target.text &&
     base.headingLevel === target.headingLevel
     ? 'unchanged'
     : 'modified'
+}
+
+function mediaChangeType(
+  base: VersionComparisonBlockSnapshot | null,
+  target: VersionComparisonBlockSnapshot | null,
+) {
+  if (base?.blockType !== 'rich_media' || target?.blockType !== 'rich_media') return null
+  if (base.media?.contentHash !== target.media?.contentHash) return 'replaced' as const
+  if (JSON.stringify(base.media ?? null) !== JSON.stringify(target.media ?? null)) {
+    return 'metadata_changed' as const
+  }
+  return null
 }
 
 function assertUniqueStableKeys(version: ComparableVersion) {
@@ -59,6 +76,7 @@ export function compareDocumentVersions(input: {
       changeType: 'removed',
       base: block,
       target: null,
+      mediaChange: null,
     }
     if (nextTargetKey === null) {
       trailingRemovals.unshift(removal)
@@ -78,6 +96,7 @@ export function compareDocumentVersions(input: {
       changeType: base === null ? 'added' : blockChangeType(base, target),
       base,
       target,
+      mediaChange: mediaChangeType(base, target),
     })
   }
   blocks.push(...trailingRemovals)

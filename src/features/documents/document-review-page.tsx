@@ -166,6 +166,13 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
     void queryClient.invalidateQueries({ queryKey: ['review-items', documentId] })
   }
 
+  function handleMediaProposalCreated(reviewItemId: string) {
+    setActiveProposal(null)
+    setSelectedItemId(reviewItemId)
+    setMobilePane('reviews')
+    void queryClient.invalidateQueries({ queryKey: ['review-items', documentId] })
+  }
+
   function handleCommentCreated(_comment: ReviewCommentSummary) {
     void queryClient.invalidateQueries({ queryKey: ['review-items', documentId] })
   }
@@ -279,6 +286,7 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
       onCompareVersions={handleCompareVersions}
       onCreated={handleCreated}
       onMobilePaneChange={setMobilePane}
+      onMediaProposalCreated={handleMediaProposalCreated}
       onResolve={handleResolve}
       onReturnToCurrentVersion={() => setViewedVersionId(null)}
       onSelectItem={handleSelectItem}

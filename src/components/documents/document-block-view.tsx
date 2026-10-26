@@ -1,5 +1,7 @@
 import { createElement } from 'react'
 
+import { RichMediaBlockView } from './rich-media-block-view'
+
 import type { DocumentDetail } from '#/types/documents'
 import type { ReactNode } from 'react'
 
@@ -9,6 +11,11 @@ interface DocumentBlockViewProps {
   block: Block
   onProposeDeletion?: () => void
   onProposeReplacement?: () => void
+  onMediaDelete?: () => void
+  onMediaEditAltText?: () => void
+  onMediaEditCaption?: () => void
+  onMediaMove?: () => void
+  onMediaReplace?: () => void
   presentation?: 'normal' | 'latex-rendered'
 }
 
@@ -41,8 +48,26 @@ export function DocumentBlockView({
   block,
   onProposeDeletion,
   onProposeReplacement,
+  onMediaDelete,
+  onMediaEditAltText,
+  onMediaEditCaption,
+  onMediaMove,
+  onMediaReplace,
   presentation = 'normal',
 }: DocumentBlockViewProps) {
+  if (block.blockType === 'rich_media') {
+    return (
+      <RichMediaBlockView
+        block={block}
+        onDelete={onMediaDelete}
+        onEditAltText={onMediaEditAltText}
+        onEditCaption={onMediaEditCaption}
+        onMove={onMediaMove}
+        onReplace={onMediaReplace}
+      />
+    )
+  }
+
   if (block.blockType === 'unsupported') {
     return (
       <aside className="rounded-xl border border-dashed border-[#d6b4a9] bg-[#fff8f5] px-4 py-3 text-sm text-[#865342]">

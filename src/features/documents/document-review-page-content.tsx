@@ -36,6 +36,7 @@ interface DocumentReviewPageContentProps {
   onCompareVersions: (baseVersionId: string, targetVersionId: string) => void
   onCreated: (item: ReviewItemSummary) => void
   onMobilePaneChange: (pane: 'document' | 'reviews') => void
+  onMediaProposalCreated: (reviewItemId: string) => void
   onResolve: (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
   onReturnToCurrentVersion: () => void
   onSelectItem: (item: ReviewItemSummary) => void
@@ -73,6 +74,7 @@ export function DocumentReviewPageContent({
   onCompareVersions,
   onCreated,
   onMobilePaneChange,
+  onMediaProposalCreated,
   onResolve,
   onReturnToCurrentVersion,
   onSelectItem,
@@ -189,6 +191,7 @@ export function DocumentReviewPageContent({
             onCommentCreated={onCommentCreated}
             onCreated={onCreated}
             onMobilePaneChange={onMobilePaneChange}
+            onMediaProposalCreated={onMediaProposalCreated}
             onResolve={onResolve}
             onSelectItem={onSelectItem}
             onStartProposal={onStartProposal}

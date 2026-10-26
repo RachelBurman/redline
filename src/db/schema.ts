@@ -43,7 +43,14 @@ export const documentBlockType = pgEnum('document_block_type', [
   'table_row',
   'table_cell',
   'page_break',
+  'rich_media',
   'unsupported',
+])
+export const mediaAssetStatus = pgEnum('media_asset_status', [
+  'pending',
+  'ready',
+  'quarantined',
+  'failed',
 ])
 export const reviewRoundStatus = pgEnum('review_round_status', ['open', 'completed'])
 export const reviewChangeType = pgEnum('review_change_type', [
@@ -52,6 +59,12 @@ export const reviewChangeType = pgEnum('review_change_type', [
   'delete',
   'comment',
   'question',
+  'media_insert',
+  'media_replace',
+  'media_delete',
+  'media_caption',
+  'media_alt_text',
+  'media_reorder',
 ])
 export const reviewPriority = pgEnum('review_priority', ['low', 'medium', 'high', 'critical'])
 export const reviewItemStatus = pgEnum('review_item_status', [
@@ -191,6 +204,56 @@ export const documentBlocks = pgTable(
   ],
 )
 
+export const mediaAssets = pgTable(
+  'media_asset',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'restrict' }),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, { onDelete: 'restrict' }),
+    uploadedById: text('uploaded_by_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'restrict' }),
+    originalFilename: varchar('original_filename', { length: 500 }).notNull(),
+    quarantineObjectKey: text('quarantine_object_key'),
+    objectKey: text('object_key'),
+    previewObjectKey: text('preview_object_key'),
+    contentSha256: varchar('content_sha256', { length: 64 }),
+    previewSha256: varchar('preview_sha256', { length: 64 }),
+    mimeType: varchar('mime_type', { length: 80 }),
+    byteSize: bigint('byte_size', { mode: 'number' }),
+    width: integer('width'),
+    height: integer('height'),
+    status: mediaAssetStatus('status').notNull().default('pending'),
+    scanner: varchar('scanner', { length: 120 }),
+    failureCode: varchar('failure_code', { length: 80 }),
+    failureMessage: text('failure_message'),
+    provenance: jsonb('provenance').$type<Record<string, string>>().notNull().default({}),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    processedAt: timestamp('processed_at', { withTimezone: true }),
+  },
+  (table) => [
+    index('media_asset_document_status_idx').on(table.documentId, table.status),
+    uniqueIndex('media_asset_quarantine_object_key_uq')
+      .on(table.quarantineObjectKey)
+      .where(sql`${table.quarantineObjectKey} is not null`),
+    uniqueIndex('media_asset_object_key_uq')
+      .on(table.objectKey)
+      .where(sql`${table.objectKey} is not null`),
+    uniqueIndex('media_asset_preview_object_key_uq')
+      .on(table.previewObjectKey)
+      .where(sql`${table.previewObjectKey} is not null`),
+    check(
+      'media_asset_dimensions_valid',
+      sql`(${table.width} is null and ${table.height} is null) or (${table.width} > 0 and ${table.height} > 0)`,
+    ),
+    check('media_asset_byte_size_valid', sql`${table.byteSize} is null or ${table.byteSize} > 0`),
+  ],
+)
+
 export const reviewRounds = pgTable(
   'review_round',
   {
@@ -273,6 +336,10 @@ export const reviewItems = pgTable(
     targetContentHash: varchar('target_content_hash', { length: 64 }).notNull(),
     originalContent: text('original_content').notNull(),
     proposedContent: text('proposed_content'),
+    proposedMediaAssetId: uuid('proposed_media_asset_id').references(() => mediaAssets.id, {
+      onDelete: 'restrict',
+    }),
+    proposedMedia: jsonb('proposed_media').$type<Record<string, unknown>>(),
     changeType: reviewChangeType('change_type').notNull(),
     category: varchar('category', { length: 80 }).notNull(),
     priority: reviewPriority('priority').notNull(),

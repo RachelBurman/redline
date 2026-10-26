@@ -1,11 +1,12 @@
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { Plus } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { DocumentBlockView } from './document-block-view'
+import { MediaProposalForm } from './media-proposal-form'
 
 import type { DocumentDetail, DocumentInsertionAnchor } from '#/types/documents'
-import type { ReviewChangeType } from '#/types/reviews'
+import type { TextReviewChangeType } from '#/types/reviews'
 
 interface DocumentViewerProps {
   blocks: DocumentDetail['blocks']
@@ -13,10 +14,16 @@ interface DocumentViewerProps {
   canReview: boolean
   canInsert: boolean
   selectedStableKey?: string
-  onPropose: (block: DocumentDetail['blocks'][number], changeType: ReviewChangeType) => void
+  onPropose: (block: DocumentDetail['blocks'][number], changeType: TextReviewChangeType) => void
   onProposeInsertion: (anchor: DocumentInsertionAnchor) => void
   presentation?: 'normal' | 'latex-rendered'
+  documentId?: string
+  documentVersionId?: string
+  reviewRoundId?: string
+  onMediaProposalCreated?: (reviewItemId: string) => void
 }
+
+const ignoreMediaProposal = () => undefined
 
 export function DocumentViewer({
   blocks,
@@ -27,12 +34,32 @@ export function DocumentViewer({
   onPropose,
   onProposeInsertion,
   presentation = 'normal',
+  documentId = '',
+  documentVersionId = '',
+  reviewRoundId = '',
+  onMediaProposalCreated = ignoreMediaProposal,
 }: DocumentViewerProps) {
+  const [mediaProposal, setMediaProposal] = useState<{
+    changeType:
+      | 'media_insert'
+      | 'media_replace'
+      | 'media_delete'
+      | 'media_caption'
+      | 'media_alt_text'
+      | 'media_reorder'
+    targetBlock: DocumentDetail['blocks'][number]
+    beforeBlockId: string | null
+  } | null>(null)
   const scrollElementRef = useRef<HTMLDivElement>(null)
   const virtualizer = useVirtualizer({
     count: blocks.length,
     getScrollElement: () => scrollElementRef.current,
-    estimateSize: (index) => (blocks[index]?.blockType === 'heading' ? 92 : 78),
+    estimateSize: (index) =>
+      blocks[index]?.blockType === 'rich_media'
+        ? 520
+        : blocks[index]?.blockType === 'heading'
+          ? 92
+          : 78,
     overscan: 8,
   })
 
@@ -62,6 +89,23 @@ export function DocumentViewer({
           >
             <Plus aria-hidden="true" size={15} />
             Add paragraph at end
+          </button>
+          <button
+            className="ml-2 inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#d7d4cc] bg-white px-3 text-xs font-bold text-[#4f5b56] transition-colors hover:border-[#d1735b] hover:text-[#934630]"
+            onClick={() => {
+              const finalAnchor = insertionAnchors.at(-1)
+              if (finalAnchor) {
+                setMediaProposal({
+                  changeType: 'media_insert',
+                  targetBlock: finalAnchor.afterBlock,
+                  beforeBlockId: finalAnchor.beforeBlockId,
+                })
+              }
+            }}
+            type="button"
+          >
+            <Plus aria-hidden="true" size={15} />
+            Add image or graph
           </button>
         </div>
       ) : null}
@@ -103,6 +147,56 @@ export function DocumentViewer({
                 >
                   <DocumentBlockView
                     block={block}
+                    onMediaDelete={
+                      canReview && block.blockType === 'rich_media'
+                        ? () =>
+                            setMediaProposal({
+                              changeType: 'media_delete',
+                              targetBlock: block,
+                              beforeBlockId: null,
+                            })
+                        : undefined
+                    }
+                    onMediaEditAltText={
+                      canReview && block.blockType === 'rich_media'
+                        ? () =>
+                            setMediaProposal({
+                              changeType: 'media_alt_text',
+                              targetBlock: block,
+                              beforeBlockId: null,
+                            })
+                        : undefined
+                    }
+                    onMediaEditCaption={
+                      canReview && block.blockType === 'rich_media'
+                        ? () =>
+                            setMediaProposal({
+                              changeType: 'media_caption',
+                              targetBlock: block,
+                              beforeBlockId: null,
+                            })
+                        : undefined
+                    }
+                    onMediaMove={
+                      canReview && block.blockType === 'rich_media'
+                        ? () =>
+                            setMediaProposal({
+                              changeType: 'media_reorder',
+                              targetBlock: block,
+                              beforeBlockId: null,
+                            })
+                        : undefined
+                    }
+                    onMediaReplace={
+                      canReview && block.blockType === 'rich_media'
+                        ? () =>
+                            setMediaProposal({
+                              changeType: 'media_replace',
+                              targetBlock: block,
+                              beforeBlockId: null,
+                            })
+                        : undefined
+                    }
                     onProposeDeletion={
                       canReview && block.blockType === 'paragraph'
                         ? () => onPropose(block, 'delete')
@@ -135,6 +229,22 @@ export function DocumentViewer({
           </div>
         )}
       </div>
+      {mediaProposal ? (
+        <MediaProposalForm
+          beforeBlockId={mediaProposal.beforeBlockId}
+          blocks={blocks}
+          changeType={mediaProposal.changeType}
+          documentId={documentId}
+          onCancel={() => setMediaProposal(null)}
+          onCreated={(reviewItemId) => {
+            setMediaProposal(null)
+            onMediaProposalCreated(reviewItemId)
+          }}
+          reviewRoundId={reviewRoundId}
+          targetBlock={mediaProposal.targetBlock}
+          versionId={documentVersionId}
+        />
+      ) : null}
     </section>
   )
 }

@@ -17,6 +17,7 @@ export interface VersionSourceBlock {
     | 'table_row'
     | 'table_cell'
     | 'page_break'
+    | 'rich_media'
     | 'unsupported'
   text: string
   headingLevel: number | null

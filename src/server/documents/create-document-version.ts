@@ -11,6 +11,7 @@ import {
   reviewResolutions,
   reviewRounds,
 } from '#/db/schema'
+import { parseRichMediaBlockAttributes } from '#/domain/documents/rich-media-block'
 import { appendAuditEvent } from '#/server/audit/append-audit-event'
 import { assertCanManageDocumentVersions } from '#/server/auth/permissions'
 import { supersedePendingSignatureRequests } from '#/server/signatures/supersede-signature-requests'
@@ -103,6 +104,8 @@ export async function createDocumentVersion(input: {
           targetBlockId: reviewItems.targetBlockId,
           changeType: reviewItems.changeType,
           finalContent: reviewResolutions.finalContent,
+          proposedMedia: reviewItems.proposedMedia,
+          insertionBeforeBlockId: reviewItems.insertionBeforeBlockId,
         })
         .from(reviewItems)
         .innerJoin(reviewResolutions, eq(reviewResolutions.reviewItemId, reviewItems.id))
@@ -140,6 +143,38 @@ export async function createDocumentVersion(input: {
           insertedBlockId: row.reviewItemId,
           insertedStableKey: `insert-${row.reviewItemId}`,
           finalContent: row.finalContent,
+        })
+      } else if (row.changeType === 'media_insert' && row.proposedMedia) {
+        acceptedChanges.push({
+          reviewItemId: row.reviewItemId,
+          targetBlockId: row.targetBlockId,
+          changeType: 'media_insert',
+          insertedBlockId: row.reviewItemId,
+          insertedStableKey: `media-${row.reviewItemId}`,
+          media: parseRichMediaBlockAttributes(row.proposedMedia),
+        })
+      } else if (
+        ['media_replace', 'media_caption', 'media_alt_text'].includes(row.changeType) &&
+        row.proposedMedia
+      ) {
+        acceptedChanges.push({
+          reviewItemId: row.reviewItemId,
+          targetBlockId: row.targetBlockId,
+          changeType: row.changeType as 'media_replace' | 'media_caption' | 'media_alt_text',
+          media: parseRichMediaBlockAttributes(row.proposedMedia),
+        })
+      } else if (row.changeType === 'media_delete') {
+        acceptedChanges.push({
+          reviewItemId: row.reviewItemId,
+          targetBlockId: row.targetBlockId,
+          changeType: 'media_delete',
+        })
+      } else if (row.changeType === 'media_reorder') {
+        acceptedChanges.push({
+          reviewItemId: row.reviewItemId,
+          targetBlockId: row.targetBlockId,
+          changeType: 'media_reorder',
+          beforeBlockId: row.insertionBeforeBlockId,
         })
       }
     }

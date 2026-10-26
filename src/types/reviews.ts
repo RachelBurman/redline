@@ -9,7 +9,18 @@ export type ReviewItemStatus =
   | 'conflict'
   | 'resolved'
 
-export type ReviewChangeType = 'replace' | 'delete' | 'insert'
+export type ReviewChangeType =
+  | 'replace'
+  | 'delete'
+  | 'insert'
+  | 'media_insert'
+  | 'media_replace'
+  | 'media_delete'
+  | 'media_caption'
+  | 'media_alt_text'
+  | 'media_reorder'
+
+export type TextReviewChangeType = Extract<ReviewChangeType, 'replace' | 'delete' | 'insert'>
 
 export interface ReviewItemSummary {
   id: string
@@ -20,6 +31,7 @@ export interface ReviewItemSummary {
   changeType: ReviewChangeType
   originalContent: string
   proposedContent: string | null
+  proposedMedia?: import('./rich-media').RichMediaProposalPayload | null
   category: ReviewCategory
   priority: ReviewPriority
   rationale: string

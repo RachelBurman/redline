@@ -348,6 +348,29 @@ Potential spreadsheet formulas are neutralised before CSV encoding, and every ge
 report is hashed and recorded in the audit log. UI filters affect only the visible queue; they
 never silently narrow this complete audit export.
 
+### Images and static graphs
+
+Editors and reviewers can propose PNG and JPEG blocks from the document review workspace. Every
+image requires useful alt text; captions and source/provenance text are optional. Insertions,
+replacements, deletions, caption changes, alt-text changes, and reordering remain proposals until
+an authorised resolver accepts them, and an accepted change is materialised only when a new
+immutable document version is created.
+
+Uploaded filenames and browser MIME types are not trusted. Redline recognises decoded PNG/JPEG
+content, rejects animation and trailing polyglot content, limits uploads to 10 MB, limits each
+dimension to 10,000 pixels, limits decoded images to 25 million pixels/100 MB, scans quarantined
+bytes, and re-encodes accepted images to remove metadata and active content. SVG, HTML, GIF,
+multi-frame images, remote embeds, scripts, notebooks, macros, and executable chart formats are
+not supported. The first release treats a graph as a static PNG or JPEG.
+
+Canonical versions contain immutable asset IDs, hashes, dimensions, MIME type, accessibility
+metadata, and orderingâ€”never public object URLs or filesystem paths. Original and preview objects
+use private tenant/document-scoped opaque keys and are served only through authorised application
+requests with hash verification. A missing, quarantined, or failed derivative is shown as an
+explicit recoverable state. Historical version restore and export resolve the exact recorded asset;
+DOCX export preserves aspect ratio, caption, source, and Word alt text within the document's text-
+flow layout (no desktop-publishing positioning or pixel-perfect wrapping).
+
 ## Versioned API
 
 | Endpoint                                                                         | Purpose                                  |
@@ -369,6 +392,9 @@ never silently narrow this complete audit export.
 | `/api/v1/documents/:documentId/review-items/export`                              | Download the complete review queue CSV   |
 | `/api/v1/documents/:documentId/review-items/:reviewItemId/comments`              | List or add comments and direct replies  |
 | `/api/v1/documents/:documentId/review-items/:reviewItemId/resolve`               | Accept or reject a proposal              |
+| `/api/v1/documents/:documentId/media-proposals`                                  | Upload and propose image insert/replace  |
+| `/api/v1/documents/:documentId/media-metadata-proposals`                         | Propose image metadata/order changes     |
+| `/api/v1/documents/:documentId/media/:assetId`                                   | Fetch an authorised immutable derivative |
 | `/api/v1/documents/:documentId/presence`                                         | Read or heartbeat participant presence   |
 | `/api/v1/documents/:documentId/exports`                                          | Generate the current resolved `.docx`    |
 | `/api/v1/documents/:documentId/signature-requests`                               | List or create exact-version sign-offs   |
@@ -394,8 +420,8 @@ backup, recovery, monitoring, and security gates.
 ## Current boundaries
 
 This slice proves the version-safe proposal workflow; it does not recreate Microsoft Word.
-The UI currently supports paragraph-level replacements, deletions, and additions after visible
-immutable blocks or at the end of a document. The visible queue can be filtered and sorted
+The UI supports paragraph-level replacements, deletions, and additions plus static PNG/JPEG media
+proposals. The visible queue can be filtered and sorted
 without changing the complete audit CSV; section labels are derived from
 the nearest preceding immutable heading. The schema and review domain leave room for questions,
 assignment completion, due dates, and workload reporting, but those workflows are not presented
@@ -406,7 +432,8 @@ read with author attribution and timestamps. Replies to replies, editing comment
 discussion threads remain follow-up work.
 Direct shared-text editing, CRDT/OT synchronisation, pagination, headers and footers, and
 pixel-perfect Word rendering remain outside this MVP. Version comparison provides word-level
-changes for supported blocks but does not classify moved blocks or reproduce Word-style redlines.
+text changes and deterministic media replacement/metadata labels, but does not reproduce
+Word-style redlines or infer visual similarity between two different images.
 
 ## Security and data safety
 
@@ -429,6 +456,8 @@ changes for supported blocks but does not classify moved blocks or reproduce Wor
 - Responses apply CSP, clickjacking, MIME-sniffing, referrer, permissions, transport-security,
   and private no-store protections where appropriate.
 - Source files and exports live outside the web root under opaque object keys.
+- Media is quarantined, content-sniffed, bounded before decode, re-encoded, hash-verified, and
+  fetched through tenant-authorised endpoints; canonical blocks never contain public URLs.
 - Foreign keys use restrictive deletion for review and audit records.
 - Audit events form a hash chain and PostgreSQL rejects updates or deletes.
 - A review selection never silently relocates to a new document version.

@@ -2,6 +2,7 @@ import { and, eq, inArray, ne, sql } from 'drizzle-orm'
 
 import { db } from '#/db/index'
 import { documentBlocks, documents, reviewItems, reviewResolutions } from '#/db/schema'
+import { parseRichMediaBlockAttributes } from '#/domain/documents/rich-media-block'
 import {
   StaleSelectionError,
   assertSelectionAnchorMatches,
@@ -45,9 +46,15 @@ export async function resolveReviewItem(input: {
         targetContentHash: reviewItems.targetContentHash,
         changeType: reviewItems.changeType,
         proposedContent: reviewItems.proposedContent,
+        proposedMedia: reviewItems.proposedMedia,
+        proposedMediaAssetId: reviewItems.proposedMediaAssetId,
+        rationale: reviewItems.rationale,
         status: reviewItems.status,
         revision: reviewItems.revision,
         blockText: documentBlocks.text,
+        blockType: documentBlocks.blockType,
+        blockContentHash: documentBlocks.contentHash,
+        blockAttributes: documentBlocks.attributes,
         currentVersionId: documents.currentVersionId,
       })
       .from(reviewItems)
@@ -70,6 +77,11 @@ export async function resolveReviewItem(input: {
     if (item.revision !== input.expectedRevision) throw new ReviewConflictError()
 
     const now = new Date()
+    const currentMedia =
+      item.blockType === 'rich_media' ? parseRichMediaBlockAttributes(item.blockAttributes) : null
+    const proposedMedia = item.proposedMedia
+      ? parseRichMediaBlockAttributes(item.proposedMedia)
+      : null
 
     if (input.decision === 'reject') {
       await tx
@@ -96,7 +108,15 @@ export async function resolveReviewItem(input: {
         reviewItemId: item.id,
         actorId: input.context.userId,
         eventType: 'review_item.rejected',
-        payload: { expectedRevision: input.expectedRevision },
+        payload: {
+          expectedRevision: input.expectedRevision,
+          changeType: item.changeType,
+          targetBlockId: item.targetBlockId,
+          assetId: proposedMedia?.assetId ?? currentMedia?.assetId ?? null,
+          mediaContentHash: proposedMedia?.contentHash ?? currentMedia?.contentHash ?? null,
+          rationale: item.rationale,
+          outcome: 'rejected',
+        },
       })
 
       return {
@@ -123,27 +143,65 @@ export async function resolveReviewItem(input: {
     ) {
       throw new ReviewTargetError('The proposal has no proposed text.')
     }
-    if (!['replace', 'delete', 'insert'].includes(item.changeType)) {
+    const mediaChange = item.changeType.startsWith('media_')
+    if (
+      ![
+        'replace',
+        'delete',
+        'insert',
+        'media_insert',
+        'media_replace',
+        'media_delete',
+        'media_caption',
+        'media_alt_text',
+        'media_reorder',
+      ].includes(item.changeType)
+    ) {
       throw new ReviewTargetError('This proposal type cannot be resolved by the current workflow.')
+    }
+    if (
+      mediaChange &&
+      !['media_delete', 'media_reorder'].includes(item.changeType) &&
+      !item.proposedMedia
+    ) {
+      throw new ReviewTargetError('The media proposal has no immutable asset metadata.')
+    }
+    if (
+      [
+        'media_replace',
+        'media_delete',
+        'media_caption',
+        'media_alt_text',
+        'media_reorder',
+      ].includes(item.changeType) &&
+      item.blockType !== 'rich_media'
+    ) {
+      throw new ReviewConflictError('The proposal no longer targets a media block.')
     }
 
     try {
-      assertSelectionAnchorMatches({
-        anchor: {
+      if (mediaChange) {
+        if (item.blockContentHash !== item.targetContentHash) {
+          throw new StaleSelectionError()
+        }
+      } else {
+        assertSelectionAnchorMatches({
+          anchor: {
+            documentVersionId: item.documentVersionId,
+            blockId: item.targetBlockId,
+            startOffset: item.startOffset,
+            endOffset: item.endOffset,
+            offsetEncoding: 'utf16',
+            quote: item.anchorQuote,
+            prefix: item.anchorPrefix ?? '',
+            suffix: item.anchorSuffix ?? '',
+            contentHash: item.targetContentHash,
+          },
           documentVersionId: item.documentVersionId,
           blockId: item.targetBlockId,
-          startOffset: item.startOffset,
-          endOffset: item.endOffset,
-          offsetEncoding: 'utf16',
-          quote: item.anchorQuote,
-          prefix: item.anchorPrefix ?? '',
-          suffix: item.anchorSuffix ?? '',
-          contentHash: item.targetContentHash,
-        },
-        documentVersionId: item.documentVersionId,
-        blockId: item.targetBlockId,
-        blockText: item.blockText,
-      })
+          blockText: item.blockText,
+        })
+      }
     } catch (error) {
       if (error instanceof StaleSelectionError) {
         throw new ReviewConflictError(
@@ -153,7 +211,7 @@ export async function resolveReviewItem(input: {
       throw error
     }
 
-    if (item.changeType !== 'insert') {
+    if (!['insert', 'media_insert'].includes(item.changeType)) {
       const [existingAcceptedItem] = await tx
         .select({ id: reviewItems.id })
         .from(reviewItems)
@@ -162,7 +220,15 @@ export async function resolveReviewItem(input: {
             eq(reviewItems.documentVersionId, item.documentVersionId),
             eq(reviewItems.targetBlockId, item.targetBlockId),
             eq(reviewItems.status, 'accepted'),
-            inArray(reviewItems.changeType, ['replace', 'delete']),
+            inArray(reviewItems.changeType, [
+              'replace',
+              'delete',
+              'media_replace',
+              'media_delete',
+              'media_caption',
+              'media_alt_text',
+              'media_reorder',
+            ]),
             ne(reviewItems.id, item.id),
           ),
         )
@@ -175,22 +241,29 @@ export async function resolveReviewItem(input: {
       }
     }
 
-    const conflictedItems =
-      item.changeType === 'insert'
-        ? []
-        : await tx
-            .update(reviewItems)
-            .set({ status: 'conflict', updatedAt: now })
-            .where(
-              and(
-                eq(reviewItems.documentVersionId, item.documentVersionId),
-                eq(reviewItems.targetBlockId, item.targetBlockId),
-                ne(reviewItems.id, item.id),
-                inArray(reviewItems.changeType, ['replace', 'delete']),
-                inArray(reviewItems.status, ['open', 'under_discussion']),
-              ),
-            )
-            .returning({ id: reviewItems.id })
+    const conflictedItems = ['insert', 'media_insert'].includes(item.changeType)
+      ? []
+      : await tx
+          .update(reviewItems)
+          .set({ status: 'conflict', updatedAt: now })
+          .where(
+            and(
+              eq(reviewItems.documentVersionId, item.documentVersionId),
+              eq(reviewItems.targetBlockId, item.targetBlockId),
+              ne(reviewItems.id, item.id),
+              inArray(reviewItems.changeType, [
+                'replace',
+                'delete',
+                'media_replace',
+                'media_delete',
+                'media_caption',
+                'media_alt_text',
+                'media_reorder',
+              ]),
+              inArray(reviewItems.status, ['open', 'under_discussion']),
+            ),
+          )
+          .returning({ id: reviewItems.id })
     await tx
       .update(reviewItems)
       .set({
@@ -200,8 +273,10 @@ export async function resolveReviewItem(input: {
         updatedAt: now,
       })
       .where(and(eq(reviewItems.id, item.id), eq(reviewItems.revision, item.revision)))
-    const finalContent = item.changeType === 'delete' ? null : item.proposedContent
-    if (item.changeType !== 'delete' && finalContent === null) {
+    const finalContent = ['delete', 'media_delete'].includes(item.changeType)
+      ? null
+      : item.proposedContent
+    if (!mediaChange && item.changeType !== 'delete' && finalContent === null) {
       throw new ReviewTargetError('The proposal has no proposed text.')
     }
 
@@ -226,6 +301,10 @@ export async function resolveReviewItem(input: {
         targetBlockId: item.targetBlockId,
         finalContentHash: finalContent === null ? null : hashText(finalContent),
         deletedContentHash: item.changeType === 'delete' ? item.targetContentHash : null,
+        assetId: item.proposedMediaAssetId ?? currentMedia?.assetId ?? null,
+        mediaContentHash: proposedMedia?.contentHash ?? currentMedia?.contentHash ?? null,
+        rationale: item.rationale,
+        outcome: 'accepted',
         conflictedReviewItemIds: conflictedItems.map((conflict) => conflict.id),
         awaitingVersionCreation: true,
       },

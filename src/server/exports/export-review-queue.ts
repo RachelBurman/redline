@@ -67,6 +67,8 @@ async function listExportRows(input: {
       endOffset: reviewItems.endOffset,
       originalContent: reviewItems.originalContent,
       proposedContent: reviewItems.proposedContent,
+      proposedMediaAssetId: reviewItems.proposedMediaAssetId,
+      proposedMedia: reviewItems.proposedMedia,
       finalContent: reviewResolutions.finalContent,
       category: reviewItems.category,
       priority: reviewItems.priority,
@@ -123,8 +125,13 @@ async function listExportRows(input: {
   )
 
   function serializeRow(row: (typeof rows)[number]): ReviewQueueExportRow {
+    const media = row.proposedMedia
     return {
       ...row,
+      mediaAssetId: row.proposedMediaAssetId,
+      mediaContentHash: typeof media?.contentHash === 'string' ? media.contentHash : null,
+      mediaAltText: typeof media?.altText === 'string' ? media.altText : null,
+      mediaCaption: typeof media?.caption === 'string' ? media.caption : null,
       createdAt: row.createdAt.toISOString(),
       updatedAt: row.updatedAt.toISOString(),
       resolvedAt: row.resolvedAt?.toISOString() ?? null,

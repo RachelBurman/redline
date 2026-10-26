@@ -16,6 +16,31 @@ function compare(base: VersionComparisonBlockSnapshot[], target: VersionComparis
   })
 }
 
+function mediaBlock(contentHash: string, caption: string): VersionComparisonBlockSnapshot {
+  return {
+    stableKey: 'figure-1',
+    ordinal: 0,
+    blockType: 'rich_media',
+    text: caption,
+    headingLevel: null,
+    media: {
+      assetId: '11111111-1111-4111-8111-111111111111',
+      altText: 'A graph.',
+      caption,
+      source: null,
+      provenance: {},
+      width: 100,
+      height: 100,
+      byteSize: 100,
+      mimeType: 'image/png',
+      contentHash,
+      processingStatus: 'ready',
+      url: '/original',
+      previewUrl: '/preview',
+    },
+  }
+}
+
 describe('compareDocumentVersions', () => {
   it('classifies stable blocks and counts changes', () => {
     const result = compare(
@@ -58,5 +83,16 @@ describe('compareDocumentVersions', () => {
     expect(() => compare([block('a', 'One', 0), block('a', 'Two', 1)], [])).toThrow(
       'duplicate stable block key',
     )
+  })
+
+  it('distinguishes media replacement from metadata-only changes', () => {
+    expect(
+      compare([mediaBlock('a'.repeat(64), 'Old')], [mediaBlock('b'.repeat(64), 'New')]).blocks[0]
+        ?.mediaChange,
+    ).toBe('replaced')
+    expect(
+      compare([mediaBlock('a'.repeat(64), 'Old')], [mediaBlock('a'.repeat(64), 'New')]).blocks[0]
+        ?.mediaChange,
+    ).toBe('metadata_changed')
   })
 })
