@@ -64,6 +64,19 @@ export const reviewItemStatus = pgEnum('review_item_status', [
   'resolved',
 ])
 export const exportStatus = pgEnum('export_status', ['pending', 'ready', 'failed'])
+export const signatureRequestStatus = pgEnum('signature_request_status', [
+  'pending',
+  'completed',
+  'declined',
+  'cancelled',
+  'superseded',
+])
+export const signatureRequestScope = pgEnum('signature_request_scope', ['individual', 'everyone'])
+export const signatureSlotStatus = pgEnum('signature_slot_status', [
+  'pending',
+  'signed',
+  'declined',
+])
 
 export const projects = pgTable(
   'project',
@@ -400,6 +413,81 @@ export const documentPresence = pgTable(
   (table) => [
     uniqueIndex('document_presence_client_uq').on(table.documentId, table.userId, table.clientId),
     index('document_presence_active_idx').on(table.documentId, table.lastSeenAt),
+  ],
+)
+
+export const signatureRequests = pgTable(
+  'signature_request',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'restrict' }),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, { onDelete: 'restrict' }),
+    documentVersionId: uuid('document_version_id')
+      .notNull()
+      .references(() => documentVersions.id, { onDelete: 'restrict' }),
+    reviewRoundId: uuid('review_round_id')
+      .notNull()
+      .references(() => reviewRounds.id, { onDelete: 'restrict' }),
+    requestedById: text('requested_by_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'restrict' }),
+    scope: signatureRequestScope('scope').notNull(),
+    purpose: varchar('purpose', { length: 500 }).notNull(),
+    contentSha256: varchar('content_sha256', { length: 64 }).notNull(),
+    status: signatureRequestStatus('status').notNull().default('pending'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    completedAt: timestamp('completed_at', { withTimezone: true }),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    cancelledById: text('cancelled_by_id').references(() => user.id, { onDelete: 'restrict' }),
+    supersededAt: timestamp('superseded_at', { withTimezone: true }),
+    supersededByVersionId: uuid('superseded_by_version_id').references(() => documentVersions.id, {
+      onDelete: 'restrict',
+    }),
+  },
+  (table) => [
+    index('signature_request_document_version_idx').on(
+      table.documentId,
+      table.documentVersionId,
+      table.createdAt,
+    ),
+    index('signature_request_organization_status_idx').on(table.organizationId, table.status),
+    check('signature_request_purpose_not_blank', sql`length(trim(${table.purpose})) >= 3`),
+  ],
+)
+
+export const signatureSlots = pgTable(
+  'signature_slot',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    signatureRequestId: uuid('signature_request_id')
+      .notNull()
+      .references(() => signatureRequests.id, { onDelete: 'restrict' }),
+    signerId: text('signer_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'restrict' }),
+    status: signatureSlotStatus('status').notNull().default('pending'),
+    verifiedEmail: text('verified_email'),
+    consentStatement: text('consent_statement'),
+    idempotencyKey: uuid('idempotency_key'),
+    signedAt: timestamp('signed_at', { withTimezone: true }),
+    declinedAt: timestamp('declined_at', { withTimezone: true }),
+    declineReason: varchar('decline_reason', { length: 500 }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('signature_slot_request_signer_uq').on(table.signatureRequestId, table.signerId),
+    uniqueIndex('signature_slot_idempotency_uq')
+      .on(table.signatureRequestId, table.signerId, table.idempotencyKey)
+      .where(sql`${table.idempotencyKey} is not null`),
+    index('signature_slot_signer_status_idx').on(table.signerId, table.status),
+    check(
+      'signature_slot_signed_evidence_present',
+      sql`${table.status} <> 'signed' or (${table.signedAt} is not null and ${table.verifiedEmail} is not null and ${table.consentStatement} is not null and ${table.idempotencyKey} is not null)`,
+    ),
   ],
 )
 

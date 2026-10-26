@@ -21,6 +21,14 @@ const eventLabels: Record<string, string> = {
   'review_item.rejected': 'Proposal rejected',
   'review_queue.exported': 'Review queue exported',
   'review_round.completed': 'Review round completed',
+  'signature.declined': 'Signature declined',
+  'signature.signed': 'Version signed',
+  'signature_notification.failed': 'Signature notification failed',
+  'signature_notification.sent': 'Signature notification sent',
+  'signature_request.cancelled': 'Signature request cancelled',
+  'signature_request.completed': 'Signature request completed',
+  'signature_request.created': 'Signature request created',
+  'signature_request.superseded': 'Signature request superseded',
 }
 
 function eventLabel(eventType: string) {

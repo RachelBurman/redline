@@ -148,8 +148,10 @@ export function DocumentReviewPage({ documentId }: { documentId: string }) {
   })
 
   useEffect(() => {
-    if (!session.isPending && !session.data?.user) window.location.replace('/sign-in')
-  }, [session.data?.user, session.isPending])
+    if (!isSigningOut && !session.isPending && !session.data?.user) {
+      window.location.replace('/sign-in')
+    }
+  }, [isSigningOut, session.data?.user, session.isPending])
 
   async function handleSignOut() {
     setIsSigningOut(true)

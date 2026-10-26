@@ -14,8 +14,9 @@ const headingLevels = [
 export async function buildResolvedDocx(input: {
   title: string
   blocks: DocumentDetail['blocks']
+  signatureStatus?: string
 }) {
-  const children = input.blocks.map((block) => {
+  const content = input.blocks.map((block) => {
     if (block.blockType === 'heading') {
       const index = Math.min(5, Math.max(0, (block.headingLevel ?? 2) - 1))
       return new Paragraph({ text: block.text, heading: headingLevels[index] })
@@ -29,10 +30,24 @@ export async function buildResolvedDocx(input: {
 
     return new Paragraph({ text: block.text })
   })
+  const children = input.signatureStatus
+    ? [
+        new Paragraph({
+          children: [
+            new TextRun({
+              text: `Electronic sign-off status: ${input.signatureStatus}`,
+              bold: true,
+              color: '315A4E',
+            }),
+          ],
+        }),
+        ...content,
+      ]
+    : content
   const document = new Document({
     creator: 'Redline',
     title: input.title,
-    description: 'Resolved document exported from Redline.',
+    description: `Resolved document exported from Redline.${input.signatureStatus ? ` Electronic sign-off status: ${input.signatureStatus}.` : ''}`,
     sections: [{ children }],
   })
 

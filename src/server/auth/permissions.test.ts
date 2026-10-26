@@ -27,6 +27,7 @@ describe('document permissions', () => {
       exportDocument: false,
       exportReviewQueue: true,
       manageAssignments: false,
+      manageSignatures: false,
       manageVersions: false,
       review: true,
       resolve: false,

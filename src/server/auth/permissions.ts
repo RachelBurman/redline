@@ -8,6 +8,7 @@ const reviewQueueExporters = new Set(['owner', 'admin', 'editor', 'reviewer', 'a
 const reviewerInviters = new Set(['owner', 'admin'])
 const reviewRoundAssigners = new Set(['owner', 'admin', 'editor'])
 const organizationWideDocumentReaders = new Set(['owner', 'admin', 'editor'])
+const signatureRequestManagers = new Set(['owner', 'admin', 'editor'])
 
 export interface WorkspaceCapabilities {
   createDocument: boolean
@@ -20,6 +21,7 @@ export interface DocumentCapabilities {
   exportReviewQueue: boolean
   manageAssignments: boolean
   manageVersions: boolean
+  manageSignatures: boolean
   review: boolean
   viewAudit: boolean
   resolve: boolean
@@ -50,6 +52,7 @@ export function getDocumentCapabilities(role: string): DocumentCapabilities {
     exportReviewQueue: reviewQueueExporters.has(role),
     manageAssignments: reviewRoundAssigners.has(role),
     manageVersions: documentVersionManagers.has(role),
+    manageSignatures: signatureRequestManagers.has(role),
     review: documentReviewers.has(role),
     viewAudit: reviewQueueExporters.has(role),
     resolve: documentResolvers.has(role),
@@ -107,5 +110,13 @@ export function assertCanInviteReviewers(role: string) {
 export function assertCanAssignReviewers(role: string) {
   if (!reviewRoundAssigners.has(role)) {
     throw new PermissionDeniedError('Your organisation role cannot manage review assignments.')
+  }
+}
+
+export function assertCanManageSignatureRequests(role: string) {
+  if (!signatureRequestManagers.has(role)) {
+    throw new PermissionDeniedError(
+      'Your organisation role cannot create, cancel, or supersede signature requests.',
+    )
   }
 }

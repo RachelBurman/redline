@@ -11,6 +11,7 @@ export const permissionStatements = {
   project: ['create', 'read', 'update', 'archive'],
   document: ['create', 'read', 'edit', 'review', 'resolve', 'export', 'audit'],
   reviewRound: ['create', 'read', 'assign', 'complete'],
+  signatureRequest: ['create', 'read', 'cancel', 'sign'],
 } as const
 
 export const accessControl = createAccessControl(permissionStatements)
@@ -20,6 +21,7 @@ export const owner = accessControl.newRole({
   project: ['create', 'read', 'update', 'archive'],
   document: ['create', 'read', 'edit', 'review', 'resolve', 'export', 'audit'],
   reviewRound: ['create', 'read', 'assign', 'complete'],
+  signatureRequest: ['create', 'read', 'cancel', 'sign'],
 })
 
 export const admin = accessControl.newRole({
@@ -27,6 +29,7 @@ export const admin = accessControl.newRole({
   project: ['create', 'read', 'update', 'archive'],
   document: ['create', 'read', 'edit', 'review', 'resolve', 'export', 'audit'],
   reviewRound: ['create', 'read', 'assign', 'complete'],
+  signatureRequest: ['create', 'read', 'cancel', 'sign'],
 })
 
 export const editor = accessControl.newRole({
@@ -34,6 +37,7 @@ export const editor = accessControl.newRole({
   project: ['read', 'update'],
   document: ['create', 'read', 'edit', 'review', 'resolve', 'export', 'audit'],
   reviewRound: ['create', 'read', 'assign', 'complete'],
+  signatureRequest: ['create', 'read', 'cancel', 'sign'],
 })
 
 export const reviewer = accessControl.newRole({
@@ -41,6 +45,7 @@ export const reviewer = accessControl.newRole({
   project: ['read'],
   document: ['read', 'review', 'audit'],
   reviewRound: ['read'],
+  signatureRequest: ['read', 'sign'],
 })
 
 export const viewer = accessControl.newRole({
@@ -48,6 +53,7 @@ export const viewer = accessControl.newRole({
   project: ['read'],
   document: ['read'],
   reviewRound: ['read'],
+  signatureRequest: ['read', 'sign'],
 })
 
 export const auditor = accessControl.newRole({
@@ -55,6 +61,7 @@ export const auditor = accessControl.newRole({
   project: ['read'],
   document: ['read', 'audit'],
   reviewRound: ['read'],
+  signatureRequest: ['read'],
 })
 
 export const organizationRoles = {

@@ -22,6 +22,7 @@ const document: DocumentDetail = {
     exportDocument: true,
     exportReviewQueue: true,
     manageAssignments: true,
+    manageSignatures: true,
     manageVersions: true,
     review: true,
     resolve: true,

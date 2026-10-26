@@ -49,6 +49,14 @@ versions in a locally rendered word-level or structured block view.
 18. Choose a private normal, escaped LaTeX source, or safely rendered LaTeX presentation without
     changing the canonical blocks, proposal semantics, immutable versions, audit history, or DOCX
     exports.
+19. Mark an immutable version ready for baseline electronic sign-off, either for the authorised
+    requester alone or for every active reviewer assigned to that exact review round.
+20. Review an explicit title-, version-, and purpose-specific confirmation before signing or
+    decline with a recorded reason; repeated and concurrent submissions cannot duplicate a
+    signature.
+21. Download a human-readable certificate and canonical JSON evidence manifest containing the
+    version content hash, authenticated signer evidence, UTC timestamps, status, and chained audit
+    events. A new version supersedes pending requests without transferring signatures.
 
 Multiple participants can review the same document concurrently. The viewer shows active,
 version-bound presence and refreshes proposals and the selected discussion in the background.
@@ -71,6 +79,10 @@ accepting a proposal silently creates a new version.
 The roadmap still includes dedicated question/comment proposal types, named proposal ownership,
 safely versioned image and graph blocks, and collaboration updates beyond polling without
 expanding the MVP into unrestricted real-time word processing.
+
+Electronic sign-off in this repository is deliberately described as a baseline application-level
+workflow. It does not issue or validate signing certificates and makes no Advanced Electronic
+Signature (AdES) or Qualified Electronic Signature (QES) compliance claim.
 
 See [`TODO.md`](./TODO.md) for the detailed, checked product roadmap.
 
@@ -352,6 +364,11 @@ never silently narrow this complete audit export.
 | `/api/v1/documents/:documentId/review-items/:reviewItemId/resolve`               | Accept or reject a proposal              |
 | `/api/v1/documents/:documentId/presence`                                         | Read or heartbeat participant presence   |
 | `/api/v1/documents/:documentId/exports`                                          | Generate the current resolved `.docx`    |
+| `/api/v1/documents/:documentId/signature-requests`                               | List or create exact-version sign-offs   |
+| `/api/v1/documents/:documentId/signature-requests/:requestId/sign`               | Sign only the authenticated user's slot  |
+| `/api/v1/documents/:documentId/signature-requests/:requestId/decline`            | Decline the authenticated user's slot    |
+| `/api/v1/documents/:documentId/signature-requests/:requestId/cancel`             | Cancel a pending request                 |
+| `/api/v1/documents/:documentId/signature-requests/:requestId/evidence`           | Download certificate or JSON evidence    |
 | `/api/v1/health`                                                                 | Service health                           |
 | `/api/v1/ready`                                                                  | Database-backed service readiness        |
 
