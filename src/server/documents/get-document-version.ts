@@ -6,6 +6,7 @@ import { assertDocumentAccess } from '#/server/auth/document-access'
 import { getDocumentCapabilities } from '#/server/auth/permissions'
 
 import { buildInsertionAnchors } from './build-insertion-anchors'
+import { mapDocumentBlock } from './map-document-block'
 import { DocumentVersionNotFoundError } from './version-errors'
 
 import type { DocumentDetail } from '#/types/documents'
@@ -59,6 +60,7 @@ export async function getDocumentVersion(input: {
         text: documentBlocks.text,
         headingLevel: documentBlocks.headingLevel,
         contentHash: documentBlocks.contentHash,
+        attributes: documentBlocks.attributes,
       })
       .from(documentBlocks)
       .where(eq(documentBlocks.documentVersionId, version.versionId))
@@ -92,6 +94,6 @@ export async function getDocumentVersion(input: {
     },
     reviewRound,
     insertionAnchors: buildInsertionAnchors(blocks),
-    blocks,
+    blocks: blocks.map((block) => mapDocumentBlock(input.documentId, block)),
   }
 }

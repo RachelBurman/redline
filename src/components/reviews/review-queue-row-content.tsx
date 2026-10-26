@@ -7,6 +7,28 @@ const priorityStyles: Record<ReviewItemSummary['priority'], string> = {
   critical: 'bg-[#ffe3dd] text-[#9d3f2c]',
 }
 
+const changeLabels: Record<ReviewItemSummary['changeType'], string> = {
+  delete: 'Deletion',
+  insert: 'New paragraph',
+  replace: 'Replacement',
+  media_insert: 'New image',
+  media_replace: 'Image replacement',
+  media_delete: 'Image deletion',
+  media_caption: 'Caption change',
+  media_alt_text: 'Description change',
+  media_reorder: 'Image move',
+}
+
+function proposalSummary(item: ReviewItemSummary) {
+  if (item.changeType === 'delete' || item.changeType === 'media_delete') {
+    return item.changeType === 'media_delete'
+      ? (item.proposedMedia?.altText ?? 'Delete image')
+      : item.originalContent
+  }
+  if (item.changeType === 'media_reorder') return 'Move image to a new document position'
+  return item.proposedMedia?.altText ?? item.proposedContent
+}
+
 export function ReviewQueueRowContent({
   item,
   sectionLabel,
@@ -19,11 +41,7 @@ export function ReviewQueueRowContent({
       <span className="flex items-center justify-between gap-2">
         <span className="min-w-0">
           <span className="block text-[10px] font-bold tracking-wide text-[#8a6540] uppercase">
-            {item.changeType === 'delete'
-              ? 'Deletion'
-              : item.changeType === 'insert'
-                ? 'New paragraph'
-                : 'Replacement'}
+            {changeLabels[item.changeType]}
           </span>
           <span className="block truncate text-xs font-bold text-[#37423d]">{item.category}</span>
         </span>
@@ -34,7 +52,7 @@ export function ReviewQueueRowContent({
         </span>
       </span>
       <span className="mt-2 line-clamp-2 block text-xs leading-5 text-[#68726d]">
-        {item.changeType === 'delete' ? item.originalContent : item.proposedContent}
+        {proposalSummary(item)}
       </span>
       <span className="mt-2 block truncate text-[10px] font-semibold text-[#65716b]">
         Section: {sectionLabel}

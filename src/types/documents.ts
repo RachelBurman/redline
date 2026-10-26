@@ -19,10 +19,12 @@ export interface DocumentBlockDetail {
     | 'table_row'
     | 'table_cell'
     | 'page_break'
+    | 'rich_media'
     | 'unsupported'
   text: string
   headingLevel: number | null
   contentHash: string
+  media?: import('./rich-media').RichMediaBlockDetail | null
 }
 
 export interface DocumentInsertionAnchor {

@@ -139,4 +139,44 @@ describe('cloneVersionBlocks', () => {
       }),
     ])
   })
+
+  it('preserves the exact historical asset reference when cloning or restoring media', () => {
+    const attributes = {
+      assetId: '11111111-1111-4111-8111-111111111111',
+      altText: 'A static graph.',
+      caption: 'Results',
+      source: null,
+      provenance: {},
+      width: 400,
+      height: 300,
+      byteSize: 100,
+      mimeType: 'image/png',
+      contentHash: 'a'.repeat(64),
+      processingStatus: 'ready',
+    }
+    const [cloned] = cloneVersionBlocks({
+      documentVersionId: 'restored-version',
+      createId: () => 'restored-media-block',
+      blocks: [
+        {
+          id: 'historical-media-block',
+          parentBlockId: null,
+          stableKey: 'figure-1',
+          ordinal: 0,
+          blockType: 'rich_media',
+          text: 'Results',
+          headingLevel: null,
+          contentHash: 'block-hash',
+          attributes,
+        },
+      ],
+    })
+
+    expect(cloned).toMatchObject({
+      id: 'restored-media-block',
+      documentVersionId: 'restored-version',
+      stableKey: 'figure-1',
+      attributes,
+    })
+  })
 })

@@ -39,9 +39,11 @@ export interface VersionComparisonBlockSnapshot {
     | 'table_row'
     | 'table_cell'
     | 'page_break'
+    | 'rich_media'
     | 'unsupported'
   text: string
   headingLevel: number | null
+  media?: import('./rich-media').RichMediaBlockDetail | null
 }
 
 export interface VersionComparisonBlock {
@@ -49,6 +51,7 @@ export interface VersionComparisonBlock {
   changeType: VersionComparisonChangeType
   base: VersionComparisonBlockSnapshot | null
   target: VersionComparisonBlockSnapshot | null
+  mediaChange?: 'replaced' | 'metadata_changed' | null
 }
 
 export interface DocumentVersionComparison {

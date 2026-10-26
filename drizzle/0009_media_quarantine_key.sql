@@ -1,0 +1,2 @@
+ALTER TABLE "media_asset" ADD COLUMN "quarantine_object_key" text;--> statement-breakpoint
+CREATE UNIQUE INDEX "media_asset_quarantine_object_key_uq" ON "media_asset" USING btree ("quarantine_object_key") WHERE "media_asset"."quarantine_object_key" is not null;

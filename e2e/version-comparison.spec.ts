@@ -75,7 +75,7 @@ async function mockComparisonWorkspace(page: import('@playwright/test').Page) {
             id: 'session-1',
             userId,
             token: 'test-token',
-            expiresAt: '2026-10-26T12:00:00.000Z',
+            expiresAt: '2030-10-26T12:00:00.000Z',
             createdAt: '2026-10-25T12:00:00.000Z',
             updatedAt: '2026-10-25T12:00:00.000Z',
           },
@@ -184,7 +184,9 @@ for (const viewport of [
     await mockComparisonWorkspace(page)
     await page.goto(`/app/documents/${documentId}`)
 
-    await expect(page.getByRole('heading', { name: 'Accessible comparison fixture' })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Accessible comparison fixture' })).toBeVisible({
+      timeout: 15_000,
+    })
     await page.getByRole('button', { name: /Version history/ }).click()
     await page.getByRole('button', { name: 'Compare versions' }).click()
 

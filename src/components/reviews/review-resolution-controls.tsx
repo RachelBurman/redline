@@ -13,6 +13,12 @@ const acceptLabels = {
   delete: 'Accept deletion',
   insert: 'Accept paragraph',
   replace: 'Accept',
+  media_insert: 'Accept image',
+  media_replace: 'Accept replacement',
+  media_delete: 'Accept deletion',
+  media_caption: 'Accept caption',
+  media_alt_text: 'Accept description',
+  media_reorder: 'Accept move',
 } as const
 
 export function ReviewResolutionControls({

@@ -21,6 +21,12 @@ const changeTypeLabels = {
   delete: 'Deletion',
   insert: 'New paragraph',
   replace: 'Replacement',
+  media_insert: 'New image',
+  media_replace: 'Image replacement',
+  media_delete: 'Image deletion',
+  media_caption: 'Caption change',
+  media_alt_text: 'Accessible description change',
+  media_reorder: 'Image reorder',
 } as const
 
 export function ReviewItemDetail({

@@ -29,10 +29,13 @@ import { Route as ApiV1AuthSplatRouteImport } from './routes/api/v1/auth/$'
 import { Route as ApiV1DocumentsDocumentIdRouteImport } from './routes/api/v1/documents/$documentId'
 import { Route as ApiV1DocumentsDocumentIdAuditEventsRouteImport } from './routes/api/v1/documents/$documentId/audit-events'
 import { Route as ApiV1DocumentsDocumentIdExportsRouteImport } from './routes/api/v1/documents/$documentId/exports'
+import { Route as ApiV1DocumentsDocumentIdMediaMetadataProposalsRouteImport } from './routes/api/v1/documents/$documentId/media-metadata-proposals'
+import { Route as ApiV1DocumentsDocumentIdMediaProposalsRouteImport } from './routes/api/v1/documents/$documentId/media-proposals'
 import { Route as ApiV1DocumentsDocumentIdPresenceRouteImport } from './routes/api/v1/documents/$documentId/presence'
 import { Route as ApiV1DocumentsDocumentIdReviewItemsRouteImport } from './routes/api/v1/documents/$documentId/review-items'
 import { Route as ApiV1DocumentsDocumentIdSignatureRequestsRouteImport } from './routes/api/v1/documents/$documentId/signature-requests'
 import { Route as ApiV1DocumentsDocumentIdVersionsRouteImport } from './routes/api/v1/documents/$documentId/versions'
+import { Route as ApiV1DocumentsDocumentIdMediaAssetIdRouteImport } from './routes/api/v1/documents/$documentId/media/$assetId'
 import { Route as ApiV1DocumentsDocumentIdReviewItemsExportRouteImport } from './routes/api/v1/documents/$documentId/review-items/export'
 import { Route as ApiV1DocumentsDocumentIdVersionsVersionIdRouteImport } from './routes/api/v1/documents/$documentId/versions/$versionId'
 import { Route as ApiV1DocumentsDocumentIdVersionsCompareRouteImport } from './routes/api/v1/documents/$documentId/versions/compare'
@@ -150,6 +153,18 @@ const ApiV1DocumentsDocumentIdExportsRoute =
     path: '/exports',
     getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
   } as any)
+const ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute =
+  ApiV1DocumentsDocumentIdMediaMetadataProposalsRouteImport.update({
+    id: '/media-metadata-proposals',
+    path: '/media-metadata-proposals',
+    getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdMediaProposalsRoute =
+  ApiV1DocumentsDocumentIdMediaProposalsRouteImport.update({
+    id: '/media-proposals',
+    path: '/media-proposals',
+    getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+  } as any)
 const ApiV1DocumentsDocumentIdPresenceRoute =
   ApiV1DocumentsDocumentIdPresenceRouteImport.update({
     id: '/presence',
@@ -172,6 +187,12 @@ const ApiV1DocumentsDocumentIdVersionsRoute =
   ApiV1DocumentsDocumentIdVersionsRouteImport.update({
     id: '/versions',
     path: '/versions',
+    getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdMediaAssetIdRoute =
+  ApiV1DocumentsDocumentIdMediaAssetIdRouteImport.update({
+    id: '/media/$assetId',
+    path: '/media/$assetId',
     getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
   } as any)
 const ApiV1DocumentsDocumentIdReviewItemsExportRoute =
@@ -287,10 +308,13 @@ export interface FileRoutesByFullPath {
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
   '/api/v1/documents/$documentId/audit-events': typeof ApiV1DocumentsDocumentIdAuditEventsRoute
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
+  '/api/v1/documents/$documentId/media-metadata-proposals': typeof ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute
+  '/api/v1/documents/$documentId/media-proposals': typeof ApiV1DocumentsDocumentIdMediaProposalsRoute
   '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
   '/api/v1/documents/$documentId/signature-requests': typeof ApiV1DocumentsDocumentIdSignatureRequestsRouteWithChildren
   '/api/v1/documents/$documentId/versions': typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
+  '/api/v1/documents/$documentId/media/$assetId': typeof ApiV1DocumentsDocumentIdMediaAssetIdRoute
   '/api/v1/documents/$documentId/review-items/export': typeof ApiV1DocumentsDocumentIdReviewItemsExportRoute
   '/api/v1/documents/$documentId/versions/$versionId': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren
   '/api/v1/documents/$documentId/versions/compare': typeof ApiV1DocumentsDocumentIdVersionsCompareRoute
@@ -325,10 +349,13 @@ export interface FileRoutesByTo {
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
   '/api/v1/documents/$documentId/audit-events': typeof ApiV1DocumentsDocumentIdAuditEventsRoute
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
+  '/api/v1/documents/$documentId/media-metadata-proposals': typeof ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute
+  '/api/v1/documents/$documentId/media-proposals': typeof ApiV1DocumentsDocumentIdMediaProposalsRoute
   '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
   '/api/v1/documents/$documentId/signature-requests': typeof ApiV1DocumentsDocumentIdSignatureRequestsRouteWithChildren
   '/api/v1/documents/$documentId/versions': typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
+  '/api/v1/documents/$documentId/media/$assetId': typeof ApiV1DocumentsDocumentIdMediaAssetIdRoute
   '/api/v1/documents/$documentId/review-items/export': typeof ApiV1DocumentsDocumentIdReviewItemsExportRoute
   '/api/v1/documents/$documentId/versions/$versionId': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren
   '/api/v1/documents/$documentId/versions/compare': typeof ApiV1DocumentsDocumentIdVersionsCompareRoute
@@ -365,10 +392,13 @@ export interface FileRoutesById {
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
   '/api/v1/documents/$documentId/audit-events': typeof ApiV1DocumentsDocumentIdAuditEventsRoute
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
+  '/api/v1/documents/$documentId/media-metadata-proposals': typeof ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute
+  '/api/v1/documents/$documentId/media-proposals': typeof ApiV1DocumentsDocumentIdMediaProposalsRoute
   '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
   '/api/v1/documents/$documentId/signature-requests': typeof ApiV1DocumentsDocumentIdSignatureRequestsRouteWithChildren
   '/api/v1/documents/$documentId/versions': typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
+  '/api/v1/documents/$documentId/media/$assetId': typeof ApiV1DocumentsDocumentIdMediaAssetIdRoute
   '/api/v1/documents/$documentId/review-items/export': typeof ApiV1DocumentsDocumentIdReviewItemsExportRoute
   '/api/v1/documents/$documentId/versions/$versionId': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren
   '/api/v1/documents/$documentId/versions/compare': typeof ApiV1DocumentsDocumentIdVersionsCompareRoute
@@ -406,10 +436,13 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/$documentId/audit-events'
     | '/api/v1/documents/$documentId/exports'
+    | '/api/v1/documents/$documentId/media-metadata-proposals'
+    | '/api/v1/documents/$documentId/media-proposals'
     | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
     | '/api/v1/documents/$documentId/signature-requests'
     | '/api/v1/documents/$documentId/versions'
+    | '/api/v1/documents/$documentId/media/$assetId'
     | '/api/v1/documents/$documentId/review-items/export'
     | '/api/v1/documents/$documentId/versions/$versionId'
     | '/api/v1/documents/$documentId/versions/compare'
@@ -444,10 +477,13 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/$documentId/audit-events'
     | '/api/v1/documents/$documentId/exports'
+    | '/api/v1/documents/$documentId/media-metadata-proposals'
+    | '/api/v1/documents/$documentId/media-proposals'
     | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
     | '/api/v1/documents/$documentId/signature-requests'
     | '/api/v1/documents/$documentId/versions'
+    | '/api/v1/documents/$documentId/media/$assetId'
     | '/api/v1/documents/$documentId/review-items/export'
     | '/api/v1/documents/$documentId/versions/$versionId'
     | '/api/v1/documents/$documentId/versions/compare'
@@ -483,10 +519,13 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/$documentId/audit-events'
     | '/api/v1/documents/$documentId/exports'
+    | '/api/v1/documents/$documentId/media-metadata-proposals'
+    | '/api/v1/documents/$documentId/media-proposals'
     | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
     | '/api/v1/documents/$documentId/signature-requests'
     | '/api/v1/documents/$documentId/versions'
+    | '/api/v1/documents/$documentId/media/$assetId'
     | '/api/v1/documents/$documentId/review-items/export'
     | '/api/v1/documents/$documentId/versions/$versionId'
     | '/api/v1/documents/$documentId/versions/compare'
@@ -660,6 +699,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1DocumentsDocumentIdExportsRouteImport
       parentRoute: typeof ApiV1DocumentsDocumentIdRoute
     }
+    '/api/v1/documents/$documentId/media-metadata-proposals': {
+      id: '/api/v1/documents/$documentId/media-metadata-proposals'
+      path: '/media-metadata-proposals'
+      fullPath: '/api/v1/documents/$documentId/media-metadata-proposals'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdMediaMetadataProposalsRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
+    '/api/v1/documents/$documentId/media-proposals': {
+      id: '/api/v1/documents/$documentId/media-proposals'
+      path: '/media-proposals'
+      fullPath: '/api/v1/documents/$documentId/media-proposals'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdMediaProposalsRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
     '/api/v1/documents/$documentId/presence': {
       id: '/api/v1/documents/$documentId/presence'
       path: '/presence'
@@ -686,6 +739,13 @@ declare module '@tanstack/react-router' {
       path: '/versions'
       fullPath: '/api/v1/documents/$documentId/versions'
       preLoaderRoute: typeof ApiV1DocumentsDocumentIdVersionsRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
+    '/api/v1/documents/$documentId/media/$assetId': {
+      id: '/api/v1/documents/$documentId/media/$assetId'
+      path: '/media/$assetId'
+      fullPath: '/api/v1/documents/$documentId/media/$assetId'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdMediaAssetIdRouteImport
       parentRoute: typeof ApiV1DocumentsDocumentIdRoute
     }
     '/api/v1/documents/$documentId/review-items/export': {
@@ -897,10 +957,13 @@ const ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChild
 interface ApiV1DocumentsDocumentIdRouteChildren {
   ApiV1DocumentsDocumentIdAuditEventsRoute: typeof ApiV1DocumentsDocumentIdAuditEventsRoute
   ApiV1DocumentsDocumentIdExportsRoute: typeof ApiV1DocumentsDocumentIdExportsRoute
+  ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute: typeof ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute
+  ApiV1DocumentsDocumentIdMediaProposalsRoute: typeof ApiV1DocumentsDocumentIdMediaProposalsRoute
   ApiV1DocumentsDocumentIdPresenceRoute: typeof ApiV1DocumentsDocumentIdPresenceRoute
   ApiV1DocumentsDocumentIdReviewItemsRoute: typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
   ApiV1DocumentsDocumentIdSignatureRequestsRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsRouteWithChildren
   ApiV1DocumentsDocumentIdVersionsRoute: typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
+  ApiV1DocumentsDocumentIdMediaAssetIdRoute: typeof ApiV1DocumentsDocumentIdMediaAssetIdRoute
   ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRoute: typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren
 }
 
@@ -909,6 +972,10 @@ const ApiV1DocumentsDocumentIdRouteChildren: ApiV1DocumentsDocumentIdRouteChildr
     ApiV1DocumentsDocumentIdAuditEventsRoute:
       ApiV1DocumentsDocumentIdAuditEventsRoute,
     ApiV1DocumentsDocumentIdExportsRoute: ApiV1DocumentsDocumentIdExportsRoute,
+    ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute:
+      ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute,
+    ApiV1DocumentsDocumentIdMediaProposalsRoute:
+      ApiV1DocumentsDocumentIdMediaProposalsRoute,
     ApiV1DocumentsDocumentIdPresenceRoute:
       ApiV1DocumentsDocumentIdPresenceRoute,
     ApiV1DocumentsDocumentIdReviewItemsRoute:
@@ -917,6 +984,8 @@ const ApiV1DocumentsDocumentIdRouteChildren: ApiV1DocumentsDocumentIdRouteChildr
       ApiV1DocumentsDocumentIdSignatureRequestsRouteWithChildren,
     ApiV1DocumentsDocumentIdVersionsRoute:
       ApiV1DocumentsDocumentIdVersionsRouteWithChildren,
+    ApiV1DocumentsDocumentIdMediaAssetIdRoute:
+      ApiV1DocumentsDocumentIdMediaAssetIdRoute,
     ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRoute:
       ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren,
   }

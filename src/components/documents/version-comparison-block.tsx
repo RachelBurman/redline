@@ -33,6 +33,11 @@ export function VersionComparisonBlock({
         className={`flex flex-wrap items-center justify-between gap-2 border-b border-[#d8dee4] px-3 py-2 ${changeStyles[block.changeType]}`}
       >
         <h3 className="text-xs font-semibold">{changeLabels[block.changeType]}</h3>
+        {block.mediaChange ? (
+          <p className="text-xs font-semibold">
+            {block.mediaChange === 'replaced' ? 'Media replaced' : 'Media metadata changed'}
+          </p>
+        ) : null}
         {block.changeType === 'removed' ? (
           <p className="text-xs font-semibold">Not present in version {targetVersionNumber}</p>
         ) : null}

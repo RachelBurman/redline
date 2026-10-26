@@ -6,7 +6,11 @@ import { reviewCategories, reviewPriorities } from '#/domain/review/review-optio
 import { apiRequest } from '#/lib/api-client'
 
 import type { DocumentDetail } from '#/types/documents'
-import type { CreateReviewItemInput, ReviewChangeType, ReviewItemSummary } from '#/types/reviews'
+import type {
+  CreateReviewItemInput,
+  ReviewItemSummary,
+  TextReviewChangeType,
+} from '#/types/reviews'
 
 export type CreateReviewItemAction = (
   documentId: string,
@@ -29,7 +33,7 @@ interface ReviewProposalFormProps {
   versionId: string
   reviewRoundId: string
   block: DocumentDetail['blocks'][number]
-  changeType: ReviewChangeType
+  changeType: TextReviewChangeType
   beforeBlockId?: string | null
   initialProposedContent?: string
   createReviewItem?: CreateReviewItemAction

@@ -31,6 +31,10 @@ export interface ReviewQueueExportRow {
   resolverName: string | null
   resolvedAt: string | null
   discussionCount: number
+  mediaAssetId?: string | null
+  mediaContentHash?: string | null
+  mediaAltText?: string | null
+  mediaCaption?: string | null
 }
 
 interface CsvColumn {
@@ -50,6 +54,10 @@ const columns: CsvColumn[] = [
   { heading: 'Change Type', value: (row) => row.changeType },
   { heading: 'Target Block Key', value: (row) => row.targetBlockStableKey },
   { heading: 'Target Block ID', value: (row) => row.targetBlockId },
+  { heading: 'Media Asset ID', value: (row) => row.mediaAssetId ?? null },
+  { heading: 'Media SHA-256', value: (row) => row.mediaContentHash ?? null },
+  { heading: 'Media Alt Text', value: (row) => row.mediaAltText ?? null },
+  { heading: 'Media Caption', value: (row) => row.mediaCaption ?? null },
   { heading: 'Start Offset', value: (row) => row.startOffset },
   { heading: 'End Offset', value: (row) => row.endOffset },
   { heading: 'Original Text', value: (row) => row.originalContent },

@@ -19,7 +19,9 @@ function blockDescription(snapshot: VersionComparisonBlockSnapshot) {
 }
 
 function isSupported(snapshot: VersionComparisonBlockSnapshot | null) {
-  return snapshot === null || !['page_break', 'unsupported'].includes(snapshot.blockType)
+  return (
+    snapshot === null || !['page_break', 'unsupported', 'rich_media'].includes(snapshot.blockType)
+  )
 }
 
 export function mapVersionComparisonBlockToRenderer(input: {

@@ -10,10 +10,12 @@ import {
   reviewRounds,
 } from '#/db/schema'
 import { applyBlockChanges } from '#/domain/documents/apply-block-changes'
+import { parseRichMediaBlockAttributes } from '#/domain/documents/rich-media-block'
 import { assertDocumentAccess } from '#/server/auth/document-access'
 import { getDocumentCapabilities } from '#/server/auth/permissions'
 
 import { buildInsertionAnchors } from './build-insertion-anchors'
+import { mapDocumentBlock } from './map-document-block'
 
 import type { AcceptedBlockChange } from '#/domain/documents/apply-block-changes'
 
@@ -66,6 +68,7 @@ export async function getDocument(input: {
         text: documentBlocks.text,
         headingLevel: documentBlocks.headingLevel,
         contentHash: documentBlocks.contentHash,
+        attributes: documentBlocks.attributes,
       })
       .from(documentBlocks)
       .where(eq(documentBlocks.documentVersionId, document.versionId))
@@ -82,6 +85,8 @@ export async function getDocument(input: {
         targetBlockId: reviewItems.targetBlockId,
         changeType: reviewItems.changeType,
         finalContent: reviewResolutions.finalContent,
+        proposedMedia: reviewItems.proposedMedia,
+        insertionBeforeBlockId: reviewItems.insertionBeforeBlockId,
       })
       .from(reviewItems)
       .innerJoin(reviewResolutions, eq(reviewResolutions.reviewItemId, reviewItems.id))
@@ -120,6 +125,34 @@ export async function getDocument(input: {
         insertedStableKey: `insert-${replacement.reviewItemId}`,
         finalContent: replacement.finalContent,
       })
+    } else if (replacement.changeType === 'media_insert' && replacement.proposedMedia) {
+      acceptedChanges.push({
+        changeType: 'media_insert',
+        targetBlockId: replacement.targetBlockId,
+        insertedBlockId: replacement.reviewItemId,
+        insertedStableKey: `media-${replacement.reviewItemId}`,
+        media: parseRichMediaBlockAttributes(replacement.proposedMedia),
+      })
+    } else if (
+      ['media_replace', 'media_caption', 'media_alt_text'].includes(replacement.changeType) &&
+      replacement.proposedMedia
+    ) {
+      acceptedChanges.push({
+        changeType: replacement.changeType as 'media_replace' | 'media_caption' | 'media_alt_text',
+        targetBlockId: replacement.targetBlockId,
+        media: parseRichMediaBlockAttributes(replacement.proposedMedia),
+      })
+    } else if (replacement.changeType === 'media_delete') {
+      acceptedChanges.push({
+        changeType: 'media_delete',
+        targetBlockId: replacement.targetBlockId,
+      })
+    } else if (replacement.changeType === 'media_reorder') {
+      acceptedChanges.push({
+        changeType: 'media_reorder',
+        targetBlockId: replacement.targetBlockId,
+        beforeBlockId: replacement.insertionBeforeBlockId,
+      })
     }
   }
 
@@ -141,6 +174,8 @@ export async function getDocument(input: {
     },
     reviewRound,
     insertionAnchors: buildInsertionAnchors(blocks),
-    blocks: applyBlockChanges(blocks, acceptedChanges),
+    blocks: applyBlockChanges(blocks, acceptedChanges).map((block) =>
+      mapDocumentBlock(input.documentId, block),
+    ),
   }
 }

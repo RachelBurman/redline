@@ -7,6 +7,7 @@ import { exports as exportRecords } from '#/db/schema'
 import { appendAuditEvent } from '#/server/audit/append-audit-event'
 import { assertCanExportDocument } from '#/server/auth/permissions'
 import { getDocumentVersion } from '#/server/documents/get-document-version'
+import { getMediaAsset } from '#/server/media/get-media-asset'
 import { getVersionSignatureStatus } from '#/server/signatures/get-version-signature-status'
 import { localObjectStore } from '#/server/storage/local-object-store'
 
@@ -59,6 +60,17 @@ export async function exportDocumentVersion(input: {
       title: document.document.title,
       blocks: document.blocks,
       signatureStatus,
+      loadMedia: async (assetId) =>
+        (
+          await getMediaAsset({
+            assetId,
+            documentId: input.documentId,
+            organizationId: input.context.organizationId,
+            role: input.context.role,
+            userId: input.context.userId,
+            variant: 'original',
+          })
+        ).bytes,
     })
     const filename = downloadFilename(document.document.title, document.version.versionNumber)
     const objectKey = `exports/${input.documentId}/${exportId}.docx`

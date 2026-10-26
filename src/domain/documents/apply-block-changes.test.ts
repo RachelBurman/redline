@@ -104,4 +104,49 @@ describe('applyBlockChanges', () => {
 
     expect(applyBlockChanges(blocks, [])).toEqual(blocks)
   })
+
+  it('materialises, updates, reorders, and deletes immutable media blocks', () => {
+    const blocks = [paragraph('first', 0, 'First'), paragraph('last', 1, 'Last')].map((block) =>
+      Object.assign(block, { parentBlockId: null, attributes: {} }),
+    )
+    const media = {
+      assetId: '11111111-1111-4111-8111-111111111111',
+      altText: 'A static graph.',
+      caption: 'Results',
+      source: null,
+      provenance: {},
+      width: 400,
+      height: 300,
+      byteSize: 100,
+      mimeType: 'image/png' as const,
+      contentHash: 'a'.repeat(64),
+      processingStatus: 'ready' as const,
+    }
+    const inserted = applyBlockChanges(blocks, [
+      {
+        changeType: 'media_insert',
+        targetBlockId: 'first',
+        insertedBlockId: 'media-review',
+        insertedStableKey: 'media-media-review',
+        media,
+      },
+      {
+        changeType: 'media_reorder',
+        targetBlockId: 'media-review',
+        beforeBlockId: 'first',
+      },
+    ])
+
+    expect(inserted.map((block) => block.id)).toEqual(['media-review', 'first', 'last'])
+    expect(inserted[0]).toMatchObject({
+      blockType: 'rich_media',
+      text: 'Results',
+      attributes: media,
+    })
+    expect(
+      applyBlockChanges(inserted, [
+        { changeType: 'media_delete', targetBlockId: 'media-review' },
+      ]).map((block) => block.id),
+    ).toEqual(['first', 'last'])
+  })
 })

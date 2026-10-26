@@ -7,6 +7,7 @@ import { exports as exportRecords } from '#/db/schema'
 import { appendAuditEvent } from '#/server/audit/append-audit-event'
 import { assertCanExportDocument } from '#/server/auth/permissions'
 import { getDocument } from '#/server/documents/get-document'
+import { getMediaAsset } from '#/server/media/get-media-asset'
 import { getVersionSignatureStatus } from '#/server/signatures/get-version-signature-status'
 import { localObjectStore } from '#/server/storage/local-object-store'
 
@@ -57,6 +58,17 @@ export async function exportResolvedDocument(input: {
       title: document.document.title,
       blocks: document.blocks,
       signatureStatus,
+      loadMedia: async (assetId) =>
+        (
+          await getMediaAsset({
+            assetId,
+            documentId: input.documentId,
+            organizationId: input.context.organizationId,
+            role: input.context.role,
+            userId: input.context.userId,
+            variant: 'original',
+          })
+        ).bytes,
     })
     const objectKey = `exports/${input.documentId}/${exportId}.docx`
     const storedObject = await localObjectStore.put(objectKey, bytes)

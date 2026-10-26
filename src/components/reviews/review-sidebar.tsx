@@ -3,14 +3,14 @@ import { ReviewQueue } from './review-queue'
 
 import type { DocumentDetail } from '#/types/documents'
 import type { ReviewCommentSummary, ReviewItemSummary } from '#/types/reviews'
-import type { ReviewChangeType } from '#/types/reviews'
+import type { TextReviewChangeType } from '#/types/reviews'
 
 interface ReviewSidebarProps {
   documentId: string
   documentVersionId: string
   reviewRoundId: string
   activeBlock: DocumentDetail['blocks'][number] | null
-  activeChangeType: ReviewChangeType | null
+  activeChangeType: TextReviewChangeType | null
   insertionBeforeBlockId?: string | null
   initialProposedContent?: string
   blocks: DocumentDetail['blocks']

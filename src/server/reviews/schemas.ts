@@ -38,6 +38,24 @@ export const resolveReviewItemSchema = z.object({
   expectedRevision: z.int().positive(),
 })
 
+export const createMediaMetadataProposalSchema = z.discriminatedUnion('changeType', [
+  createReviewItemBaseSchema.extend({
+    changeType: z.literal('media_delete'),
+  }),
+  createReviewItemBaseSchema.extend({
+    changeType: z.literal('media_caption'),
+    caption: z.string().trim().max(2_000).nullable(),
+  }),
+  createReviewItemBaseSchema.extend({
+    changeType: z.literal('media_alt_text'),
+    altText: z.string().trim().min(1, 'An accessible description is required.').max(2_000),
+  }),
+  createReviewItemBaseSchema.extend({
+    changeType: z.literal('media_reorder'),
+    beforeBlockId: z.uuid().nullable(),
+  }),
+])
+
 export const createReviewCommentSchema = z.object({
   body: z.string().trim().min(1, 'Comment text is required.').max(5_000),
   parentCommentId: z.uuid().optional(),

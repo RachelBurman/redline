@@ -6,11 +6,11 @@ import { useDocumentDisplayMode } from '#/components/documents/use-document-disp
 import { ReviewSidebar } from '#/components/reviews/review-sidebar'
 
 import type { DocumentBlockDetail, DocumentDetail } from '#/types/documents'
-import type { ReviewChangeType, ReviewCommentSummary, ReviewItemSummary } from '#/types/reviews'
+import type { ReviewCommentSummary, ReviewItemSummary, TextReviewChangeType } from '#/types/reviews'
 
 export interface ActiveReviewProposal {
   block: DocumentBlockDetail
-  changeType: ReviewChangeType
+  changeType: TextReviewChangeType
   beforeBlockId?: string | null
   initialProposedContent?: string
 }
@@ -26,6 +26,7 @@ interface DocumentReviewWorkspaceProps {
   onCommentCreated: (comment: ReviewCommentSummary) => void
   onCreated: (item: ReviewItemSummary) => void
   onMobilePaneChange: (pane: 'document' | 'reviews') => void
+  onMediaProposalCreated?: (reviewItemId: string) => void
   onResolve: (item: ReviewItemSummary, decision: 'accept' | 'reject') => Promise<void>
   onSelectItem: (item: ReviewItemSummary) => void
   onStartProposal: (proposal: ActiveReviewProposal) => void
@@ -33,6 +34,8 @@ interface DocumentReviewWorkspaceProps {
   selectedStableKey?: string
   userId: string
 }
+
+const ignoreMediaProposal = () => undefined
 
 export function DocumentReviewWorkspace({
   activeProposal,
@@ -45,6 +48,7 @@ export function DocumentReviewWorkspace({
   onCommentCreated,
   onCreated,
   onMobilePaneChange,
+  onMediaProposalCreated = ignoreMediaProposal,
   onResolve,
   onSelectItem,
   onStartProposal,
@@ -136,6 +140,10 @@ export function DocumentReviewWorkspace({
               canInsert={canReview && document.insertionAnchors.length > 0}
               canReview={canReview}
               insertionAnchors={document.insertionAnchors}
+              documentId={documentId}
+              documentVersionId={document.version.id}
+              reviewRoundId={document.reviewRound.id}
+              onMediaProposalCreated={onMediaProposalCreated}
               onPropose={(block, changeType) => onStartProposal({ block, changeType })}
               onProposeInsertion={(anchor) =>
                 onStartProposal({
