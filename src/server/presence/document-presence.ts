@@ -4,6 +4,7 @@ import { user } from '#/db/auth-schema'
 import { db } from '#/db/index'
 import { documentBlocks, documentPresence, documents } from '#/db/schema'
 import { assertDocumentAccess } from '#/server/auth/document-access'
+import { appendLiveEvent } from '#/server/live/live-events'
 import { ReviewTargetError } from '#/server/reviews/review-errors'
 
 import type { PresenceParticipant } from '#/types/presence'
@@ -59,6 +60,21 @@ export async function recordDocumentPresence(input: {
 
   const now = new Date()
   await db.transaction(async (tx) => {
+    const [existingPresence] = await tx
+      .select({
+        documentVersionId: documentPresence.documentVersionId,
+        selectedBlockStableKey: documentPresence.selectedBlockStableKey,
+      })
+      .from(documentPresence)
+      .where(
+        and(
+          eq(documentPresence.documentId, input.documentId),
+          eq(documentPresence.userId, input.userId),
+          eq(documentPresence.clientId, input.clientId),
+        ),
+      )
+      .limit(1)
+      .for('update')
     await tx
       .delete(documentPresence)
       .where(
@@ -85,6 +101,20 @@ export async function recordDocumentPresence(input: {
           lastSeenAt: now,
         },
       })
+    const selectedBlockStableKey = input.selectedBlockStableKey ?? null
+    if (
+      !existingPresence ||
+      existingPresence.documentVersionId !== input.documentVersionId ||
+      existingPresence.selectedBlockStableKey !== selectedBlockStableKey
+    ) {
+      await appendLiveEvent(tx, {
+        organizationId: input.organizationId,
+        documentId: input.documentId,
+        documentVersionId: input.documentVersionId,
+        actorId: input.userId,
+        eventType: existingPresence ? 'presence.changed' : 'presence.joined',
+      })
+    }
   })
 
   return { lastSeenAt: now.toISOString() }

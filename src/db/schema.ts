@@ -483,6 +483,39 @@ export const documentPresence = pgTable(
   ],
 )
 
+export const liveEvents = pgTable(
+  'live_event',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    sequence: bigserial('sequence', { mode: 'number' }).notNull(),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'cascade' }),
+    documentId: uuid('document_id')
+      .notNull()
+      .references(() => documents.id, { onDelete: 'cascade' }),
+    documentVersionId: uuid('document_version_id').references(() => documentVersions.id, {
+      onDelete: 'cascade',
+    }),
+    reviewRoundId: uuid('review_round_id').references(() => reviewRounds.id, {
+      onDelete: 'cascade',
+    }),
+    reviewItemId: uuid('review_item_id').references(() => reviewItems.id, {
+      onDelete: 'cascade',
+    }),
+    actorId: text('actor_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    eventType: varchar('event_type', { length: 100 }).notNull(),
+    occurredAt: timestamp('occurred_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('live_event_sequence_uq').on(table.sequence),
+    index('live_event_document_sequence_idx').on(table.documentId, table.sequence),
+    index('live_event_organization_sequence_idx').on(table.organizationId, table.sequence),
+  ],
+)
+
 export const signatureRequests = pgTable(
   'signature_request',
   {

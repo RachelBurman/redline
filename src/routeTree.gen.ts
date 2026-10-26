@@ -28,6 +28,7 @@ import { Route as AppDocumentsDocumentIdRouteImport } from './routes/app/documen
 import { Route as ApiV1AuthSplatRouteImport } from './routes/api/v1/auth/$'
 import { Route as ApiV1DocumentsDocumentIdRouteImport } from './routes/api/v1/documents/$documentId'
 import { Route as ApiV1DocumentsDocumentIdAuditEventsRouteImport } from './routes/api/v1/documents/$documentId/audit-events'
+import { Route as ApiV1DocumentsDocumentIdEventsRouteImport } from './routes/api/v1/documents/$documentId/events'
 import { Route as ApiV1DocumentsDocumentIdExportsRouteImport } from './routes/api/v1/documents/$documentId/exports'
 import { Route as ApiV1DocumentsDocumentIdMediaMetadataProposalsRouteImport } from './routes/api/v1/documents/$documentId/media-metadata-proposals'
 import { Route as ApiV1DocumentsDocumentIdMediaProposalsRouteImport } from './routes/api/v1/documents/$documentId/media-proposals'
@@ -145,6 +146,12 @@ const ApiV1DocumentsDocumentIdAuditEventsRoute =
   ApiV1DocumentsDocumentIdAuditEventsRouteImport.update({
     id: '/audit-events',
     path: '/audit-events',
+    getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+  } as any)
+const ApiV1DocumentsDocumentIdEventsRoute =
+  ApiV1DocumentsDocumentIdEventsRouteImport.update({
+    id: '/events',
+    path: '/events',
     getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
   } as any)
 const ApiV1DocumentsDocumentIdExportsRoute =
@@ -307,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
   '/api/v1/documents/$documentId/audit-events': typeof ApiV1DocumentsDocumentIdAuditEventsRoute
+  '/api/v1/documents/$documentId/events': typeof ApiV1DocumentsDocumentIdEventsRoute
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
   '/api/v1/documents/$documentId/media-metadata-proposals': typeof ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute
   '/api/v1/documents/$documentId/media-proposals': typeof ApiV1DocumentsDocumentIdMediaProposalsRoute
@@ -348,6 +356,7 @@ export interface FileRoutesByTo {
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
   '/api/v1/documents/$documentId/audit-events': typeof ApiV1DocumentsDocumentIdAuditEventsRoute
+  '/api/v1/documents/$documentId/events': typeof ApiV1DocumentsDocumentIdEventsRoute
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
   '/api/v1/documents/$documentId/media-metadata-proposals': typeof ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute
   '/api/v1/documents/$documentId/media-proposals': typeof ApiV1DocumentsDocumentIdMediaProposalsRoute
@@ -391,6 +400,7 @@ export interface FileRoutesById {
   '/api/v1/auth/$': typeof ApiV1AuthSplatRoute
   '/api/v1/documents/$documentId': typeof ApiV1DocumentsDocumentIdRouteWithChildren
   '/api/v1/documents/$documentId/audit-events': typeof ApiV1DocumentsDocumentIdAuditEventsRoute
+  '/api/v1/documents/$documentId/events': typeof ApiV1DocumentsDocumentIdEventsRoute
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
   '/api/v1/documents/$documentId/media-metadata-proposals': typeof ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute
   '/api/v1/documents/$documentId/media-proposals': typeof ApiV1DocumentsDocumentIdMediaProposalsRoute
@@ -435,6 +445,7 @@ export interface FileRouteTypes {
     | '/api/v1/auth/$'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/$documentId/audit-events'
+    | '/api/v1/documents/$documentId/events'
     | '/api/v1/documents/$documentId/exports'
     | '/api/v1/documents/$documentId/media-metadata-proposals'
     | '/api/v1/documents/$documentId/media-proposals'
@@ -476,6 +487,7 @@ export interface FileRouteTypes {
     | '/api/v1/auth/$'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/$documentId/audit-events'
+    | '/api/v1/documents/$documentId/events'
     | '/api/v1/documents/$documentId/exports'
     | '/api/v1/documents/$documentId/media-metadata-proposals'
     | '/api/v1/documents/$documentId/media-proposals'
@@ -518,6 +530,7 @@ export interface FileRouteTypes {
     | '/api/v1/auth/$'
     | '/api/v1/documents/$documentId'
     | '/api/v1/documents/$documentId/audit-events'
+    | '/api/v1/documents/$documentId/events'
     | '/api/v1/documents/$documentId/exports'
     | '/api/v1/documents/$documentId/media-metadata-proposals'
     | '/api/v1/documents/$documentId/media-proposals'
@@ -690,6 +703,13 @@ declare module '@tanstack/react-router' {
       path: '/audit-events'
       fullPath: '/api/v1/documents/$documentId/audit-events'
       preLoaderRoute: typeof ApiV1DocumentsDocumentIdAuditEventsRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
+    '/api/v1/documents/$documentId/events': {
+      id: '/api/v1/documents/$documentId/events'
+      path: '/events'
+      fullPath: '/api/v1/documents/$documentId/events'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdEventsRouteImport
       parentRoute: typeof ApiV1DocumentsDocumentIdRoute
     }
     '/api/v1/documents/$documentId/exports': {
@@ -956,6 +976,7 @@ const ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChild
 
 interface ApiV1DocumentsDocumentIdRouteChildren {
   ApiV1DocumentsDocumentIdAuditEventsRoute: typeof ApiV1DocumentsDocumentIdAuditEventsRoute
+  ApiV1DocumentsDocumentIdEventsRoute: typeof ApiV1DocumentsDocumentIdEventsRoute
   ApiV1DocumentsDocumentIdExportsRoute: typeof ApiV1DocumentsDocumentIdExportsRoute
   ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute: typeof ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute
   ApiV1DocumentsDocumentIdMediaProposalsRoute: typeof ApiV1DocumentsDocumentIdMediaProposalsRoute
@@ -971,6 +992,7 @@ const ApiV1DocumentsDocumentIdRouteChildren: ApiV1DocumentsDocumentIdRouteChildr
   {
     ApiV1DocumentsDocumentIdAuditEventsRoute:
       ApiV1DocumentsDocumentIdAuditEventsRoute,
+    ApiV1DocumentsDocumentIdEventsRoute: ApiV1DocumentsDocumentIdEventsRoute,
     ApiV1DocumentsDocumentIdExportsRoute: ApiV1DocumentsDocumentIdExportsRoute,
     ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute:
       ApiV1DocumentsDocumentIdMediaMetadataProposalsRoute,

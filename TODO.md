@@ -70,7 +70,7 @@ audit events where appropriate, and automated tests.
    - [x] Reject the dependency after provenance and real-browser rendering failures, record the
          evidence in an ADR, and retain the locally rendered accessible alternative.
 7. [ ] Add image and graph blocks with safe upload, preview, versioning, and export behavior.
-8. [ ] Improve collaboration updates beyond polling where they materially improve proposal and
+8. [x] Improve collaboration updates beyond polling where they materially improve proposal and
        discussion workflows; do not turn this phase into unrestricted real-time word processing.
 9. [ ] Add dedicated question and comment proposal types with appropriate non-document-changing
        resolution states.

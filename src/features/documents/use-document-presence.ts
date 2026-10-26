@@ -8,6 +8,7 @@ export function useDocumentPresence(input: {
   documentVersionId?: string
   selectedBlockStableKey?: string
   enabled: boolean
+  liveUpdatesConnected: boolean
 }) {
   const [clientId] = useState(() => `web-${crypto.randomUUID()}`)
 
@@ -47,7 +48,7 @@ export function useDocumentPresence(input: {
       return body.data
     },
     enabled: input.enabled,
-    refetchInterval: 5_000,
+    refetchInterval: input.liveUpdatesConnected ? 35_000 : 5_000,
     refetchIntervalInBackground: false,
   })
 }

@@ -19,6 +19,7 @@
     "test": "vitest run --maxWorkers=4",
     "test:e2e": "playwright test",
     "test:integration": "vitest run --config vitest.integration.config.ts --maxWorkers=1",
+    "test:live-load": "tsx scripts/live-updates-load.ts",
     "test:watch": "vitest --maxWorkers=4",
     "test:coverage": "vitest run --coverage --maxWorkers=4",
     "react-doctor": "react-doctor --blocking warning",
