@@ -7,6 +7,7 @@ describe('buildResolvedDocx', () => {
   it('writes the resolved heading and paragraph text to a valid Word package', async () => {
     const output = await buildResolvedDocx({
       title: 'Resolved plan',
+      signatureStatus: 'Partially signed',
       blocks: [
         {
           id: '11111111-1111-4111-8111-111111111111',
@@ -34,5 +35,6 @@ describe('buildResolvedDocx', () => {
     const documentXml = strFromU8(packageFiles['word/document.xml']!)
     expect(documentXml).toContain('Analysis populations')
     expect(documentXml).toContain('The endpoint will be assessed at week 16.')
+    expect(documentXml).toContain('Electronic sign-off status: Partially signed')
   })
 })

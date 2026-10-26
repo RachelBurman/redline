@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const externalBaseUrl = process.env.PLAYWRIGHT_BASE_URL
+const baseURL = externalBaseUrl ?? 'http://localhost:3000'
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
@@ -8,7 +11,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL,
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
     video: 'retain-on-failure',
@@ -19,10 +22,12 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-  webServer: {
-    command: 'pnpm dev',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-    url: 'http://localhost:3000/api/v1/health',
-  },
+  webServer: externalBaseUrl
+    ? undefined
+    : {
+        command: 'pnpm dev',
+        reuseExistingServer: !process.env.CI,
+        timeout: 120_000,
+        url: `${baseURL}/api/v1/health`,
+      },
 })

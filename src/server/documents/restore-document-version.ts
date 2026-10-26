@@ -6,6 +6,7 @@ import { db } from '#/db/index'
 import { documentBlocks, documentVersions, documents, reviewItems, reviewRounds } from '#/db/schema'
 import { appendAuditEvent } from '#/server/audit/append-audit-event'
 import { assertCanManageDocumentVersions } from '#/server/auth/permissions'
+import { supersedePendingSignatureRequests } from '#/server/signatures/supersede-signature-requests'
 
 import { cloneVersionBlocks } from './clone-version-blocks'
 import { DocumentNotFoundError } from './get-document'
@@ -157,6 +158,16 @@ export async function restoreDocumentVersion(input: {
       .update(documents)
       .set({ currentVersionId: newVersionId, updatedAt: now })
       .where(eq(documents.id, input.documentId))
+
+    await supersedePendingSignatureRequests(tx, {
+      organizationId: input.context.organizationId,
+      projectId: input.context.projectId,
+      documentId: input.documentId,
+      previousDocumentVersionId: current.documentVersionId,
+      newDocumentVersionId: newVersionId,
+      reviewRoundId: reviewRound.id,
+      actorId: input.context.userId,
+    })
 
     await appendAuditEvent(tx, {
       organizationId: input.context.organizationId,

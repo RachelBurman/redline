@@ -31,6 +31,7 @@ import { Route as ApiV1DocumentsDocumentIdAuditEventsRouteImport } from './route
 import { Route as ApiV1DocumentsDocumentIdExportsRouteImport } from './routes/api/v1/documents/$documentId/exports'
 import { Route as ApiV1DocumentsDocumentIdPresenceRouteImport } from './routes/api/v1/documents/$documentId/presence'
 import { Route as ApiV1DocumentsDocumentIdReviewItemsRouteImport } from './routes/api/v1/documents/$documentId/review-items'
+import { Route as ApiV1DocumentsDocumentIdSignatureRequestsRouteImport } from './routes/api/v1/documents/$documentId/signature-requests'
 import { Route as ApiV1DocumentsDocumentIdVersionsRouteImport } from './routes/api/v1/documents/$documentId/versions'
 import { Route as ApiV1DocumentsDocumentIdReviewItemsExportRouteImport } from './routes/api/v1/documents/$documentId/review-items/export'
 import { Route as ApiV1DocumentsDocumentIdVersionsVersionIdRouteImport } from './routes/api/v1/documents/$documentId/versions/$versionId'
@@ -38,6 +39,10 @@ import { Route as ApiV1DocumentsDocumentIdVersionsCompareRouteImport } from './r
 import { Route as ApiV1DocumentsDocumentIdReviewItemsReviewItemIdCommentsRouteImport } from './routes/api/v1/documents/$documentId/review-items/$reviewItemId/comments'
 import { Route as ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRouteImport } from './routes/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
 import { Route as ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteImport } from './routes/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments'
+import { Route as ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdCancelRouteImport } from './routes/api/v1/documents/$documentId/signature-requests/$signatureRequestId/cancel'
+import { Route as ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdDeclineRouteImport } from './routes/api/v1/documents/$documentId/signature-requests/$signatureRequestId/decline'
+import { Route as ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdEvidenceRouteImport } from './routes/api/v1/documents/$documentId/signature-requests/$signatureRequestId/evidence'
+import { Route as ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdSignRouteImport } from './routes/api/v1/documents/$documentId/signature-requests/$signatureRequestId/sign'
 import { Route as ApiV1DocumentsDocumentIdVersionsVersionIdExportsRouteImport } from './routes/api/v1/documents/$documentId/versions/$versionId/exports'
 import { Route as ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRouteImport } from './routes/api/v1/documents/$documentId/versions/$versionId/restore'
 import { Route as ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRouteImport } from './routes/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId'
@@ -157,6 +162,12 @@ const ApiV1DocumentsDocumentIdReviewItemsRoute =
     path: '/review-items',
     getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
   } as any)
+const ApiV1DocumentsDocumentIdSignatureRequestsRoute =
+  ApiV1DocumentsDocumentIdSignatureRequestsRouteImport.update({
+    id: '/signature-requests',
+    path: '/signature-requests',
+    getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+  } as any)
 const ApiV1DocumentsDocumentIdVersionsRoute =
   ApiV1DocumentsDocumentIdVersionsRouteImport.update({
     id: '/versions',
@@ -199,6 +210,38 @@ const ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRoute =
       id: '/review-rounds/$reviewRoundId/assignments',
       path: '/review-rounds/$reviewRoundId/assignments',
       getParentRoute: () => ApiV1DocumentsDocumentIdRoute,
+    } as any,
+  )
+const ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdCancelRoute =
+  ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdCancelRouteImport.update(
+    {
+      id: '/$signatureRequestId/cancel',
+      path: '/$signatureRequestId/cancel',
+      getParentRoute: () => ApiV1DocumentsDocumentIdSignatureRequestsRoute,
+    } as any,
+  )
+const ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdDeclineRoute =
+  ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdDeclineRouteImport.update(
+    {
+      id: '/$signatureRequestId/decline',
+      path: '/$signatureRequestId/decline',
+      getParentRoute: () => ApiV1DocumentsDocumentIdSignatureRequestsRoute,
+    } as any,
+  )
+const ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdEvidenceRoute =
+  ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdEvidenceRouteImport.update(
+    {
+      id: '/$signatureRequestId/evidence',
+      path: '/$signatureRequestId/evidence',
+      getParentRoute: () => ApiV1DocumentsDocumentIdSignatureRequestsRoute,
+    } as any,
+  )
+const ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdSignRoute =
+  ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdSignRouteImport.update(
+    {
+      id: '/$signatureRequestId/sign',
+      path: '/$signatureRequestId/sign',
+      getParentRoute: () => ApiV1DocumentsDocumentIdSignatureRequestsRoute,
     } as any,
   )
 const ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute =
@@ -246,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
   '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
+  '/api/v1/documents/$documentId/signature-requests': typeof ApiV1DocumentsDocumentIdSignatureRequestsRouteWithChildren
   '/api/v1/documents/$documentId/versions': typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
   '/api/v1/documents/$documentId/review-items/export': typeof ApiV1DocumentsDocumentIdReviewItemsExportRoute
   '/api/v1/documents/$documentId/versions/$versionId': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren
@@ -253,6 +297,10 @@ export interface FileRoutesByFullPath {
   '/api/v1/documents/$documentId/review-items/$reviewItemId/comments': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdCommentsRoute
   '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
   '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/cancel': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdCancelRoute
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/decline': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdDeclineRoute
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/evidence': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdEvidenceRoute
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/sign': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdSignRoute
   '/api/v1/documents/$documentId/versions/$versionId/exports': typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute
   '/api/v1/documents/$documentId/versions/$versionId/restore': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute
   '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRoute
@@ -279,6 +327,7 @@ export interface FileRoutesByTo {
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
   '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
+  '/api/v1/documents/$documentId/signature-requests': typeof ApiV1DocumentsDocumentIdSignatureRequestsRouteWithChildren
   '/api/v1/documents/$documentId/versions': typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
   '/api/v1/documents/$documentId/review-items/export': typeof ApiV1DocumentsDocumentIdReviewItemsExportRoute
   '/api/v1/documents/$documentId/versions/$versionId': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren
@@ -286,6 +335,10 @@ export interface FileRoutesByTo {
   '/api/v1/documents/$documentId/review-items/$reviewItemId/comments': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdCommentsRoute
   '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
   '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/cancel': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdCancelRoute
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/decline': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdDeclineRoute
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/evidence': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdEvidenceRoute
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/sign': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdSignRoute
   '/api/v1/documents/$documentId/versions/$versionId/exports': typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute
   '/api/v1/documents/$documentId/versions/$versionId/restore': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute
   '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRoute
@@ -314,6 +367,7 @@ export interface FileRoutesById {
   '/api/v1/documents/$documentId/exports': typeof ApiV1DocumentsDocumentIdExportsRoute
   '/api/v1/documents/$documentId/presence': typeof ApiV1DocumentsDocumentIdPresenceRoute
   '/api/v1/documents/$documentId/review-items': typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
+  '/api/v1/documents/$documentId/signature-requests': typeof ApiV1DocumentsDocumentIdSignatureRequestsRouteWithChildren
   '/api/v1/documents/$documentId/versions': typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
   '/api/v1/documents/$documentId/review-items/export': typeof ApiV1DocumentsDocumentIdReviewItemsExportRoute
   '/api/v1/documents/$documentId/versions/$versionId': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRouteWithChildren
@@ -321,6 +375,10 @@ export interface FileRoutesById {
   '/api/v1/documents/$documentId/review-items/$reviewItemId/comments': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdCommentsRoute
   '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve': typeof ApiV1DocumentsDocumentIdReviewItemsReviewItemIdResolveRoute
   '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/cancel': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdCancelRoute
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/decline': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdDeclineRoute
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/evidence': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdEvidenceRoute
+  '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/sign': typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdSignRoute
   '/api/v1/documents/$documentId/versions/$versionId/exports': typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute
   '/api/v1/documents/$documentId/versions/$versionId/restore': typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute
   '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId': typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsAssignmentIdRoute
@@ -350,6 +408,7 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId/exports'
     | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
+    | '/api/v1/documents/$documentId/signature-requests'
     | '/api/v1/documents/$documentId/versions'
     | '/api/v1/documents/$documentId/review-items/export'
     | '/api/v1/documents/$documentId/versions/$versionId'
@@ -357,6 +416,10 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/comments'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
     | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/cancel'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/decline'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/evidence'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/sign'
     | '/api/v1/documents/$documentId/versions/$versionId/exports'
     | '/api/v1/documents/$documentId/versions/$versionId/restore'
     | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId'
@@ -383,6 +446,7 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId/exports'
     | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
+    | '/api/v1/documents/$documentId/signature-requests'
     | '/api/v1/documents/$documentId/versions'
     | '/api/v1/documents/$documentId/review-items/export'
     | '/api/v1/documents/$documentId/versions/$versionId'
@@ -390,6 +454,10 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/comments'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
     | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/cancel'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/decline'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/evidence'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/sign'
     | '/api/v1/documents/$documentId/versions/$versionId/exports'
     | '/api/v1/documents/$documentId/versions/$versionId/restore'
     | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId'
@@ -417,6 +485,7 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId/exports'
     | '/api/v1/documents/$documentId/presence'
     | '/api/v1/documents/$documentId/review-items'
+    | '/api/v1/documents/$documentId/signature-requests'
     | '/api/v1/documents/$documentId/versions'
     | '/api/v1/documents/$documentId/review-items/export'
     | '/api/v1/documents/$documentId/versions/$versionId'
@@ -424,6 +493,10 @@ export interface FileRouteTypes {
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/comments'
     | '/api/v1/documents/$documentId/review-items/$reviewItemId/resolve'
     | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/cancel'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/decline'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/evidence'
+    | '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/sign'
     | '/api/v1/documents/$documentId/versions/$versionId/exports'
     | '/api/v1/documents/$documentId/versions/$versionId/restore'
     | '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments/$assignmentId'
@@ -601,6 +674,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1DocumentsDocumentIdReviewItemsRouteImport
       parentRoute: typeof ApiV1DocumentsDocumentIdRoute
     }
+    '/api/v1/documents/$documentId/signature-requests': {
+      id: '/api/v1/documents/$documentId/signature-requests'
+      path: '/signature-requests'
+      fullPath: '/api/v1/documents/$documentId/signature-requests'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
     '/api/v1/documents/$documentId/versions': {
       id: '/api/v1/documents/$documentId/versions'
       path: '/versions'
@@ -649,6 +729,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/documents/$documentId/review-rounds/$reviewRoundId/assignments'
       preLoaderRoute: typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteImport
       parentRoute: typeof ApiV1DocumentsDocumentIdRoute
+    }
+    '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/cancel': {
+      id: '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/cancel'
+      path: '/$signatureRequestId/cancel'
+      fullPath: '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/cancel'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdCancelRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsRoute
+    }
+    '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/decline': {
+      id: '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/decline'
+      path: '/$signatureRequestId/decline'
+      fullPath: '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/decline'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdDeclineRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsRoute
+    }
+    '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/evidence': {
+      id: '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/evidence'
+      path: '/$signatureRequestId/evidence'
+      fullPath: '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/evidence'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdEvidenceRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsRoute
+    }
+    '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/sign': {
+      id: '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/sign'
+      path: '/$signatureRequestId/sign'
+      fullPath: '/api/v1/documents/$documentId/signature-requests/$signatureRequestId/sign'
+      preLoaderRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdSignRouteImport
+      parentRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsRoute
     }
     '/api/v1/documents/$documentId/versions/$versionId/exports': {
       id: '/api/v1/documents/$documentId/versions/$versionId/exports'
@@ -711,6 +819,30 @@ const ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren =
     ApiV1DocumentsDocumentIdReviewItemsRouteChildren,
   )
 
+interface ApiV1DocumentsDocumentIdSignatureRequestsRouteChildren {
+  ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdCancelRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdCancelRoute
+  ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdDeclineRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdDeclineRoute
+  ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdEvidenceRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdEvidenceRoute
+  ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdSignRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdSignRoute
+}
+
+const ApiV1DocumentsDocumentIdSignatureRequestsRouteChildren: ApiV1DocumentsDocumentIdSignatureRequestsRouteChildren =
+  {
+    ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdCancelRoute:
+      ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdCancelRoute,
+    ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdDeclineRoute:
+      ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdDeclineRoute,
+    ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdEvidenceRoute:
+      ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdEvidenceRoute,
+    ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdSignRoute:
+      ApiV1DocumentsDocumentIdSignatureRequestsSignatureRequestIdSignRoute,
+  }
+
+const ApiV1DocumentsDocumentIdSignatureRequestsRouteWithChildren =
+  ApiV1DocumentsDocumentIdSignatureRequestsRoute._addFileChildren(
+    ApiV1DocumentsDocumentIdSignatureRequestsRouteChildren,
+  )
+
 interface ApiV1DocumentsDocumentIdVersionsVersionIdRouteChildren {
   ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdExportsRoute
   ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute: typeof ApiV1DocumentsDocumentIdVersionsVersionIdRestoreRoute
@@ -767,6 +899,7 @@ interface ApiV1DocumentsDocumentIdRouteChildren {
   ApiV1DocumentsDocumentIdExportsRoute: typeof ApiV1DocumentsDocumentIdExportsRoute
   ApiV1DocumentsDocumentIdPresenceRoute: typeof ApiV1DocumentsDocumentIdPresenceRoute
   ApiV1DocumentsDocumentIdReviewItemsRoute: typeof ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren
+  ApiV1DocumentsDocumentIdSignatureRequestsRoute: typeof ApiV1DocumentsDocumentIdSignatureRequestsRouteWithChildren
   ApiV1DocumentsDocumentIdVersionsRoute: typeof ApiV1DocumentsDocumentIdVersionsRouteWithChildren
   ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRoute: typeof ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRouteWithChildren
 }
@@ -780,6 +913,8 @@ const ApiV1DocumentsDocumentIdRouteChildren: ApiV1DocumentsDocumentIdRouteChildr
       ApiV1DocumentsDocumentIdPresenceRoute,
     ApiV1DocumentsDocumentIdReviewItemsRoute:
       ApiV1DocumentsDocumentIdReviewItemsRouteWithChildren,
+    ApiV1DocumentsDocumentIdSignatureRequestsRoute:
+      ApiV1DocumentsDocumentIdSignatureRequestsRouteWithChildren,
     ApiV1DocumentsDocumentIdVersionsRoute:
       ApiV1DocumentsDocumentIdVersionsRouteWithChildren,
     ApiV1DocumentsDocumentIdReviewRoundsReviewRoundIdAssignmentsRoute:

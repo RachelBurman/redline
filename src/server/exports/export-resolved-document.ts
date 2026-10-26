@@ -7,6 +7,7 @@ import { exports as exportRecords } from '#/db/schema'
 import { appendAuditEvent } from '#/server/audit/append-audit-event'
 import { assertCanExportDocument } from '#/server/auth/permissions'
 import { getDocument } from '#/server/documents/get-document'
+import { getVersionSignatureStatus } from '#/server/signatures/get-version-signature-status'
 import { localObjectStore } from '#/server/storage/local-object-store'
 
 import { buildResolvedDocx } from './build-resolved-docx'
@@ -51,9 +52,11 @@ export async function exportResolvedDocument(input: {
   })
 
   try {
+    const signatureStatus = await getVersionSignatureStatus(document.version.id)
     const bytes = await buildResolvedDocx({
       title: document.document.title,
       blocks: document.blocks,
+      signatureStatus,
     })
     const objectKey = `exports/${input.documentId}/${exportId}.docx`
     const storedObject = await localObjectStore.put(objectKey, bytes)
@@ -83,6 +86,7 @@ export async function exportResolvedDocument(input: {
             filename: downloadFilename(document.document.title),
             outputSha256: storedObject.sha256,
             outputByteSize: storedObject.byteSize,
+            signatureStatus,
           },
         })
       })

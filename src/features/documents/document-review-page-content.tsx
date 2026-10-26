@@ -7,6 +7,7 @@ import {
 import { DocumentVersionComparisonWorkspace } from '#/components/documents/document-version-comparison-workspace'
 import { VersionHistoryPanel } from '#/components/documents/version-history-panel'
 import { ReviewRoundAssignmentsPanel } from '#/components/reviewers/review-round-assignments-panel'
+import { SignaturePanel } from '#/components/signatures/signature-panel'
 import { WorkspaceHeader } from '#/components/workspace/workspace-header'
 
 import type { DocumentVersionSummary, VersionActionResult } from '#/types/document-versions'
@@ -126,6 +127,17 @@ export function DocumentReviewPageContent({
             onViewVersion={onViewVersion}
             versions={versions}
             viewedVersionId={viewedVersionId}
+          />
+        ) : null}
+
+        {!isComparingVersions ? (
+          <SignaturePanel
+            canManage={capabilities.manageSignatures}
+            documentId={documentId}
+            documentTitle={document.document.title}
+            documentVersionId={displayedDocument.version.id}
+            userId={user.id}
+            versionNumber={displayedDocument.version.versionNumber}
           />
         ) : null}
 
