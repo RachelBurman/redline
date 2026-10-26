@@ -84,6 +84,13 @@ Electronic sign-off in this repository is deliberately described as a baseline a
 workflow. It does not issue or validate signing certificates and makes no Advanced Electronic
 Signature (AdES) or Qualified Electronic Signature (QES) compliance claim.
 
+The proposed regulated-signature architecture is documented in
+[`ADR 0003`](./docs/adr/0003-regulated-trust-service-boundary.md), with a
+[`provider assessment template`](./docs/trust-services/provider-assessment-template.md) and
+[`threat model`](./docs/trust-services/threat-model.md). The provider-neutral code is a design
+boundary only: no provider adapter, route, database migration, UI, or production feature flag is
+enabled, and legal, security, privacy, accessibility, sandbox, and operational gates remain open.
+
 See [`TODO.md`](./TODO.md) for the detailed, checked product roadmap.
 
 ## Stack
